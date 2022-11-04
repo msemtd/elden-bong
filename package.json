@@ -9,7 +9,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "eslint src"
   },
   "keywords": [],
   "author": {
@@ -25,10 +25,17 @@
     "@electron-forge/maker-zip": "^6.0.0",
     "@electron-forge/plugin-webpack": "^6.0.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
+    "camera-controls": "^1.37.3",
     "css-loader": "^6.0.0",
     "electron": "21.2.2",
+    "eslint": "^8.26.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.4.0",
+    "eslint-plugin-promise": "^6.1.1",
     "node-loader": "^2.0.0",
-    "style-loader": "^3.0.0"
+    "style-loader": "^3.0.0",
+    "three": "^0.146.0"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0"
