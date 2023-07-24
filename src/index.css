@@ -44,11 +44,11 @@ div#topBar {
 
 div#elden {
   position: absolute;
-  top: 0px;
+  bottom: 0px;
   right: 0px;
   font-family: 'Elden';
   color: rgb(237, 223, 122);
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.501);
   font-size: xxx-large;
   padding-top: 3px;
   padding-right: 9px;

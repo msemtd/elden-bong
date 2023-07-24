@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain, net, protocol, session } = require('electron')
 const path = require('path')
+const url = require('url')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -25,10 +26,16 @@ const createWindow = () => {
   mainWindow.webContents.openDevTools()
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.whenReady().then(() => {
+  const partition = 'persist:mine'
+  const ses = session.fromPartition(partition)
+  ses.protocol.handle('mine', (request) => {
+    const filePath = request.url.slice('mine://'.length)
+    return net.fetch(url.pathToFileURL(path.join(__dirname, filePath)).toString())
+  })
+  ipcMain.handle('ping', () => 'pong')
+  createWindow()
+})
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
