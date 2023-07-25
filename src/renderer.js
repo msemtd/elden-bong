@@ -93,7 +93,6 @@ function addGrid (scene) {
 }
 
 async function getDir () {
-  const defaultDir = 'C:/Users/michael.erskine/Downloads/COMPLETE Resource Pack-960-1-0-1651278607/maps'
   const response = await window.bong.pickMapsDir()
   return response
 }
@@ -102,6 +101,18 @@ async function loadMap (scene) {
   const dir = await getDir()
   console.log(`load map from "${dir}"`)
   if (!dir) return
+  if (!Array.isArray(dir) || !dir.length) return
+  console.log('there are ' + dir.length + ' tiles')
+  const tilesX = 38
+  const tilesY = 36
+  const logicalTileCount = tilesX * tilesY
+
+  if (dir.length === logicalTileCount) {
+    console.log(`map tiles look OKAY: ${logicalTileCount}`)
+  } else {
+    console.log(`map tiles look wrong: ${dir.length} vs ${logicalTileCount}`)
+    return
+  }
 
   const g = scene.getObjectByName('map')
   if (g) {
@@ -112,8 +123,6 @@ async function loadMap (scene) {
   const grp = new THREE.Group()
   grp.name = 'map'
   scene.add(grp)
-  const tilesX = 38
-  const tilesY = 38
   const size = 1
   for (let y = 0; y < tilesY; y++) {
     for (let x = 0; x < tilesX; x++) {

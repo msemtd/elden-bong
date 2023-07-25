@@ -1,3 +1,6 @@
+import fs from 'fs-extra'
+import { pathToFileURL } from 'node:url'
+
 const { app, BrowserWindow, ipcMain, net, session, dialog } = require('electron')
 const path = require('path')
 const url = require('url')
@@ -11,12 +14,14 @@ if (require('electron-squirrel-startup')) {
 const config = new Config()
 config.load()
 
+let mapsDir = ''
+
 let mainWindow = null
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     icon: path.join(process.cwd(), 'stuff', 'icon.ico'),
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 760,
     webPreferences: {
       // eslint-disable-next-line no-undef
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -32,6 +37,10 @@ app.whenReady().then(() => {
   const ses = session.fromPartition(partition)
   ses.protocol.handle('mine', (request) => {
     const filePath = request.url.slice('mine://'.length)
+    if (filePath.startsWith('maps/')) {
+      const tile = filePath.slice('maps/'.length)
+      return net.fetch(url.pathToFileURL(path.join(mapsDir, tile)).toString())
+    }
     return net.fetch(url.pathToFileURL(path.join(__dirname, filePath)).toString())
   })
   ipcMain.handle('ping', () => 'pong')
@@ -56,16 +65,25 @@ app.on('activate', () => {
   }
 })
 
+// return list all tiles as special "mine" protocol URLs
 async function pickMapsDir () {
   try {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory']
-    })
-    console.log(result.canceled)
-    console.log(result.filePaths)
-    // TODO return file api object?
-    return result.canceled ? '' : result.filePaths.length ? result.filePaths[0] : ''
+    const dir = await pickDir()
+    mapsDir = dir
+    const prefix = 'tiles'
+    const postfix = '.png'
+    const files = await fs.readdir(dir)
+    const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix)).map(f => `mine://maps/${f}`)
+    return urls
   } catch (error) {
     console.error(error)
   }
+  return ''
+}
+
+async function pickDir () {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  })
+  return result.canceled ? '' : result.filePaths.length ? result.filePaths[0] : ''
 }
