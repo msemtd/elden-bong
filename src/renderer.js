@@ -92,19 +92,22 @@ function addGrid (scene) {
   scene.add(grid)
 }
 
-function getDir () {
-  console.log(window.myAPI)
-  return 'C:/Users/michael.erskine/Downloads/COMPLETE Resource Pack-960-1-0-1651278607/maps'
+async function getDir () {
+  const defaultDir = 'C:/Users/michael.erskine/Downloads/COMPLETE Resource Pack-960-1-0-1651278607/maps'
+  const response = await window.bong.pickMapsDir()
+  return response
 }
 
-function loadMap (scene) {
+async function loadMap (scene) {
+  const dir = await getDir()
+  console.log(`load map from "${dir}"`)
+  if (!dir) return
+
   const g = scene.getObjectByName('map')
   if (g) {
     console.log('map already loaded')
     return
   }
-  const dir = getDir()
-  if (!dir) return
 
   const grp = new THREE.Group()
   grp.name = 'map'
