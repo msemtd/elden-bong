@@ -10,5 +10,5 @@ contextBridge.exposeInMainWorld('versions', {
 })
 
 contextBridge.exposeInMainWorld('bong', {
-  pickMapsDir: () => ipcRenderer.invoke('pickMapsDir')
+  getMapTiles: () => ipcRenderer.invoke('getMapTiles')
 })

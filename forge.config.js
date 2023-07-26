@@ -1,3 +1,11 @@
+const devContentSecurityPolicy = `
+
+default-src 'self' 'unsafe-inline' data:
+script-src 'self' 'unsafe-eval' 'unsafe-inline' data:
+img-src 'self' mine: file:
+
+`.split('\n').filter(l => l.length).join('; ')
+
 module.exports = {
   packagerConfig: {
     icon: 'stuff/icon'
@@ -25,6 +33,7 @@ module.exports = {
     {
       name: '@electron-forge/plugin-webpack',
       config: {
+        devContentSecurityPolicy,
         mainConfig: './webpack.main.config.js',
         renderer: {
           config: './webpack.renderer.config.js',

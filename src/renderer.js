@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { CanvasThree } from './CanvasThree'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import * as util from './util'
 
 console.log('👋 This message is being logged by "renderer.js", included via webpack')
 
@@ -23,7 +24,6 @@ const c = new CanvasThree(appDiv)
 const PROPS = {
   rotating: true,
   addMapTiles: () => {
-    console.log('YO')
     loadMap(c.scene)
   }
 }
@@ -92,56 +92,49 @@ function addGrid (scene) {
   scene.add(grid)
 }
 
-async function getDir () {
-  const response = await window.bong.pickMapsDir()
-  return response
+function tileFile (x, y) {
+  const tilesX = 38
+  const tilesY = 36
+  const idx = ((tilesY - y - 1) * tilesX) + x
+  const d = util.leftFillNum(idx, 4)
+  return `map-0-overworld-tile256-${d}.png`
 }
 
 async function loadMap (scene) {
-  const dir = await getDir()
-  console.log(`load map from "${dir}"`)
+  const dir = await window.bong.getMapTiles()
   if (!dir) return
   if (!Array.isArray(dir) || !dir.length) return
-  console.log('there are ' + dir.length + ' tiles')
   const tilesX = 38
   const tilesY = 36
   const logicalTileCount = tilesX * tilesY
-
-  if (dir.length === logicalTileCount) {
-    console.log(`map tiles look OKAY: ${logicalTileCount}`)
-  } else {
-    console.log(`map tiles look wrong: ${dir.length} vs ${logicalTileCount}`)
-    return
+  console.log(`logicalTileCount: ${logicalTileCount}`)
+  if (dir.length !== logicalTileCount) {
+    console.log(`map logicalTileCount not OKAY: ${dir.length}`)
   }
-
   const g = scene.getObjectByName('map')
   if (g) {
     console.log('map already loaded')
     return
   }
-
+  const loader = new THREE.TextureLoader()
   const grp = new THREE.Group()
   grp.name = 'map'
   scene.add(grp)
   const size = 1
   for (let y = 0; y < tilesY; y++) {
     for (let x = 0; x < tilesX; x++) {
+      const f = tileFile(x, y)
       const geometry = new THREE.BoxGeometry(size, size, 0.1)
-      const material = new THREE.MeshBasicMaterial({ color: randomColour() })
+      const material = new THREE.MeshBasicMaterial()
+      loader.load(`mine://maps/${f}`, (t) => {
+        material.map = t
+        material.needsUpdate = true
+      }, undefined, (err) => {
+        console.warn('oops loading ' + f + ': ', err.message)
+      })
       const cube = new THREE.Mesh(geometry, material)
       cube.position.set(x * size, y * size, -2)
       grp.add(cube)
     }
   }
-}
-
-function randomInt (min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-function randomColour () {
-  const h = randomInt(0, 360)
-  const s = randomInt(42, 98)
-  const l = randomInt(40, 90)
-  return `hsl(${h},${s}%,${l}%)`
 }

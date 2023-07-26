@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import { pathToFileURL } from 'node:url'
 
-const { app, BrowserWindow, ipcMain, net, session, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, net, protocol, dialog } = require('electron')
 const path = require('path')
 const url = require('url')
 const { Config } = require('./config')
@@ -33,9 +33,14 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-  const partition = 'persist:mine'
-  const ses = session.fromPartition(partition)
-  ses.protocol.handle('mine', (request) => {
+  setupMine()
+  ipcMain.handle('ping', () => 'pong')
+  ipcMain.handle('getMapTiles', getMapTiles)
+  createWindow()
+})
+
+function setupMine () {
+  protocol.handle('mine', (request) => {
     const filePath = request.url.slice('mine://'.length)
     if (filePath.startsWith('maps/')) {
       const tile = filePath.slice('maps/'.length)
@@ -43,10 +48,7 @@ app.whenReady().then(() => {
     }
     return net.fetch(url.pathToFileURL(path.join(__dirname, filePath)).toString())
   })
-  ipcMain.handle('ping', () => 'pong')
-  ipcMain.handle('pickMapsDir', pickMapsDir)
-  createWindow()
-})
+}
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -66,11 +68,11 @@ app.on('activate', () => {
 })
 
 // return list all tiles as special "mine" protocol URLs
-async function pickMapsDir () {
+async function getMapTiles () {
   try {
     const dir = await pickDir()
     mapsDir = dir
-    const prefix = 'tiles'
+    const prefix = 'map-0-overworld-tile256-'
     const postfix = '.png'
     const files = await fs.readdir(dir)
     const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix)).map(f => `mine://maps/${f}`)
