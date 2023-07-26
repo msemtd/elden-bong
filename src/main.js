@@ -36,6 +36,7 @@ app.whenReady().then(() => {
   setupMine()
   ipcMain.handle('ping', () => 'pong')
   ipcMain.handle('getMapTiles', getMapTiles)
+  ipcMain.handle('pickFile', pickFile)
   createWindow()
 })
 
@@ -88,4 +89,14 @@ async function pickDir () {
     properties: ['openDirectory']
   })
   return result.canceled ? '' : result.filePaths.length ? result.filePaths[0] : ''
+}
+
+async function pickFile () {
+  const result = await dialog.showOpenDialog(mainWindow, {
+  })
+  return result
+}
+
+async function shellOpenPath () {
+
 }

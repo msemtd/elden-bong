@@ -106,9 +106,12 @@ class CanvasThree {
     this.doResize()
     const cc = new CameraControls(this.camera, this.renderer.domElement)
     cc.dollyToCursor = true
+    // cc.infinityDolly = true
+    cc.minDistance = 0.01
+    cc.maxDistance = 5000
     cc.updateCameraUp()
     this.cameraControls = cc
-
+    cc.saveState()
     // this.emit('camera-changed', this.camera)
     this.forceRedraw = true
   }

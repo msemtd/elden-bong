@@ -87,3 +87,6 @@ my own map definition files
 save map to a GLTF or similar
 
 great game assets that are CC0 for including https://polyhaven.com/
+
+map-based controls could do with switching when in map mode
+camera controls
