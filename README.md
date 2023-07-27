@@ -97,6 +97,7 @@ camera controls
 
 * scene controls - ambient light, fog for testing
 * YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
+* gradients - https://cssgradient.io/
 * look at toon materials
 * https://threejs.org/docs/index.html?q=mater#api/en/materials/MeshToonMaterial
 * https://threejs.org/examples/#webgl_materials_toon
