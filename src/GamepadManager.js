@@ -137,4 +137,4 @@ class GamepadManager {
     window.requestAnimationFrame(this.scanGamepads.bind(this))
   }
 }
-export { GamepadManager }
+export { GamepadManager, standardGamepadDescription }
