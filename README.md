@@ -101,3 +101,53 @@ camera controls
 * look at toon materials
 * https://threejs.org/docs/index.html?q=mater#api/en/materials/MeshToonMaterial
 * https://threejs.org/examples/#webgl_materials_toon
+# SPEC
+## controllers
+When a controller is plugged in (and a button pressed - as per Web API for controllers)...
+- the controller is added to the list of controllers and configured if a config has been saved for it
+- many controllers required including duplicates of the same model
+- find some unique identifier for a controller
+- save the settings for a controller
+- controller button and axis mappings format in JSON (and therefore YAML) with a schema
+
+
+## Maps - a nice 2D map
+* import images into map project
+* scale and place images
+* tile? auto-tile
+* coordinate system
+* import items with tags, add remove tags, etc.
+* local storage for project
+* draw routes, leave notes, etc.
+* levels of detail? scaling? tiling? 3D? maybe!
+
+imports and downloads from various online resources
+
+```
+# Measurement from an external time source not actively synchronized with the system clock.
+
+Header header    # stamp is system time for which measurement was valid
+                 # frame_id is not used 
+
+time   time_ref  # corresponding time from this external source
+string source    # (optional) name of time source
+
+================================================================================
+MSG: std_msgs/Header
+# Standard metadata for higher-level stamped data types.
+# This is generally used to communicate timestamped data 
+# in a particular coordinate frame.
+# 
+# sequence ID: consecutively increasing ID 
+uint32 seq
+#Two-integer timestamp that is expressed as:
+# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')
+# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')
+# time-handling sugar is provided by the client library
+time stamp
+#Frame this data is associated with
+string frame_id
+
+```
+
+
