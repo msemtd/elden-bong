@@ -75,6 +75,7 @@ c.updateCamInfo()
 
 function createScene (canvas) {
   const scene = canvas.scene
+  scene.fog = new THREE.Fog(0x888888, 10, 55)
   const geometry = new THREE.BoxGeometry(1.2, 1.2, 0.5)
   const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
   const cube = new THREE.Mesh(geometry, material)

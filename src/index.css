@@ -18,7 +18,23 @@ div#app {
   height: 100vh;
   margin: 0px;
 }
-
+div#overlay {
+  position: absolute;
+  background: rgb(0, 0, 0);
+  opacity: 0.8;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  /* box-shadow: 0 0 2px rgba(0,0,0,0.5); */
+  text-align: center;
+  display: none;
+  z-index: 5000;
+  vertical-align: middle;
+  color: red;
+  font-family: 'Elden';
+  font-size: 100px;
+}
 div#topBar {
   position: absolute;
   top: 0px;

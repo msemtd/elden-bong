@@ -12,6 +12,9 @@ yarn create electron-app elden-bong --template=webpack
 * added eslint (as recommended by eslint-config-standard)
 * `yarn add -D eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n`
 
+* upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
+
+
 ### TODO
 * add basic scene and sky box
 * basic character and animations
@@ -32,8 +35,7 @@ maps
 * load a map
 * import a map
 * if no loaded map be in character editor fake location - room that is a wardrobe when you get outside it!
-
-
+* full 2D map mode with overlay canvas
 
 I'm currently wrestling with Content Protection Policy (CSP)
 * I need to properly understand it in the electron environment
@@ -90,3 +92,11 @@ great game assets that are CC0 for including https://polyhaven.com/
 
 map-based controls could do with switching when in map mode
 camera controls
+
+
+
+* scene controls - ambient light, fog for testing
+* YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
+* look at toon materials
+* https://threejs.org/docs/index.html?q=mater#api/en/materials/MeshToonMaterial
+* https://threejs.org/examples/#webgl_materials_toon
