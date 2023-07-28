@@ -32,7 +32,7 @@ function tileFile (x, y) {
 }
 
 async function loadMap2 (scene) {
-  const dir = await window.bong.getMapTiles()
+  const dir = await window.handy.getMapTiles()
   if (!dir) return
   if (!Array.isArray(dir) || !dir.length) return
   const tilesX = 38

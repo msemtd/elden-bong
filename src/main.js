@@ -1,18 +1,23 @@
+import debug from 'debug'
 import fs from 'fs-extra'
-import { pathToFileURL } from 'node:url'
+import path from 'path'
+import * as Store from 'electron-store'
+import { schema } from './config'
 
-const { app, BrowserWindow, ipcMain, net, protocol, dialog } = require('electron')
-const path = require('path')
+const dbg = debug('main')
+debug.enable('main')
+
+const { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } = require('electron')
 const url = require('url')
-const { Config } = require('./config')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
-const config = new Config()
-config.load()
+const store = new Store({ schema })
+function configGet (k) { return store.get(k) }
+function configSet(k, v) { return store.set(k, v) }
 
 let mapsDir = ''
 
@@ -37,6 +42,14 @@ app.whenReady().then(() => {
   ipcMain.handle('ping', () => 'pong')
   ipcMain.handle('getMapTiles', getMapTiles)
   ipcMain.handle('pickFile', pickFile)
+  ipcMain.handle('slurp', async (event, ...args) => { return await slurp(...args) })
+  ipcMain.handle('shellOpenPath', async (event, ...args) => { return await shellOpenPath(...args) })
+  ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
+  ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
+  ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
+  ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
+  ipcMain.handle('configGet', (event, ...args) => { return configGet(...args) })
+  ipcMain.handle('configSet', (event, ...args) => { return configSet(...args) })
   createWindow()
 })
 
@@ -97,6 +110,42 @@ async function pickFile () {
   return result
 }
 
-async function shellOpenPath () {
+async function readDir (path) {
+  return await fs.readdir(path)
+}
 
+function pathParse (...args) {
+  return path.parse(...args)
+}
+
+function pathJoin (...args) {
+  return path.join(...args)
+}
+
+async function slurp (fp, options) {
+  options ??= {
+    json: false,
+    text: true,
+    split: '',
+  }
+  if (options.json) {
+    return await fs.readJSON(fp)
+  }
+  const opts = {
+    encoding: options.text ? 'utf8' : null
+  }
+  const data = await fs.readFile(fp, opts)
+  if (options.text && options.split) {
+    const lines = data.split(options.split)
+    return lines
+  }
+  return data
+}
+
+async function outputFile (...args) {
+  return await fs.outputFile(...args)
+}
+
+async function shellOpenPath (path) {
+  return await shell.openPath(path)
 }

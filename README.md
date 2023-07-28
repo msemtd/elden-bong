@@ -123,31 +123,43 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 
 imports and downloads from various online resources
 
-```
-# Measurement from an external time source not actively synchronized with the system clock.
 
-Header header    # stamp is system time for which measurement was valid
-                 # frame_id is not used 
+resources for item id decoding
 
-time   time_ref  # corresponding time from this external source
-string source    # (optional) name of time source
+https://github.com/Deskete/EldenRingResources/blob/main/ITEM%20IDS%20Elden%20Ring.txt
+https://docs.google.com/spreadsheets/d/1evpDLAfi1b3cYfGilDtMWXDvynwyN_lbX1chnSSR7Uk/edit#gid=1201397359
+https://github.com/MaxTheMiracle/Dark-Souls-3-Parts-Files/blob/master/Elden%20Ring
 
-================================================================================
-MSG: std_msgs/Header
-# Standard metadata for higher-level stamped data types.
-# This is generally used to communicate timestamped data 
-# in a particular coordinate frame.
-# 
-# sequence ID: consecutively increasing ID 
-uint32 seq
-#Two-integer timestamp that is expressed as:
-# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')
-# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')
-# time-handling sugar is provided by the client library
-time stamp
-#Frame this data is associated with
-string frame_id
+db creator methods
 
-```
+
+https://github.com/The-Grand-Archives/Elden-Ring-CT-TGA
+
+Elden Ring - Master Spreadsheet
+https://docs.google.com/spreadsheets/d/1c7rIV3bBKDxP9ngixgigd7ZmczH3DYhDmMt8HY4ijV0/edit#gid=242218508
+
+Looks useful - maybe some standard here?
+Want IDs to be a close to the game dev as possible
+
+Hexinton
+https://discord.com/channels/934340237914689536/947960108820860948
+https://docs.google.com/spreadsheets/u/3/d/e/2PACX-1vQ0LUsF2rBNa55jMq8KNVYFeyxnV_TinvJ9-xh6nzeWhp3OOnPYu_yNCslI2yorP7hFl47Bel4YE82G/pubhtml#
+
+importing methods describe in docs
+resource files and directories
+drag in a file or dir and add to a feature
+
+
+## Map Items
+For my maps I'd like the data that the wiki has. I've scraped some data from
+Chrome dev tools and it has positions in some coordinate system.
+I assume these coordinates are linear and should map to my map images with a simple transform of scale and offset.
+I can define the transform from wiki map coord to pixel coord by positioning some sites of grace.
+
+load the items list scrape into an array of strings
+
+
+<img src="/file/Elden-Ring/map-50be4728-3907-4f33-8857-7f063e0d24eb/maps-icons/grace.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Stormhill Shack" alt="527-Stormhill Shack" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(768px, 1319px, 0px); z-index: 1319;">
+
 
 

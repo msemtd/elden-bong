@@ -2,21 +2,22 @@ import * as THREE from 'three'
 import { CanvasThree } from './CanvasThree'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { MapMan, WorldMap } from './WorldMap'
+import { MapMan } from './WorldMap'
+import { pathParse, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
+import * as util from './util'
 
 class Bong {
   constructor (appDiv) {
     this.canvas = new CanvasThree(appDiv)
     const c = this.canvas
+    // Right now I want to see if I can define my whole GUI in just lil-gui and
+    // a few dialog boxes - maybe use JBox or similar.
+    this.gui = new GUI({ width: 310 })
+    //  * Some things in the GUI need to be persisted in config.
+    //  * Some things are temporary.
+    //  * Some things drive THREE objects.
     this.PROPS = {
-      rotating: true,
-      addMapTiles: () => { this.mapMan.loadMap(c.scene) },
       resetCamera: () => { c.cameraControls.reset() },
-      pickFile: async () => {
-        // just a test...
-        const res = await window.bong.pickFile()
-        console.dir(res)
-      },
       scene: {
         fog: {
           enabled: true,
@@ -35,8 +36,15 @@ class Bong {
         },
       }
     }
-    this.gui = new GUI({ width: 310 })
     this.mapMan = new MapMan()
+    {
+      const fld = this.gui.addFolder('Maps')
+      fld.add(this, 'loadItemsScrape')
+      fld.add(this, 'loadMapJson')
+      // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
+
+      // fld.add(this, 'saveMapDef')
+    }
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
     addGrid(c.scene)
@@ -49,6 +57,104 @@ class Bong {
     this.addCamInfo(c)
     this.addDemoCube(c)
     this.makeGui()
+  }
+
+  /**
+   * Further Setup with config files, etc.
+   */
+  hello () {
+
+    // set resource dir or set map dir
+    // set tools dir
+    // get imageMagick
+    // get other tools
+    // dirs for icons, sounds, models, etc.
+    // cube map backgrounds
+    // routes for map
+    // general dir picker and file picker in GUI
+    // external hyperlinks with shell.openExternal(url)
+    // shell.showItemInFolder(fullPath)
+  }
+
+  settingRead (key) {
+    return 'TODO'
+  }
+
+  settingWrite (key, value) {
+    return 'TODO'
+  }
+
+  async loadMapJson () {
+    // pick file, load it, assign name if no name, make GUI folder for it!
+    try {
+      console.log('load map definition file')
+      const info = await pickFile()
+      console.log('file picked: ', info)
+      if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+      const fp = info.filePaths[0]
+      const json = await loadJsonFile(fp)
+      console.log(json)
+      const pp = await pathParse(fp)
+      console.dir(pp.dir)
+      const files = await readDir(pp.dir)
+      const prefix = 'map-00-overworld-tile256-'
+      const postfix = '.png'
+      const tilesX = 38
+      const tilesY = 36
+      const logicalTileCount = tilesX * tilesY
+      const tiles = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
+      console.dir(tiles)
+      const xyToIndex = (x, y, tilesX, tilesY) => {
+        return ((tilesY - y - 1) * tilesX) + x
+      }
+      const xyFmt = (x, y, pad) => {
+        return `x${util.leftFillNum(x, pad)}-y${util.leftFillNum(y, pad)}`
+      }
+      console.log(`logicalTileCount: ${logicalTileCount}`)
+      if (tiles.length !== logicalTileCount) {
+        console.log(`map logicalTileCount not OKAY: ${tiles.length}`)
+        return
+      }
+      const renames = []
+      for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+          const idx = xyToIndex(x, y, tilesX, tilesY)
+          const d = util.leftFillNum(idx, 4)
+          const fOld = `${prefix}${d}${postfix}`
+          const fNew = `map-00-overworld-tile256-${xyFmt(x, y, 2)}.png`
+          renames.push(`mv ${fOld} ${fNew}`)
+        }
+      }
+      const script = renames.join('\n')
+
+      console.log(script)
+    } catch (error) {
+      this.errorDialog(error)
+    }
+  }
+
+  async loadItemsScrape () {
+    try {
+      console.log('load items scraped text file')
+      const info = await pickFile()
+      console.log('file picked: ', info)
+      if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+      const fp = info.filePaths[0]
+      console.log(fp)
+      const lines = await loadTextFileLines(fp)
+      console.log(lines)
+    } catch (error) {
+      this.errorDialog(error)
+    }
+  }
+
+  async saveMapJson (map) {
+
+  }
+
+  errorDialog (error) {
+    // oops!
+    console.error(error)
   }
 
   addStats (c) {
@@ -92,17 +198,7 @@ class Bong {
     })
   }
 
-  /**
-   * Some things in the GUI need to be persisted in config.
-   * Some things are temporary.
-   * Some things drive THREE objects.
-   */
   makeGui () {
-    {
-      const fld = this.gui.addFolder('General Setup')
-      fld.add(this.PROPS, 'addMapTiles')
-      fld.add(this.PROPS, 'pickFile')
-    }
     {
       const fld = this.gui.addFolder('Base Actions')
       fld.add(this.PROPS, 'resetCamera')
@@ -140,19 +236,6 @@ class Bong {
         })
       }
     }
-  }
-
-  hello () {
-    // set resource dir or set map dir
-    // set tools dir
-    // get imageMagick
-    // get other tools
-    // dirs for icons, sounds, models, etc.
-    // cube map backgrounds
-    // routes for map
-    // general dir picker and file picker in GUI
-    // external hyperlinks with shell.openExternal(url)
-    // shell.showItemInFolder(fullPath)
   }
 }
 

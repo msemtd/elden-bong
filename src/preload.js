@@ -9,7 +9,13 @@ contextBridge.exposeInMainWorld('versions', {
   ping: () => ipcRenderer.invoke('ping'),
 })
 
-contextBridge.exposeInMainWorld('bong', {
+// NB: everything in handy API uses invoke and is therefore async
+contextBridge.exposeInMainWorld('handy', {
   getMapTiles: () => ipcRenderer.invoke('getMapTiles'),
   pickFile: () => ipcRenderer.invoke('pickFile'),
+  slurp: (fp, options) => ipcRenderer.invoke('slurp', fp, options),
+  readDir: (path) => ipcRenderer.invoke('readDir', path),
+  pathParse: (...args) => ipcRenderer.invoke('pathParse', ...args),
+  pathJoin: (...args) => ipcRenderer.invoke('pathJoin', ...args),
+  outputFile: (...args) => ipcRenderer.invoke('outputFile', ...args),
 })

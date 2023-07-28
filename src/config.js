@@ -1,11 +1,3 @@
-import * as path from 'path'
-import { app } from 'electron'
-import debug from 'debug'
-import * as Store from 'electron-store'
-
-const dbg = debug('conf')
-debug.enable('conf')
-
 const schema = {
   foo: {
     type: 'number',
@@ -17,19 +9,15 @@ const schema = {
     type: 'string',
     format: 'uri',
     default: 'mine://unknown'
-  }
+  },
+  tools: {
+    magick: {
+      type: 'string',
+    },
+    blender: {
+      type: 'string',
+    },
+  },
 }
 
-class Config {
-  constructor () {
-    this.store = null
-  }
-
-  load () {
-    const p = app.getAppPath()
-    dbg('app.getAppPath says "%s"', p)
-    this.store = new Store({ schema })
-  }
-}
-
-export { Config }
+export { schema }
