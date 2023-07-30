@@ -2,12 +2,15 @@ import * as THREE from 'three'
 import { CanvasThree } from './CanvasThree'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import yaml from 'js-yaml'
 import { MapMan } from './WorldMap'
-import { pathParse, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
+import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
 import * as util from './util'
+import { exampleConfig } from './config'
 
 class Bong {
   constructor (appDiv) {
+    this.settings = loadSettings('eldenBong', exampleConfig)
     this.canvas = new CanvasThree(appDiv)
     const c = this.canvas
     // Right now I want to see if I can define my whole GUI in just lil-gui and
@@ -34,11 +37,18 @@ class Bong {
           rotating: true,
           visible: true,
         },
-      }
+      },
     }
     this.mapMan = new MapMan()
     {
+      const fld = this.gui.addFolder('Settings').close()
+      fld.add(this.settings.tools, 'magick')
+      fld.add(this.settings.tools, 'sliceCommand')
+      fld.add(this, 'resetSettings').name('restore defaults')
+    }
+    {
       const fld = this.gui.addFolder('Maps')
+      fld.add(this, 'sliceBigMap')
       fld.add(this, 'loadItemsScrape')
       fld.add(this, 'loadMapJson')
       // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
@@ -82,6 +92,26 @@ class Bong {
 
   settingWrite (key, value) {
     return 'TODO'
+  }
+
+  async sliceBigMap () {
+    const info = await pickFile()
+    console.log('file picked: ', info)
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+    const fp = info.filePaths[0]
+    const exe = this.settings.tools.magick
+    const args = this.settings.tools.sliceCommand.split(' ')
+    const myPrefix = 'aSplitMapMyPrefix-'
+    for (let i = 0; i < args.length; i++) {
+      let s = args[i]
+      s = s.replace('{{BIG_MAP_FILE}}', fp)
+      s = s.replace('{{PREFIX}}', myPrefix)
+      args[i] = s
+    }
+    const pp = await pathParse(fp)
+    const cwd = pp.dir
+    const result = await window.handy.sliceBigMap(exe, args, cwd)
+    console.dir(result)
   }
 
   async loadMapJson () {
@@ -237,6 +267,10 @@ class Bong {
       }
     }
   }
+
+  resetSettings () {
+    this.settings = saveTheseSettings('eldenBong', exampleConfig)
+  }
 }
 
 function addGrid (scene) {
@@ -251,6 +285,24 @@ function addGrid (scene) {
   grid.name = 'grid'
   grid.visible = gridVisible
   scene.add(grid)
+}
+
+function loadSettings (localStorageKey, defaultSettings) {
+  let settings = structuredClone(defaultSettings)
+  const sy = localStorage.getItem(localStorageKey)
+  if (!sy) { return saveTheseSettings(localStorageKey, defaultSettings) }
+  try {
+    settings = yaml.load(sy)
+  } catch (error) {
+    console.error(`failed to load settings key as YAML: ${error}`)
+    return saveTheseSettings(localStorageKey, defaultSettings)
+  }
+  return settings
+}
+
+function saveTheseSettings (localStorageKey, settings) {
+  localStorage.setItem(localStorageKey, yaml.dump(settings))
+  return structuredClone(settings)
 }
 
 export { Bong }
