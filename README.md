@@ -169,3 +169,8 @@ load the items list scrape into an array of strings
 
 slicer process launched from main thread - prefer a jobs system : https://www.npmjs.com/package/await-spawn
 maybe easier to have events for data and completion/errors
+
+
+
+
+

@@ -55,6 +55,7 @@ app.whenReady().then(() => {
   ipcMain.handle('configGet', (event, ...args) => { return configGet(...args) })
   ipcMain.handle('configSet', (event, ...args) => { return configSet(...args) })
   ipcMain.handle('sliceBigMap', (event, ...args) => { return sliceBigMap(...args) })
+  ipcMain.handle('renameMapTiles', (event, ...args) => { return renameMapTiles(...args) })
   createWindow()
 })
 
@@ -85,6 +86,10 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+function rendererNotify (topic, msg) {
+  mainWindow.webContents.send('renderer-notify', topic, msg)
+}
 
 // return list all tiles as special "mine" protocol URLs
 async function getMapTiles () {
@@ -177,13 +182,13 @@ async function sliceBigMap (exe, args, cwd) {
       if (!data) { return }
       const msg = `${s.logPrefix}stdout: ${data}`
       s.collectedOutput.concat(msg)
-      console.log(msg)
+      rendererNotify('slicer-progress', msg)
     },
     (data) => {
       if (!data) { return }
       const msg = `${s.logPrefix}stderr: ${data}`
       s.collectedOutput.concat(msg)
-      console.log(msg)
+      rendererNotify('slicer-progress', msg)
     },
     (code, signal) => {
       s.exit_code = code
@@ -191,11 +196,24 @@ async function sliceBigMap (exe, args, cwd) {
       const msg = `${s.logPrefix}exit code=${code} signal=${signal}`
       s.collectedOutput.concat(msg)
       s.running = false
-      console.log(msg)
+      // trigger completion 
+      rendererNotify('slicer-progress', msg)
     },
   )
   runningProc = s
   return 'Job started as whatever'
+}
+
+async function renameMapTiles (dir, prefix, postfix) {
+  const files = await fs.readdir(dir)
+  // TODO
+  const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
+  console.dir(urls)
+  for (let i = 0; i < urls.length; i++) {
+    const f = urls[i]
+    // f.slice()
+    
+  }
 }
 
 function subProcess (exe, args, options, stdoutCallback, stderrCallback, exitCallback) {

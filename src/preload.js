@@ -19,4 +19,6 @@ contextBridge.exposeInMainWorld('handy', {
   pathJoin: (...args) => ipcRenderer.invoke('pathJoin', ...args),
   outputFile: (...args) => ipcRenderer.invoke('outputFile', ...args),
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
+  renameMapTiles: (...args) => ipcRenderer.invoke('renameMapTiles', ...args),
+  onNotifyFromMain: (callback) => ipcRenderer.on('renderer-notify', callback)
 })

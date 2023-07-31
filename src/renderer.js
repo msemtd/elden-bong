@@ -11,6 +11,8 @@ console.log(t)
 const bong = new Bong(appDiv)
 bong.hello()
 
+window.handy.onNotifyFromMain((topic, msg) => { bong.notifyFromMain(topic, msg) })
+
 const doPing = async () => {
   const response = await window.versions.ping()
   console.log(response) // prints out 'pong'

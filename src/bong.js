@@ -46,9 +46,12 @@ class Bong {
       fld.add(this.settings.tools, 'sliceCommand')
       fld.add(this, 'resetSettings').name('restore defaults')
     }
+    // track what we are busy doing here - enforce only one job at a time...
+    this.busyDoing = ''
     {
       const fld = this.gui.addFolder('Maps')
       fld.add(this, 'sliceBigMap')
+      fld.add(this, 'renameMapTiles')
       fld.add(this, 'loadItemsScrape')
       fld.add(this, 'loadMapJson')
       // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
@@ -86,6 +89,15 @@ class Bong {
     // shell.showItemInFolder(fullPath)
   }
 
+  notifyFromMain (topic, msg) {
+    // specifics for job topics...
+    if (topic === 'sliceMapJob') {
+      console.log('main sliceMapJob says: ', topic, msg)
+      return
+    }
+    console.log('main process says: ', topic, msg)
+  }
+
   settingRead (key) {
     return 'TODO'
   }
@@ -111,6 +123,23 @@ class Bong {
     const pp = await pathParse(fp)
     const cwd = pp.dir
     const result = await window.handy.sliceBigMap(exe, args, cwd)
+    console.dir(result)
+    // TODO when job ID comes back we can start tracking it
+    if (result === 'ok') {
+      this.busyDoing = 'sliceBigMap'
+    }
+  }
+
+  async renameMapTiles () {
+    // TODO auto when complete map tiles slice
+    const info = await pickFile()
+    console.log('file picked: ', info)
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+    const fp = info.filePaths[0]
+    const pp = pathParse(fp)
+    const myPrefix = 'aSplitMapMyPrefix-'
+    const postfix = '.png'
+    const result = await window.handy.renameMapTiles(pp.pir, myPrefix, postfix)
     console.dir(result)
   }
 

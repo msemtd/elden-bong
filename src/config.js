@@ -5,7 +5,7 @@
 const exampleConfig = {
   tools: {
     magick: 'C:\\Program Files\\ImageMagick-7.1.1-Q16-HDRI\\magick',
-    sliceCommand: '{{BIG_MAP_FILE}} -crop 256x256 {{PREFIX}}%d.png',
+    sliceCommand: '{{BIG_MAP_FILE}} -verbose -crop 256x256 {{PREFIX}}%d.png',
     blender: 'whatever',
   },
   scene: {
