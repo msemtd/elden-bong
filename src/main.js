@@ -91,22 +91,6 @@ function rendererNotify (topic, msg) {
   mainWindow.webContents.send('renderer-notify', topic, msg)
 }
 
-// return list all tiles as special "mine" protocol URLs
-async function getMapTiles () {
-  try {
-    const dir = await pickDir()
-    mapsDir = dir
-    const prefix = 'map-0-overworld-tile256-'
-    const postfix = '.png'
-    const files = await fs.readdir(dir)
-    const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix)).map(f => `mine://maps/${f}`)
-    return urls
-  } catch (error) {
-    console.error(error)
-  }
-  return ''
-}
-
 async function pickDir () {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory']
@@ -207,10 +191,10 @@ async function sliceBigMap (exe, args, cwd) {
 async function renameMapTiles (dir, prefix, postfix) {
   const files = await fs.readdir(dir)
   // TODO
-  const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
-  console.dir(urls)
-  for (let i = 0; i < urls.length; i++) {
-    const f = urls[i]
+  const fa = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
+  console.dir(fa)
+  for (let i = 0; i < fa.length; i++) {
+    const f = fa[i]
     // f.slice()
     
   }
@@ -232,4 +216,20 @@ function subProcess (exe, args, options, stdoutCallback, stderrCallback, exitCal
     })
   }
   return proc
+}
+
+// return list all tiles as special "mine" protocol URLs
+async function getMapTiles () {
+  try {
+    const dir = await pickDir()
+    mapsDir = dir
+    const prefix = 'map-0-overworld-tile256-'
+    const postfix = '.png'
+    const files = await fs.readdir(dir)
+    const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix)).map(f => `mine://maps/${f}`)
+    return urls
+  } catch (error) {
+    console.error(error)
+  }
+  return ''
 }
