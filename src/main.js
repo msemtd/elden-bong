@@ -1,16 +1,16 @@
 import debug from 'debug'
 import fs from 'fs-extra'
 import path from 'path'
-import { spawn } from 'child_process'
-import readline from 'readline'
 import * as Store from 'electron-store'
 import { schema } from './config'
+import { MainMap } from './MainMap'
+import url from 'node:url';
 
 const dbg = debug('main')
 debug.enable('main')
 
 const { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } = require('electron')
-const url = require('url')
+
 dbg('we appear to be alive')
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -23,7 +23,11 @@ const store = new Store({
 function configGet (k) { return store.get(k) }
 function configSet (k, v) { return store.set(k, v) }
 
-let mapsDir = ''
+const rendererNotify = (topic, msg) => {
+  mainWindow.webContents.send('renderer-notify', topic, msg)
+}
+
+const mainMap = new MainMap(rendererNotify)
 
 let mainWindow = null
 const createWindow = () => {
@@ -43,9 +47,11 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
   setupMine()
+  // All the main process functionality exposed in preload...
   ipcMain.handle('ping', () => 'pong')
-  ipcMain.handle('getMapTiles', getMapTiles)
+  // ipcMain.handle('getMapTiles', getMapTiles)
   ipcMain.handle('pickFile', pickFile)
+  ipcMain.handle('pickDir', pickDir)
   ipcMain.handle('slurp', async (event, ...args) => { return await slurp(...args) })
   ipcMain.handle('shellOpenPath', async (event, ...args) => { return await shellOpenPath(...args) })
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
@@ -54,8 +60,9 @@ app.whenReady().then(() => {
   ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
   ipcMain.handle('configGet', (event, ...args) => { return configGet(...args) })
   ipcMain.handle('configSet', (event, ...args) => { return configSet(...args) })
-  ipcMain.handle('sliceBigMap', (event, ...args) => { return sliceBigMap(...args) })
-  ipcMain.handle('renameMapTiles', (event, ...args) => { return renameMapTiles(...args) })
+  // map-related functionality...
+  ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
+  ipcMain.handle('renameMapTiles', (event, ...args) => { return mainMap.renameMapTiles(...args) })
   createWindow()
 })
 
@@ -86,10 +93,6 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-function rendererNotify (topic, msg) {
-  mainWindow.webContents.send('renderer-notify', topic, msg)
-}
 
 async function pickDir () {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -142,94 +145,4 @@ async function outputFile (...args) {
 
 async function shellOpenPath (path) {
   return await shell.openPath(path)
-}
-
-let runningProc = null
-
-async function sliceBigMap (exe, args, cwd) {
-  console.log('OK, slice a big map')
-  console.log('spawning', exe, args, cwd)
-  const s = {
-    exe,
-    args,
-    cwd,
-    collectedOutput: '',
-    logPrefix: 'slicer ',
-    subProc: null,
-    running: true,
-    exit_code: 0,
-    exit_signal: null,
-  }
-  // maybe steal ideas from https://www.npmjs.com/package/await-spawn
-  s.subProc = subProcess(exe, args, { cwd },
-    (data) => {
-      if (!data) { return }
-      const msg = `${s.logPrefix}stdout: ${data}`
-      s.collectedOutput.concat(msg)
-      rendererNotify('slicer-progress', msg)
-    },
-    (data) => {
-      if (!data) { return }
-      const msg = `${s.logPrefix}stderr: ${data}`
-      s.collectedOutput.concat(msg)
-      rendererNotify('slicer-progress', msg)
-    },
-    (code, signal) => {
-      s.exit_code = code
-      s.exit_signal = signal
-      const msg = `${s.logPrefix}exit code=${code} signal=${signal}`
-      s.collectedOutput.concat(msg)
-      s.running = false
-      // trigger completion 
-      rendererNotify('slicer-progress', msg)
-    },
-  )
-  runningProc = s
-  return 'Job started as whatever'
-}
-
-async function renameMapTiles (dir, prefix, postfix) {
-  const files = await fs.readdir(dir)
-  // TODO
-  const fa = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
-  console.dir(fa)
-  for (let i = 0; i < fa.length; i++) {
-    const f = fa[i]
-    // f.slice()
-    
-  }
-}
-
-function subProcess (exe, args, options, stdoutCallback, stderrCallback, exitCallback) {
-  const proc = spawn(exe, args, { ...options })
-  if (typeof stdoutCallback === 'function') {
-    const stdoutLine = readline.createInterface({ input: proc.stdout, crlfDelay: Infinity })
-    stdoutLine.on('line', stdoutCallback)
-  }
-  if (typeof stderrCallback === 'function') {
-    const stderrLine = readline.createInterface({ input: proc.stderr, crlfDelay: Infinity })
-    stderrLine.on('line', stderrCallback)
-  }
-  if (typeof exitCallback === 'function') {
-    proc.on('close', (code, signal) => {
-      exitCallback(code, signal)
-    })
-  }
-  return proc
-}
-
-// return list all tiles as special "mine" protocol URLs
-async function getMapTiles () {
-  try {
-    const dir = await pickDir()
-    mapsDir = dir
-    const prefix = 'map-0-overworld-tile256-'
-    const postfix = '.png'
-    const files = await fs.readdir(dir)
-    const urls = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix)).map(f => `mine://maps/${f}`)
-    return urls
-  } catch (error) {
-    console.error(error)
-  }
-  return ''
 }

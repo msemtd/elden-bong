@@ -14,3 +14,7 @@ export function randomColour () {
 export function leftFillNum (num, targetLength) {
   return num.toString().padStart(targetLength, '0')
 }
+
+export function rxBetween (prefix, suffix) {
+  return new RegExp('^(?:' + prefix + ')(.*)(?:' + suffix + ')$')
+}

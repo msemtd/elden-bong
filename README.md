@@ -36,7 +36,17 @@ character
 
 # SPEC
 
-## controllers
+## Electron
+
+Native executables for supported platforms distributable as installers
+* comply with all the latest electron security restrictions
+* no node in renderer
+* context isolation
+* CSP
+* preload creates a context bridge for main-renderer thread comms
+* custom protocol for local file access
+
+## Controllers
 
 When a controller is plugged in (and a button pressed - as per Web API for controllers)...
 - the controller is added to the list of controllers and configured if a config has been saved for it
@@ -45,7 +55,7 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 - save the settings for a controller
 - controller button and axis mappings format in JSON (and therefore YAML) with a schema
 
-## settings
+## Settings
 
 Persistent user settings: -
 * preferably with a schema - although js-schema with ajv under electron-store package has proven difficult!
@@ -55,16 +65,16 @@ Persistent user settings: -
 ## Maps
 
 Nice 2D maps with icons to at least compliment and perhaps rival the existing web-based offerings
-* wiki
-* 
+* The wiki: https://eldenring.wiki.fextralife.com/Interactive+Map
+* https://mapgenie.io/elden-ring/maps/the-lands-between
 
-Map imports
+Map imports - technical
 * the map tiles are from big images from the Ultimate Elden Ring Map Resource Pack
 * https://www.nexusmods.com/eldenring/mods/960/
-* these are huge: 9728 x 9216 pixels
+* There are two maps named "overworld" and "underground"
+* these are huge PNG bitmaps: 9728 x 9216 pixels each
 * we can slice them up into manageable tiles using image magick crop:-
   https://imagemagick.org/Usage/crop#crop_tile
-
 ```
 @ECHO OFF
 SET PATH=C:\Program Files\ImageMagick-7.1.1-Q16-HDRI;%PATH%
@@ -80,7 +90,8 @@ REM ~ 9216 / 256 = 36
 REM so we have 38 tiles wide and 36 tiles high
 DIR
 ```
-
+* this creates 256 pixel square tiles with names sequentially numbered from top left to bottom right
+* I would prefer these named with the X-Y coordinates - this can be done in a background process
 * scale and position three-js textured cube mesh objects as map tiles
 * the tiles can be used as textures in three-js in the electron renderer process
   with full security as long as we jump through a number of hoops...
@@ -98,9 +109,6 @@ The maps when imported need some metadata which can be used for reloading: -
 
 Load a JSON map metadata file: -
 * eventually from settings, automatically at startup - or maybe on first use
-
-
-
 * coordinate system
 * import items with tags, add remove tags, etc.
 * local storage for project
@@ -112,13 +120,8 @@ Load a JSON map metadata file: -
 * if no loaded map be in character editor fake location - room that is a wardrobe when you get outside it!
 * full 2D map mode with overlay canvas
 
-I'm currently wrestling with 
-* I need to properly understand it in the electron environment
-OKAY! got that working!
 
 
-
-There are two maps named "overworld" and "underground"
 * only load from safe dirs as dictated by main thread in config
 * user chooses the dir and it is saved in settings
 * settings are loaded at startup

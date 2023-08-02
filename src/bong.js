@@ -111,22 +111,14 @@ class Bong {
     console.log('file picked: ', info)
     if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
     const fp = info.filePaths[0]
-    const exe = this.settings.tools.magick
-    const args = this.settings.tools.sliceCommand.split(' ')
-    const myPrefix = 'aSplitMapMyPrefix-'
-    for (let i = 0; i < args.length; i++) {
-      let s = args[i]
-      s = s.replace('{{BIG_MAP_FILE}}', fp)
-      s = s.replace('{{PREFIX}}', myPrefix)
-      args[i] = s
-    }
-    const pp = await pathParse(fp)
-    const cwd = pp.dir
-    const result = await window.handy.sliceBigMap(exe, args, cwd)
-    console.dir(result)
-    // TODO when job ID comes back we can start tracking it
-    if (result === 'ok') {
-      this.busyDoing = 'sliceBigMap'
+    const magick = this.settings.tools.magick
+    const sliceCommand = this.settings.tools.sliceCommand
+    const prefix = 'aSplitMapMyPrefix-'
+    try {
+      this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix })
+    } catch (error) {
+      console.log('nah mate')
+      console.log(error)
     }
   }
 
