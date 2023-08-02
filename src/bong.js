@@ -50,7 +50,7 @@ class Bong {
     this.busyDoing = ''
     {
       const fld = this.gui.addFolder('Maps')
-      fld.add(this, 'sliceBigMap')
+      fld.add(this, 'sliceBigMap').name('import big map')
       fld.add(this, 'renameMapTiles')
       fld.add(this, 'loadItemsScrape')
       fld.add(this, 'loadMapJson')
@@ -96,14 +96,6 @@ class Bong {
       return
     }
     console.log('main process says: ', topic, msg)
-  }
-
-  settingRead (key) {
-    return 'TODO'
-  }
-
-  settingWrite (key, value) {
-    return 'TODO'
   }
 
   async sliceBigMap () {

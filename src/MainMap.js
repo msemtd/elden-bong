@@ -27,9 +27,13 @@ class MainMap {
     }
     const metaFile = `${prefix}-meta.json`
     const fn = path.join(cwd, metaFile)
-    const meta = await fs.readJson(fn, { throws: false })
-    if (meta) {
-      throw Error('uh, map meta json file already exists')
+    let meta = null
+    try {
+      meta = await fs.readJson(fn, { throws: false })
+      if (meta) {
+        throw Error('uh, map meta json file already exists')
+      }
+    } catch (_error) {
     }
     // TODO - these are currently assumptions but should be as the result of a magick query
     const postfix = '.png'
@@ -40,20 +44,20 @@ class MainMap {
 
     const files = await fs.readdir(cwd)
     const rx = util.rxBetween(prefix, postfix)
-    const tiles = files.filter(f => f.match(rx))
+    const tiles = files.filter(f => rx.exec(f))
     console.dir(tiles)
 
     try {
-      this.busyJob = this.startProcessJob(magick, args, cwd, (err, value) => {
+      this.busyJob = this.startProcessJob('sliceBigMap', magick, args, cwd, (err, value) => {
         if (err) {
           console.error("job went badly: ", err)
           return
         }
         console.log('job ended somehow with ' + value.exit_code)
         // if all OK, auto rename tiles
-        
+        return this.sliceComplete(cwd, prefix, postfix, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
       })
-      return job
+      return
     } catch (error) {
       console.error("starting the job went badly: ", error)
       return
@@ -61,6 +65,7 @@ class MainMap {
   }
 
   async sliceComplete (jc) {
+
 
   }
 

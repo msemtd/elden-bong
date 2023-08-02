@@ -4,7 +4,7 @@ import path from 'path'
 import * as Store from 'electron-store'
 import { schema } from './config'
 import { MainMap } from './MainMap'
-import url from 'node:url';
+import url from 'node:url'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -71,7 +71,7 @@ function setupMine () {
     const filePath = request.url.slice('mine://'.length)
     if (filePath.startsWith('maps/')) {
       const tile = filePath.slice('maps/'.length)
-      return net.fetch(url.pathToFileURL(path.join(mapsDir, tile)).toString())
+      return net.fetch(url.pathToFileURL(tile).toString())
     }
     return net.fetch(url.pathToFileURL(path.join(__dirname, filePath)).toString())
   })
