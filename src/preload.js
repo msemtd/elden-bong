@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('handy', {
   // Map support...
   // getMapTiles: () => ipcRenderer.invoke('getMapTiles'),
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
+  identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
   renameMapTiles: (...args) => ipcRenderer.invoke('renameMapTiles', ...args),
   onNotifyFromMain: (callback) => ipcRenderer.on('renderer-notify', callback),
 })

@@ -50,12 +50,11 @@ class Bong {
     this.busyDoing = ''
     {
       const fld = this.gui.addFolder('Maps')
+      fld.add(this, 'testIdentify')
       fld.add(this, 'sliceBigMap').name('import big map')
-      fld.add(this, 'renameMapTiles')
-      fld.add(this, 'loadItemsScrape')
-      fld.add(this, 'loadMapJson')
+      // fld.add(this, 'loadItemsScrape')
+      // fld.add(this, 'loadMapJson')
       // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
-
       // fld.add(this, 'saveMapDef')
     }
     this.fog = new THREE.Fog(0x444444, 10, 200)
@@ -89,7 +88,7 @@ class Bong {
     // shell.showItemInFolder(fullPath)
   }
 
-  notifyFromMain (topic, msg) {
+  notifyFromMain (event, topic, msg) {
     // specifics for job topics...
     if (topic === 'sliceMapJob') {
       console.log('main sliceMapJob says: ', topic, msg)
@@ -108,6 +107,21 @@ class Bong {
     const prefix = 'aSplitMapMyPrefix-'
     try {
       this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix })
+    } catch (error) {
+      console.log('nah mate')
+      console.log(error)
+    }
+  }
+
+  async testIdentify () {
+    const info = await pickFile()
+    console.log('file picked: ', info)
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+    const fp = info.filePaths[0]
+    const magick = this.settings.tools.magick
+    try {
+      const result = await window.handy.identifyImage({ fp, magick })
+      console.dir(result)
     } catch (error) {
       console.log('nah mate')
       console.log(error)

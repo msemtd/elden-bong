@@ -8,9 +8,19 @@ import * as util from './util'
  */
 class MainMap {
   constructor (rendererNotify) {
-    this.rendererNotify = rendererNotify
+    if (rendererNotify instanceof Function) {
+      this.rendererNotify = rendererNotify
+    } else {
+      throw Error('rendererNotify arg must be a function')
+    }
     // TODO jobs queue
     this.busyJob = null
+  }
+
+  async identifyImage (options) {
+    if (this.busyJob) throw Error('busy with another job')
+    const { fp, magick } = options
+    this.busyJob = this.startProcessJob('identifyImage', magick, ['identify', fp])
   }
 
   async sliceBigMap (options) {
@@ -50,25 +60,28 @@ class MainMap {
     try {
       this.busyJob = this.startProcessJob('sliceBigMap', magick, args, cwd, (err, value) => {
         if (err) {
-          console.error("job went badly: ", err)
+          console.error('job went badly: ', err)
           return
         }
         console.log('job ended somehow with ' + value.exit_code)
         // if all OK, auto rename tiles
         return this.sliceComplete(cwd, prefix, postfix, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
       })
-      return
     } catch (error) {
-      console.error("starting the job went badly: ", error)
+      console.error('starting the job went badly: ', error)
       return
     }
+    console.log('job started and now we wait')
   }
 
   async sliceComplete (jc) {
 
-
   }
 
+  /**
+   * options: collectOutput, completeCallback, progressCallback
+   * this SHOULD be a Promise -- maybe steal ideas from https://www.npmjs.com/package/await-spawn
+   */
   startProcessJob (jobName, exe, args, cwd, callback) {
     console.log(`spawning "${jobName}"...`, exe, args, cwd)
     const s = {
@@ -82,7 +95,6 @@ class MainMap {
       exit_code: 0,
       exit_signal: null,
     }
-    // maybe steal ideas from https://www.npmjs.com/package/await-spawn
     s.subProc = subProcess(exe, args, { cwd },
       (data) => {
         if (!data) { return }
@@ -99,7 +111,7 @@ class MainMap {
       (code, signal) => {
         s.exit_code = code
         s.exit_signal = signal
-        const msg = `${s.logPrefix} exit code=${code} signal=${signal}`
+        const msg = `${s.logPrefix} code=${code} signal=${signal}`
         s.collectedOutput.concat(msg)
         s.running = false
         // trigger completion
