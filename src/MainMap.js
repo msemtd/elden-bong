@@ -1,4 +1,4 @@
-import { subProcess } from './SubProc'
+import { subProcess, awaitableSubProc } from './SubProc'
 import fs from 'fs-extra'
 import path from 'path'
 import * as util from './util'
@@ -20,7 +20,15 @@ class MainMap {
   async identifyImage (options) {
     if (this.busyJob) throw Error('busy with another job')
     const { fp, magick } = options
-    this.busyJob = this.startProcessJob('identifyImage', magick, ['identify', fp])
+    // this.busyJob = this.startProcessJob('identifyImage', magick, ['identify', fp])
+    try {
+      const s = await awaitableSubProc(magick, ['identify', '-format', '%m %B %w x %h', fp], path.dirname(fp), 'identifyImage')
+      console.dir(s)
+      return s
+    } catch (error) {
+      console.log('nah mate')
+      throw error
+    }
   }
 
   async sliceBigMap (options) {
@@ -80,7 +88,10 @@ class MainMap {
 
   /**
    * options: collectOutput, completeCallback, progressCallback
-   * this SHOULD be a Promise -- maybe steal ideas from https://www.npmjs.com/package/await-spawn
+   * this SHOULD be a Promise -- maybe steal ideas from
+   * https://www.npmjs.com/package/await-spawn
+   * https://github.com/ralphtheninja/await-spawn
+   *
    */
   startProcessJob (jobName, exe, args, cwd, callback) {
     console.log(`spawning "${jobName}"...`, exe, args, cwd)
@@ -99,20 +110,20 @@ class MainMap {
       (data) => {
         if (!data) { return }
         const msg = `${s.logPrefix} stdout: ${data}`
-        s.collectedOutput.concat(msg)
+        s.collectedOutput += msg
         this.rendererNotify(jobName, msg)
       },
       (data) => {
         if (!data) { return }
         const msg = `${s.logPrefix} stderr: ${data}`
-        s.collectedOutput.concat(msg)
+        s.collectedOutput += msg
         this.rendererNotify(jobName, msg)
       },
       (code, signal) => {
         s.exit_code = code
         s.exit_signal = signal
         const msg = `${s.logPrefix} code=${code} signal=${signal}`
-        s.collectedOutput.concat(msg)
+        s.collectedOutput += msg
         s.running = false
         // trigger completion
         this.rendererNotify(jobName, msg)
