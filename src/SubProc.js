@@ -27,6 +27,7 @@ export function awaitableSubProc (exe, args, cwd, prefix, notifyFunc) {
     prefix,
     collectedOutput: '',
     collectedStdout: '',
+    collectedStderr: '',
     subProc: null,
     running: true,
     exitCode: 0,
@@ -47,6 +48,7 @@ export function awaitableSubProc (exe, args, cwd, prefix, notifyFunc) {
     if (!data) { return }
     const msg = `${s.prefix} stderr: ${data}`
     s.collectedOutput += msg + '\n'
+    s.collectedStderr += `${data}\n`
     n(msg)
   })
   const promise = new Promise((resolve, reject) => {
@@ -60,11 +62,12 @@ export function awaitableSubProc (exe, args, cwd, prefix, notifyFunc) {
       // allow subProc GC - makes s simple object
       s.subProc = null
       if (code === 0) {
-        resolve(s)
+        const eMsg = s.collectedStdout.trimEnd()
+        resolve(eMsg)
       } else {
-        const err = new Error(`subProc exited with code ${code}`)
+        const eMsg = s.collectedStderr.trimEnd()
+        const err = new Error(`${eMsg}`)
         err.code = code
-        err.s = s
         reject(err)
       }
     })

@@ -20,6 +20,16 @@ yarn create electron-app elden-bong --template=webpack
 * add basic scene and sky box
 * basic character and animations
 * load and change scenes
+* upon any gui change force a render
+* basic dialog boxes
+* sub process error stderr in main thread needs to get back to renderer thread
+
+* the development process with the main and renderer processes makes development slow
+  - could drop restrictions and make it OK later?
+  - get the simple reusable functionality perfected and all will be well
+  - this is my procrastination route - also not productive!
+
+
 
 character
 * load a model - have some to choose from
