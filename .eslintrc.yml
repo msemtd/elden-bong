@@ -6,6 +6,7 @@ extends:
 parserOptions:
   ecmaVersion: 12
   sourceType: module
-rules: {
+rules:
   comma-dangle: [error, only-multiline]
-}
+  new-cap: [error, { newIsCapExceptions: ["jBox"] }]
+

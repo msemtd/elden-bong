@@ -1,4 +1,4 @@
-import { subProcess, awaitableSubProc } from './SubProc'
+import { subProcess, awaitableSubProcess } from './SubProc'
 import fs from 'fs-extra'
 import path from 'path'
 import * as util from './util'
@@ -22,7 +22,7 @@ class MainMap {
     const { fp, magick } = options
     // this.busyJob = this.startProcessJob('identifyImage', magick, ['identify', fp])
     try {
-      const s = await awaitableSubProc(magick, ['identify', '-format', '%m %B %w x %h', fp], path.dirname(fp), 'identifyImage')
+      const s = await awaitableSubProcess(magick, ['identify', '-format', '%m %B %w x %h', fp], path.dirname(fp), 'identifyImage')
       console.dir(s)
       return s
     } catch (error) {

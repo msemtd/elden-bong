@@ -7,6 +7,8 @@ import { MapMan } from './WorldMap'
 import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
 import * as util from './util'
 import { exampleConfig } from './config'
+import jBox from 'jbox'
+import 'jbox/dist/jBox.all.css'
 
 class Bong {
   constructor (appDiv) {
@@ -123,8 +125,7 @@ class Bong {
       const result = await window.handy.identifyImage({ fp, magick })
       console.dir(result)
     } catch (error) {
-      console.log('nah mate')
-      console.log(error)
+      this.errorDialog(error)
     }
   }
 
@@ -210,8 +211,13 @@ class Bong {
   }
 
   errorDialog (error) {
-    // oops!
     console.error(error)
+    // oops!
+    const myModal = new jBox('Modal')
+    myModal.setTitle('My Title')
+    const msg = error instanceof Error && error.message ? error.message : `${error}`
+    myModal.setContent(msg)
+    myModal.open()
   }
 
   addStats (c) {

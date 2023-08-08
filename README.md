@@ -21,8 +21,9 @@ yarn create electron-app elden-bong --template=webpack
 * basic character and animations
 * load and change scenes
 * upon any gui change force a render
-* basic dialog boxes
-* sub process error stderr in main thread needs to get back to renderer thread
+* basic dialog boxes - get hyped about https://sweetalert2.github.io/
+  - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
+* sub process error stderr in main thread needs to get back to renderer thread - DONE in `awaitableSubProcess`
 
 * the development process with the main and renderer processes makes development slow
   - could drop restrictions and make it OK later?

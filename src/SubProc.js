@@ -19,7 +19,7 @@ export function subProcess (exe, args, options, stdoutCallback, stderrCallback, 
   return proc
 }
 
-export function awaitableSubProc (exe, args, cwd, prefix, notifyFunc) {
+export function awaitableSubProcess (exe, args, cwd, prefix, notifyFunc) {
   const s = {
     exe,
     args,
