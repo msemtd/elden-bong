@@ -49,11 +49,13 @@ character
 
 ## Electron
 
-Native executables for supported platforms distributable as installers
+What it gives: -
+* Native executables for supported platforms distributable as installers.
+The challenges it introduces: -
 * comply with all the latest electron security restrictions
 * no node in renderer
 * context isolation
-* CSP
+* CSP - clues: https://web.dev/csp/#if-you-absolutely-must-use-it
 * preload creates a context bridge for main-renderer thread comms
 * custom protocol for local file access
 
