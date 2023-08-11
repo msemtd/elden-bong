@@ -7,8 +7,7 @@ import { MapMan } from './WorldMap'
 import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
 import * as util from './util'
 import { exampleConfig } from './config'
-import jBox from 'jbox'
-import 'jbox/dist/jBox.all.css'
+import { Dlg } from './dlg'
 
 class Bong {
   constructor (appDiv) {
@@ -16,7 +15,7 @@ class Bong {
     this.canvas = new CanvasThree(appDiv)
     const c = this.canvas
     // Right now I want to see if I can define my whole GUI in just lil-gui and
-    // a few dialog boxes - maybe use JBox or similar.
+    // a few dialog boxes
     this.gui = new GUI({ width: 310 })
     //  * Some things in the GUI need to be persisted in config.
     //  * Some things are temporary.
@@ -52,6 +51,7 @@ class Bong {
     this.busyDoing = ''
     {
       const fld = this.gui.addFolder('Maps')
+      fld.add(this, 'testDialog')
       fld.add(this, 'testIdentify')
       fld.add(this, 'sliceBigMap').name('import big map')
       // fld.add(this, 'loadItemsScrape')
@@ -210,14 +210,8 @@ class Bong {
 
   }
 
-  errorDialog (error) {
-    console.error(error)
-    // oops!
-    const myModal = new jBox('Modal')
-    myModal.setTitle('My Title')
-    const msg = error instanceof Error && error.message ? error.message : `${error}`
-    myModal.setContent(msg)
-    myModal.open()
+  testDialog () {
+    Dlg.errorDialog("that wasn't great!")
   }
 
   addStats (c) {
@@ -298,6 +292,7 @@ class Bong {
           if (g) g.visible = v
         })
       }
+      s.onChange(() => { this.canvas.forceRedraw = true })
     }
   }
 
