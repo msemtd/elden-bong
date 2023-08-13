@@ -31,6 +31,7 @@ class GamepadManager {
   // https://w3c.github.io/gamepad/#getgamepads-method
   // https://end3r.github.io/Gamepad-API-Content-Kit/
   // https://gamepad-tester.com/for-developers
+  // https://github.com/luser/gamepadtest
   //
   constructor (canvas) {
     this.canvas = canvas
