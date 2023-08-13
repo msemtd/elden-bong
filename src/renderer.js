@@ -9,7 +9,6 @@ const t = `This app is using Chrome (v${v.chrome()}), Node.js (v${v.node()}), an
 console.log(t)
 
 const bong = new Bong(appDiv)
-bong.hello()
 
 window.handy.onNotifyFromMain((topic, msg) => { bong.notifyFromMain(topic, msg) })
 

@@ -32,9 +32,8 @@ class GamepadManager {
   // https://end3r.github.io/Gamepad-API-Content-Kit/
   // https://gamepad-tester.com/for-developers
   //
-  constructor (settingsHelper, viewer) {
-    this.settingsHelper = settingsHelper
-    this.viewer = viewer
+  constructor (canvas) {
+    this.canvas = canvas
     this.controllers = {}
     this.chosenIndex = 0
     this.config = {
@@ -57,11 +56,10 @@ class GamepadManager {
     // this.scanGamepads()
     this.setupInProgress = setInterval(() => {
       console.log('gamepad setup attempt: 400ms repeat')
-      // is the viewer up and running?
-      if (this.viewer?.threeCanvas?.camera) {
+      if (this.canvas?.camera) {
         clearInterval(this.setupInProgress)
         this.setupInProgress = false
-        this.viewer.threeCanvas.addMixer('gamepads', this.procInputs.bind(this))
+        this.canvas.addMixer?.('gamepads', this.procInputs.bind(this))
       }
     }, 400)
   }
@@ -121,7 +119,7 @@ class GamepadManager {
   axisToKeyHold (axisVal, negKey, posKey, c) {
     const amt = Math.abs(axisVal) - c.axisDeadZone
     if (amt > 0) {
-      this.viewer.threeCanvas.onKeyHold({ deltaTime: c.axisDeltaFixed + (amt * c.axisDeltaMultiplier) }, (axisVal < 0) ? negKey : posKey)
+      this.canvas.onKeyHold?.({ deltaTime: c.axisDeltaFixed + (amt * c.axisDeltaMultiplier) }, (axisVal < 0) ? negKey : posKey)
     }
   }
 

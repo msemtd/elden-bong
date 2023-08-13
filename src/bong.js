@@ -4,6 +4,7 @@ import Stats from 'three/addons/libs/stats.module.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import yaml from 'js-yaml'
 import { MapMan } from './WorldMap'
+import { GamepadManager } from './GamepadManager'
 import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
 import * as util from './util'
 import { exampleConfig } from './config'
@@ -14,6 +15,7 @@ class Bong {
     this.settings = loadSettings('eldenBong', exampleConfig)
     this.canvas = new CanvasThree(appDiv)
     const c = this.canvas
+    this.gpm = new GamepadManager(this.canvas)
     // Right now I want to see if I can define my whole GUI in just lil-gui and
     // a few dialog boxes
     this.gui = new GUI({ width: 310 })
@@ -41,23 +43,24 @@ class Bong {
       },
     }
     this.mapMan = new MapMan()
-    {
-      const fld = this.gui.addFolder('Settings').close()
-      fld.add(this.settings.tools, 'magick')
-      fld.add(this.settings.tools, 'sliceCommand')
-      fld.add(this, 'resetSettings').name('restore defaults')
-    }
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     {
       const fld = this.gui.addFolder('Maps')
       fld.add(this, 'testDialog')
+      fld.add(this, 'testDialogAsync')
       fld.add(this, 'testIdentify')
       fld.add(this, 'sliceBigMap').name('import big map')
       // fld.add(this, 'loadItemsScrape')
       // fld.add(this, 'loadMapJson')
       // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
       // fld.add(this, 'saveMapDef')
+    }
+    {
+      const fld = this.gui.addFolder('Settings').close()
+      fld.add(this.settings.tools, 'magick')
+      fld.add(this.settings.tools, 'sliceCommand')
+      fld.add(this, 'resetSettings').name('restore defaults')
     }
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
@@ -71,23 +74,6 @@ class Bong {
     this.addCamInfo(c)
     this.addDemoCube(c)
     this.makeGui()
-  }
-
-  /**
-   * Further Setup with config files, etc.
-   */
-  hello () {
-
-    // set resource dir or set map dir
-    // set tools dir
-    // get imageMagick
-    // get other tools
-    // dirs for icons, sounds, models, etc.
-    // cube map backgrounds
-    // routes for map
-    // general dir picker and file picker in GUI
-    // external hyperlinks with shell.openExternal(url)
-    // shell.showItemInFolder(fullPath)
   }
 
   notifyFromMain (event, topic, msg) {
@@ -210,8 +196,11 @@ class Bong {
 
   }
 
-  testDialog () {
-    Dlg.errorDialog("that wasn't great!")
+  testDialog () { Dlg.errorDialog("that wasn't great!") }
+
+  async testDialogAsync () {
+    await Dlg.awaitableDialog('this is the first dialog', 'dialog1')
+    await Dlg.awaitableDialog('this is the second dialog', 'dialog2')
   }
 
   addStats (c) {
@@ -261,7 +250,7 @@ class Bong {
       fld.add(this.PROPS, 'resetCamera')
     }
     {
-      const s = this.gui.addFolder('Scene')
+      const s = this.gui.addFolder('Scene').close()
       const sp = this.PROPS.scene
       {
         const fld = s.addFolder('Fog')

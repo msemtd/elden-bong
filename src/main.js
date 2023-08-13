@@ -33,16 +33,22 @@ let mainWindow = null
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     icon: path.join(process.cwd(), 'stuff', 'icon.ico'),
-    width: 1200,
-    height: 760,
+    fullscreen: true,
     webPreferences: {
       // eslint-disable-next-line no-undef
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
   })
+  mainWindow.removeMenu()
   // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12' && !input.control && !input.alt && !input.meta && !input.shift) {
+      mainWindow.webContents.openDevTools()
+      event.preventDefault()
+    }
+  })
 }
 
 app.whenReady().then(() => {

@@ -130,6 +130,74 @@ class CanvasThree {
     }
   }
 
+  onKeyHold (event, code) {
+    const cc = this.cameraControls
+    if (!cc.enabled || this.cameraKeysDisabled || this.camera.type === 'OrthographicCamera') { return }
+    switch (code) {
+      case 'KeyW': { return cc.forward(0.01 * event.deltaTime, true) }
+      case 'KeyA': { return cc.truck(-0.01 * event.deltaTime, 0, true) }
+      case 'KeyS': { return cc.forward(-0.01 * event.deltaTime, true) }
+      case 'KeyD': { return cc.truck(0.01 * event.deltaTime, 0, true) }
+      case 'ArrowLeft': { return cc.rotate(-0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true) }
+      case 'ArrowUp': { return cc.rotate(0, -0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true) }
+      case 'ArrowRight': { return cc.rotate(0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 0, true) }
+      case 'ArrowDown': { return cc.rotate(0, 0.05 * THREE.MathUtils.DEG2RAD * event.deltaTime, true) }
+      case 'KeyR': { return cc.truck(0, -0.005 * event.deltaTime, true) }
+      case 'KeyF': { return cc.truck(0, 0.005 * event.deltaTime, true) }
+      case 'KeyQ': { return this.rotateCameraThetaInPlace(cc, 0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 1.0, 0.5, true) }
+      case 'KeyE': { return this.rotateCameraThetaInPlace(cc, -0.1 * THREE.MathUtils.DEG2RAD * event.deltaTime, 1.0, 0.5, true) }
+      case 'KeyT': { return cc.reset(true) }
+    }
+  }
+
+  /**
+   * Rotate camera around the given axis on the spot by given angle and move the orbit target to the given fixed distance away.
+   *
+   * @param {CameraControls} cc - camera controls object
+   * @param {number} axis - axis to rotate around (0, 1 or 2)
+   * @param {number} angle - angle to rotate about the vertical axis (Y in THREE world coordinates)
+   * @param {number} fixedTargDist - distance away from position to move the notional orbit target
+   * @param {number} _backStepHead - TODO neatly rotate position in opposite direction but by a lesser amount
+   * @param {boolean} smoothlyDoesIt - smooth transition
+   */
+  rotateCameraInPlace (cc, axis, angle, fixedTargDist, _backStepHead, smoothlyDoesIt) {
+    const eulerAxis = [0, 0, 0]
+    eulerAxis[axis] = angle
+    const rotateAboutY = new THREE.Euler(eulerAxis[0], eulerAxis[1], eulerAxis[2])
+    const posn = cc.getPosition()
+    const targ = cc.getTarget()
+    const dirn = targ.clone().sub(posn).normalize().multiplyScalar(fixedTargDist)
+    dirn.applyEuler(rotateAboutY)
+    const newTarg = dirn.clone().add(posn)
+    cc.setTarget(newTarg.x, newTarg.y, newTarg.z, smoothlyDoesIt)
+  }
+
+  /**
+   * Rotate camera horizontally (yaw) on the spot by given angle and move the orbit target to the given fixed distance away.
+   *
+   * @param {CameraControls} cc - camera controls object
+   * @param {number} angle - angle to rotate about the vertical axis (Y in THREE world coordinates)
+   * @param {number} fixedTargDist - distance away from position to move the notional orbit target
+   * @param {number} _backStepHead - TODO neatly rotate position in opposite direction but by a lesser amount
+   * @param {boolean} smoothlyDoesIt - smooth transition
+   */
+  rotateCameraThetaInPlace (cc, angle, fixedTargDist, _backStepHead, smoothlyDoesIt) {
+    this.rotateCameraInPlace(cc, 1, angle, fixedTargDist, _backStepHead, smoothlyDoesIt)
+  }
+
+  /**
+   * Rotate camera vertically (tilt) on the spot by given angle and move the orbit target to the given fixed distance away.
+   *
+   * @param {CameraControls} cc - camera controls object
+   * @param {number} angle - angle to rotate about the vertical axis (Y in THREE world coordinates)
+   * @param {number} fixedTargDist - distance away from position to move the notional orbit target
+   * @param {number} _backStepHead - TODO neatly rotate position in opposite direction but by a lesser amount
+   * @param {boolean} smoothlyDoesIt - smooth transition
+   */
+  rotateCameraPhiInPlace (cc, angle, fixedTargDist, _backStepHead, smoothlyDoesIt) {
+    this.rotateCameraInPlace(cc, 2, angle, fixedTargDist, _backStepHead, smoothlyDoesIt)
+  }
+
   addMixer (name, method, binder) {
     if (!this.mixers) { this.mixers = [] }
     this.mixers.push({
