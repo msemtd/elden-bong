@@ -25,4 +25,30 @@ export class Dlg {
       }).open()
     })
   }
+
+  static tempDialogShow (options, content) {
+    // const parentElement = this.container
+    const opts = {
+      content,
+      // appendTo: $(parentElement),
+      blockScroll: false,
+      overlay: false,
+      closeOnEsc: true,
+      animation: 'zoomIn',
+      draggable: 'title',
+      closeButton: true,
+      dragOver: true,
+      theme: 'tempDialog',
+      position: {
+        x: 'center',
+        y: 'center',
+      },
+      onCloseComplete: function () { this.destroy() },
+      ...options,
+    }
+    // eslint-disable-next-line new-cap
+    const jb = new jBox('Modal', opts)
+    jb.open()
+    return jb
+  }
 }

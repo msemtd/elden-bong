@@ -36,6 +36,38 @@ class MainMap {
     const { fp, prefix, magick, sliceCommand } = options
     const pp = path.parse(fp)
     const cwd = pp.dir
+    const postfix = pp.ext
+    const args = sliceCommand.split(' ')
+    for (let i = 0; i < args.length; i++) {
+      let s = args[i]
+      s = s.replace('{{BIG_MAP_FILE}}', fp)
+      s = s.replace('{{PREFIX}}', prefix)
+      args[i] = s
+    }
+    const topic = 'sliceBigMap'
+    try {
+      this.rendererNotify(topic, 'are you ready?')
+      await awaitableSubProcess(magick, args, cwd, topic, (msg) => { this.rendererNotify(topic, msg) })
+      this.rendererNotify(topic, 'slicing is done!')
+      // now rename tiles
+      const files = await fs.readdir(cwd)
+      const rx = util.rxBetween(prefix, postfix)
+      const tiles = files.filter(f => rx.exec(f))
+      console.dir(tiles)
+  
+
+
+    } catch (error) {
+      console.log('sliceBigMap major malfunction')
+      throw error
+    }
+  }
+
+  async sliceBigMapOld (options) {
+    if (this.busyJob) throw Error('busy with another job')
+    const { fp, prefix, magick, sliceCommand } = options
+    const pp = path.parse(fp)
+    const cwd = pp.dir
     const args = sliceCommand.split(' ')
     for (let i = 0; i < args.length; i++) {
       let s = args[i]
@@ -73,7 +105,7 @@ class MainMap {
         }
         console.log('job ended somehow with ' + value.exit_code)
         // if all OK, auto rename tiles
-        return this.sliceComplete(cwd, prefix, postfix, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
+        // return this.sliceComplete(cwd, prefix, postfix, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
       })
     } catch (error) {
       console.error('starting the job went badly: ', error)

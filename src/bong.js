@@ -1,8 +1,9 @@
 import * as THREE from 'three'
-import { CanvasThree } from './CanvasThree'
-import Stats from 'three/addons/libs/stats.module.js'
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import $ from 'jquery'
 import yaml from 'js-yaml'
+import Stats from 'three/addons/libs/stats.module.js'
+import { CanvasThree } from './CanvasThree'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
@@ -45,6 +46,7 @@ class Bong {
     this.mapMan = new MapMan()
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
+    this.slicerDialog = null
     {
       const fld = this.gui.addFolder('Maps')
       fld.add(this, 'testDialog')
@@ -76,16 +78,27 @@ class Bong {
     this.makeGui()
   }
 
+  // TODO make this an event listener interface
   notifyFromMain (event, topic, msg) {
     // specifics for job topics...
-    if (topic === 'sliceMapJob') {
-      console.log('main sliceMapJob says: ', topic, msg)
+    if (topic === 'sliceBigMap') {
+      console.log('main: ', topic, msg)
+      // TODO find progress bar and update it
+      if (this.slicerDialog) {
+        // get the content and replace it
+        this.slicerDialog.setContent(`progress: ${msg}`, true)
+      }
+
       return
     }
     console.log('main process says: ', topic, msg)
   }
 
   async sliceBigMap () {
+    if (this.busyDoing) {
+      Dlg.errorDialog('busy doing something else!')
+      return
+    }
     const info = await pickFile()
     console.log('file picked: ', info)
     if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
@@ -94,7 +107,26 @@ class Bong {
     const sliceCommand = this.settings.tools.sliceCommand
     const prefix = 'aSplitMapMyPrefix-'
     try {
+      const info = await window.handy.identifyImage({ fp, magick })
+      console.dir(info)
+      await Dlg.awaitableDialog(info, 'Will slice this map')
+      // pop persistent dialog that should stay up until end of job, receive
+      // progress notifications, etc.
+      const id = 'slicerDialog'
+      if (!$(`#${id}`).length) {
+        const h = `<div id="${id}" style="display:none;width:600px;">`
+        const div = $(h).appendTo(this.canvas.container)
+        div.append('<span>progress: 0%</span><br/><button>cancel</button>')
+        // ...etc
+      }
+      this.slicerDialog = Dlg.tempDialogShow({ title: 'Map Slicing', theme: 'tpDialog' }, $(`#${id}`))
       this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix })
+      // TODO capture any events and update a progress thingy
+
+      // TODO file renaming task...
+
+      // TODO close the dialog
+      this.busyDoing = ''
     } catch (error) {
       console.log('nah mate')
       console.log(error)
