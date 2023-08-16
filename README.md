@@ -37,6 +37,7 @@ character
   * mage, dork, warrior
   * stats manager
   * weapons/items to hold
+  * https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN
 
 * scene controls - ambient light, fog for testing
 * YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/

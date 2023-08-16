@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as util from './util'
+import { tileFile, getPad } from './util'
 
 class WorldMap extends THREE.Group {
   constructor (name) {
@@ -18,52 +18,75 @@ class MapMan {
   // hold a bunch of maps!
   // control swapping maps, etc.
   // load maps
-  async loadMap (scene) {
-    await loadMap2(scene)
-  }
-}
 
-function tileFile (x, y) {
-  const tilesX = 38
-  const tilesY = 36
-  const idx = ((tilesY - y - 1) * tilesX) + x
-  const d = util.leftFillNum(idx, 4)
-  return `map-0-overworld-tile256-${d}.png`
-}
-
-async function loadMap2 (scene) {
-  const dir = await window.handy.getMapTiles()
-  if (!dir) return
-  if (!Array.isArray(dir) || !dir.length) return
-  const tilesX = 38
-  const tilesY = 36
-  const logicalTileCount = tilesX * tilesY
-  console.log(`logicalTileCount: ${logicalTileCount}`)
-  if (dir.length !== logicalTileCount) {
-    console.log(`map logicalTileCount not OKAY: ${dir.length}`)
-  }
-  const g = scene.getObjectByName('map')
-  if (g) {
-    console.log('map already loaded')
-    return
-  }
-  const loader = new THREE.TextureLoader()
-  const grp = new THREE.Group()
-  grp.name = 'map'
-  scene.add(grp)
-  const size = 1
-  const thickness = 0.1
-  for (let y = 0; y < tilesY; y++) {
-    for (let x = 0; x < tilesX; x++) {
-      const f = tileFile(x, y)
-      const geometry = new THREE.BoxGeometry(size, size, thickness)
-      const material = new THREE.MeshBasicMaterial({ map: loader.load(`mine://maps/${f}`) })
-      const tile = new THREE.Mesh(geometry, material)
-      tile.position.set(x * size, y * size, 0)
-      grp.add(tile)
+  addCoolIcons (myCoolIcons, scene) {
+    const g = new THREE.Group()
+    scene.add(g)
+    const box = new THREE.Box2()
+    for (const [key, icon] of Object.entries(myCoolIcons)) {
+      console.log(`${key}: ${icon}`)
+      const geometry = new THREE.PlaneGeometry(2, 2)
+      const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide })
+      const mesh = new THREE.Mesh(geometry, material)
+      mesh.name = icon.id
+      mesh.userData = icon
+      const mx = icon.position?.match(/^(\d+)px, (\d+)px$/)
+      if (!mx) {
+        console.log(`no match for ${icon.position}`)
+      } else {
+        const [x, y, z] = [mx[1], mx[2], 0]
+        mesh.position.set(x, y, z)
+        box.expandByPoint(new THREE.Vector2(x, y))
+      }
+      g.add(mesh)
     }
+    console.dir(box)
+    // now scale the group to match the map!
+    const v2 = new THREE.Vector2()
+    box.getSize(v2)
+    const r = Math.max(v2.x, v2.y)
+    const f = 40.0 / r
+    g.scale.set(f, f, f)
   }
-  grp.position.z = 0 - (thickness / 2.0) - 0.01
+
+  loadMapData (data, urlPath, scene) {
+    const { tilesX, tilesY, tiles, tileSize, name, bigOriginalFile } = data
+    const m = bigOriginalFile?.match(/\..*$/)?.[0]
+    const ext = m || '.png'
+    const pad = getPad(tilesX, tilesY)
+    const logicalTileCount = tilesX * tilesY
+    console.log(`logicalTileCount: ${logicalTileCount}`)
+    if (tiles.length !== logicalTileCount) {
+      throw Error(`map logicalTileCount not OKAY: ${tiles.length}`)
+    }
+    let mg = scene.getObjectByName('maps')
+    if (!mg) {
+      mg = new THREE.Group()
+      mg.name = 'maps'
+      scene.add(mg)
+    }
+    const g = mg.getObjectByName(name)
+    if (g) {
+      throw Error(`map '${name}' already loaded`)
+    }
+    const loader = new THREE.TextureLoader()
+    const grp = new THREE.Group()
+    grp.name = name
+    mg.add(grp)
+    const size = 1
+    const thickness = 0.1
+    for (let y = 0; y < tilesY; y++) {
+      for (let x = 0; x < tilesX; x++) {
+        const f = tileFile(name, tileSize, x, y, pad, ext)
+        const geometry = new THREE.BoxGeometry(size, size, thickness)
+        const material = new THREE.MeshBasicMaterial({ map: loader.load(`${urlPath}/${f}`) })
+        const tile = new THREE.Mesh(geometry, material)
+        tile.position.set(x * size, y * size, 0)
+        grp.add(tile)
+      }
+    }
+    grp.position.z = 0 - (thickness / 2.0) - 0.01
+  }
 }
 
 export { WorldMap, MapMan }

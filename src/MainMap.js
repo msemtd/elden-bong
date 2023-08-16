@@ -1,7 +1,7 @@
-import { subProcess, awaitableSubProcess } from './SubProc'
+import { awaitableSubProcess } from './SubProc'
 import fs from 'fs-extra'
 import path from 'path'
-import * as util from './util'
+import { identifyDataParse, rxBetween, tileFile, xyToIndex, getPad } from './util'
 
 /**
  * Main process map support
@@ -24,6 +24,8 @@ class MainMap {
     try {
       const s = await awaitableSubProcess(magick, ['identify', '-format', '%m %B %w x %h', fp], path.dirname(fp), 'identifyImage')
       console.dir(s)
+      const k = identifyDataParse(s)
+      console.dir(k)
       return s
     } catch (error) {
       console.log('nah mate')
@@ -33,139 +35,67 @@ class MainMap {
 
   async sliceBigMap (options) {
     if (this.busyJob) throw Error('busy with another job')
-    const { fp, prefix, magick, sliceCommand } = options
-    const pp = path.parse(fp)
-    const cwd = pp.dir
-    const postfix = pp.ext
-    const args = sliceCommand.split(' ')
-    for (let i = 0; i < args.length; i++) {
-      let s = args[i]
-      s = s.replace('{{BIG_MAP_FILE}}', fp)
-      s = s.replace('{{PREFIX}}', prefix)
-      args[i] = s
-    }
-    const topic = 'sliceBigMap'
     try {
-      this.rendererNotify(topic, 'are you ready?')
+      this.rendererNotify('underpants', 'slicing yo')
+      const { fp, prefix, magick, sliceCommand, identifyData, tileSize } = options
+      const pp = path.parse(fp)
+      const cwd = pp.dir
+      const ext = pp.ext
+      const name = pp.name
+      const k = identifyDataParse(identifyData)
+      const tilesX = k.width / tileSize
+      const tilesY = k.height / tileSize
+      if (k.width % tileSize || k.height % tileSize) {
+        console.warn('not an exact tile split - expect some nonsense')
+      }
+      const expectedTileCount = tilesX * tilesY
+      const pad = getPad(tilesX, tilesY)
+      const data = {
+        name,
+        bigOriginalFile: fp,
+        tileSize,
+        tilesX,
+        tilesY,
+        tiles: [],
+      }
+      console.log(`we expect ${expectedTileCount} :: ${tilesX} by ${tilesY}`)
+      // prepare the args for the slice command line...
+      const args = sliceCommand.split(' ')
+      for (let i = 0; i < args.length; i++) {
+        let s = args[i]
+        s = s.replace('{{BIG_MAP_FILE}}', fp)
+        s = s.replace('{{PREFIX}}', prefix)
+        s = s.replace('{{TILE_SIZE}}', tileSize)
+        args[i] = s
+      }
+      const topic = 'sliceBigMap'
+      this.rendererNotify(topic, 'Preparing...')
       await awaitableSubProcess(magick, args, cwd, topic, (msg) => { this.rendererNotify(topic, msg) })
-      this.rendererNotify(topic, 'slicing is done!')
       // now rename tiles
       const files = await fs.readdir(cwd)
-      const rx = util.rxBetween(prefix, postfix)
+      const rx = rxBetween(prefix, ext)
       const tiles = files.filter(f => rx.exec(f))
-      console.dir(tiles)
-  
-
-
+      if (expectedTileCount !== tiles.length) {
+        throw Error('unexpected tile count after slice')
+      }
+      this.rendererNotify(topic, `slicing is done - renaming ${tiles.length} tiles...`)
+      for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+          const idx = xyToIndex(x, y, tilesX, tilesY)
+          const fOld = `${prefix}${idx}${ext}`
+          const fNew = tileFile(name, tileSize, x, y, pad, ext)
+          this.rendererNotify(topic, `rename ${fOld} ${fNew}`)
+          await fs.rename(path.join(cwd, fOld), path.join(cwd, fNew))
+          data.tiles.push(fNew)
+        }
+      }
+      const iFile = `${name}-info.json`
+      this.rendererNotify(topic, `rename complete, writing ${iFile}`)
+      await fs.outputJSON(path.join(cwd, iFile), data, { spaces: 2 })
     } catch (error) {
       console.log('sliceBigMap major malfunction')
       throw error
     }
-  }
-
-  async sliceBigMapOld (options) {
-    if (this.busyJob) throw Error('busy with another job')
-    const { fp, prefix, magick, sliceCommand } = options
-    const pp = path.parse(fp)
-    const cwd = pp.dir
-    const args = sliceCommand.split(' ')
-    for (let i = 0; i < args.length; i++) {
-      let s = args[i]
-      s = s.replace('{{BIG_MAP_FILE}}', fp)
-      s = s.replace('{{PREFIX}}', prefix)
-      args[i] = s
-    }
-    const metaFile = `${prefix}-meta.json`
-    const fn = path.join(cwd, metaFile)
-    let meta = null
-    try {
-      meta = await fs.readJson(fn, { throws: false })
-      if (meta) {
-        throw Error('uh, map meta json file already exists')
-      }
-    } catch (_error) {
-    }
-    // TODO - these are currently assumptions but should be as the result of a magick query
-    const postfix = '.png'
-    const tilesX = 38
-    const tilesY = 36
-    // renamed tiles will have -xnn-ynn
-    const logicalTileCount = tilesX * tilesY
-
-    const files = await fs.readdir(cwd)
-    const rx = util.rxBetween(prefix, postfix)
-    const tiles = files.filter(f => rx.exec(f))
-    console.dir(tiles)
-
-    try {
-      this.busyJob = this.startProcessJob('sliceBigMap', magick, args, cwd, (err, value) => {
-        if (err) {
-          console.error('job went badly: ', err)
-          return
-        }
-        console.log('job ended somehow with ' + value.exit_code)
-        // if all OK, auto rename tiles
-        // return this.sliceComplete(cwd, prefix, postfix, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
-      })
-    } catch (error) {
-      console.error('starting the job went badly: ', error)
-      return
-    }
-    console.log('job started and now we wait')
-  }
-
-  async sliceComplete (jc) {
-
-  }
-
-  /**
-   * options: collectOutput, completeCallback, progressCallback
-   * this SHOULD be a Promise -- maybe steal ideas from
-   * https://www.npmjs.com/package/await-spawn
-   * https://github.com/ralphtheninja/await-spawn
-   *
-   */
-  startProcessJob (jobName, exe, args, cwd, callback) {
-    console.log(`spawning "${jobName}"...`, exe, args, cwd)
-    const s = {
-      exe,
-      args,
-      cwd,
-      collectedOutput: '',
-      logPrefix: jobName,
-      subProc: null,
-      running: true,
-      exit_code: 0,
-      exit_signal: null,
-    }
-    s.subProc = subProcess(exe, args, { cwd },
-      (data) => {
-        if (!data) { return }
-        const msg = `${s.logPrefix} stdout: ${data}`
-        s.collectedOutput += msg
-        this.rendererNotify(jobName, msg)
-      },
-      (data) => {
-        if (!data) { return }
-        const msg = `${s.logPrefix} stderr: ${data}`
-        s.collectedOutput += msg
-        this.rendererNotify(jobName, msg)
-      },
-      (code, signal) => {
-        s.exit_code = code
-        s.exit_signal = signal
-        const msg = `${s.logPrefix} code=${code} signal=${signal}`
-        s.collectedOutput += msg
-        s.running = false
-        // trigger completion
-        this.rendererNotify(jobName, msg)
-        if (callback instanceof Function) {
-          const err = s.exit_code === 0 ? null : Error('exit code ' + s.exit_code)
-          callback(err, s)
-        }
-      },
-    )
-    return s
   }
 
   async renameMapTiles (dir, prefix, postfix) {
@@ -173,10 +103,6 @@ class MainMap {
     // TODO
     const fa = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
     console.dir(fa)
-    for (let i = 0; i < fa.length; i++) {
-      const f = fa[i]
-      // f.slice()
-    }
   }
 
   // return list all tiles as special "mine" protocol URLs

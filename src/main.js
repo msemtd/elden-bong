@@ -4,7 +4,7 @@ import path from 'path'
 import * as Store from 'electron-store'
 import { schema } from './config'
 import { MainMap } from './MainMap'
-import url from 'node:url'
+import { mineToFilePath } from './util'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -42,7 +42,7 @@ const createWindow = () => {
   mainWindow.removeMenu()
   // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12' && !input.control && !input.alt && !input.meta && !input.shift) {
       mainWindow.webContents.openDevTools()
@@ -54,8 +54,6 @@ const createWindow = () => {
 app.whenReady().then(() => {
   setupMine()
   // All the main process functionality exposed in preload...
-  ipcMain.handle('ping', () => 'pong')
-  // ipcMain.handle('getMapTiles', getMapTiles)
   ipcMain.handle('pickFile', pickFile)
   ipcMain.handle('pickDir', pickDir)
   ipcMain.handle('slurp', async (event, ...args) => { return await slurp(...args) })
@@ -74,13 +72,10 @@ app.whenReady().then(() => {
 })
 
 function setupMine () {
+  // The mine protocol just allows full file paths to get through...
+  // This has been a right royal pain to get working!
   protocol.handle('mine', (request) => {
-    const filePath = request.url.slice('mine://'.length)
-    if (filePath.startsWith('maps/')) {
-      const tile = filePath.slice('maps/'.length)
-      return net.fetch(url.pathToFileURL(tile).toString())
-    }
-    return net.fetch(url.pathToFileURL(path.join(__dirname, filePath)).toString())
+    return net.fetch(mineToFilePath(request.url))
   })
 }
 

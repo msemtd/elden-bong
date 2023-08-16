@@ -10,11 +10,6 @@ console.log(t)
 
 const bong = new Bong(appDiv)
 
-window.handy.onNotifyFromMain((topic, msg) => { bong.notifyFromMain(topic, msg) })
-
-const doPing = async () => {
-  const response = await window.versions.ping()
-  console.log(response) // prints out 'pong'
-}
-
-doPing()
+window.notifications.onNotifyFromMain((event, topic, msg) => {
+  bong.notifyFromMain(event, topic, msg)
+})

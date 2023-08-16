@@ -7,7 +7,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
-import * as util from './util'
+import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
 
@@ -49,14 +49,15 @@ class Bong {
     this.slicerDialog = null
     {
       const fld = this.gui.addFolder('Maps')
+      fld.add(this, 'sliceBigMap').name('slice big map')
+      fld.add(this, 'loadMapJson').name('load map json')
+      fld.add(this, 'loadItemsScrape')
+    }
+    {
+      const fld = this.gui.addFolder('test').close()
       fld.add(this, 'testDialog')
       fld.add(this, 'testDialogAsync')
       fld.add(this, 'testIdentify')
-      fld.add(this, 'sliceBigMap').name('import big map')
-      // fld.add(this, 'loadItemsScrape')
-      // fld.add(this, 'loadMapJson')
-      // addMapTiles: () => { this.mapMan.loadMap(c.scene) },
-      // fld.add(this, 'saveMapDef')
     }
     {
       const fld = this.gui.addFolder('Settings').close()
@@ -86,9 +87,10 @@ class Bong {
       // TODO find progress bar and update it
       if (this.slicerDialog) {
         // get the content and replace it
-        this.slicerDialog.setContent(`progress: ${msg}`, true)
+        let p = msg.replace('stdout: ', '')
+        p = p.replace(topic, '')
+        this.slicerDialog.setContent(`progress: ${p}`, true)
       }
-
       return
     }
     console.log('main process says: ', topic, msg)
@@ -103,30 +105,26 @@ class Bong {
     console.log('file picked: ', info)
     if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
     const fp = info.filePaths[0]
-    const magick = this.settings.tools.magick
-    const sliceCommand = this.settings.tools.sliceCommand
-    const prefix = 'aSplitMapMyPrefix-'
     try {
-      const info = await window.handy.identifyImage({ fp, magick })
-      console.dir(info)
-      await Dlg.awaitableDialog(info, 'Will slice this map')
       // pop persistent dialog that should stay up until end of job, receive
       // progress notifications, etc.
       const id = 'slicerDialog'
       if (!$(`#${id}`).length) {
         const h = `<div id="${id}" style="display:none;width:600px;">`
         const div = $(h).appendTo(this.canvas.container)
-        div.append('<span>progress: 0%</span><br/><button>cancel</button>')
-        // ...etc
+        div.append('Starting to slice...')
       }
       this.slicerDialog = Dlg.tempDialogShow({ title: 'Map Slicing', theme: 'tpDialog' }, $(`#${id}`))
-      this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix })
-      // TODO capture any events and update a progress thingy
-
-      // TODO file renaming task...
-
-      // TODO close the dialog
+      const magick = this.settings.tools.magick
+      const sliceCommand = this.settings.tools.sliceCommand
+      const prefix = 'aSplitMapMyPrefix-'
+      const tileSize = 256
+      const identifyData = await window.handy.identifyImage({ fp, magick })
+      console.dir(identifyData)
+      this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix, tileSize, identifyData })
       this.busyDoing = ''
+      // TODO close the dialog
+      this.slicerDialog?.close()
     } catch (error) {
       console.log('nah mate')
       console.log(error)
@@ -143,7 +141,7 @@ class Bong {
       const result = await window.handy.identifyImage({ fp, magick })
       console.dir(result)
     } catch (error) {
-      this.errorDialog(error)
+      Dlg.errorDialog(error)
     }
   }
 
@@ -153,7 +151,7 @@ class Bong {
     console.log('file picked: ', info)
     if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
     const fp = info.filePaths[0]
-    const pp = pathParse(fp)
+    const pp = await pathParse(fp)
     const myPrefix = 'aSplitMapMyPrefix-'
     const postfix = '.png'
     const result = await window.handy.renameMapTiles(pp.pir, myPrefix, postfix)
@@ -161,51 +159,17 @@ class Bong {
   }
 
   async loadMapJson () {
-    // pick file, load it, assign name if no name, make GUI folder for it!
     try {
       console.log('load map definition file')
       const info = await pickFile()
       console.log('file picked: ', info)
       if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
       const fp = info.filePaths[0]
-      const json = await loadJsonFile(fp)
-      console.log(json)
+      const data = await loadJsonFile(fp)
       const pp = await pathParse(fp)
-      console.dir(pp.dir)
-      const files = await readDir(pp.dir)
-      const prefix = 'map-00-overworld-tile256-'
-      const postfix = '.png'
-      const tilesX = 38
-      const tilesY = 36
-      const logicalTileCount = tilesX * tilesY
-      const tiles = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
-      console.dir(tiles)
-      const xyToIndex = (x, y, tilesX, tilesY) => {
-        return ((tilesY - y - 1) * tilesX) + x
-      }
-      const xyFmt = (x, y, pad) => {
-        return `x${util.leftFillNum(x, pad)}-y${util.leftFillNum(y, pad)}`
-      }
-      console.log(`logicalTileCount: ${logicalTileCount}`)
-      if (tiles.length !== logicalTileCount) {
-        console.log(`map logicalTileCount not OKAY: ${tiles.length}`)
-        return
-      }
-      const renames = []
-      for (let y = 0; y < tilesY; y++) {
-        for (let x = 0; x < tilesX; x++) {
-          const idx = xyToIndex(x, y, tilesX, tilesY)
-          const d = util.leftFillNum(idx, 4)
-          const fOld = `${prefix}${d}${postfix}`
-          const fNew = `map-00-overworld-tile256-${xyFmt(x, y, 2)}.png`
-          renames.push(`mv ${fOld} ${fNew}`)
-        }
-      }
-      const script = renames.join('\n')
-
-      console.log(script)
+      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.canvas.scene)
     } catch (error) {
-      this.errorDialog(error)
+      Dlg.errorDialog(error)
     }
   }
 
@@ -218,9 +182,47 @@ class Bong {
       const fp = info.filePaths[0]
       console.log(fp)
       const lines = await loadTextFileLines(fp)
-      console.log(lines)
+      const k = {
+        hasThat: 0,
+        img: 0,
+        matches: 0,
+        mapIds: {},
+        iconTypes: {},
+      }
+      const incProp = (obj, propName) => {
+        if (obj[propName] === undefined) {
+          obj[propName] = 1
+        } else {
+          obj[propName]++
+        }
+      }
+
+      const myCoolIcons = {}
+      for (let i = 0; i < lines.length; i++) {
+        const s2 = lines[i]
+        // const s2 = 'whatever'
+        if (s2.startsWith('<img src=')) {
+          // <img src="/file/Elden-Ring/map-d8dc59f2-67df-452e-a9ea-d2c00ddc3a2b/maps-icons/shield.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Inverted Hawk Heater Shield" alt="5720-Inverted Hawk Heater Shield" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(524px, 738px, 0px); z-index: 738;">
+          k.img++
+          const bits = s2.match(/^<img src="\/file\/Elden-Ring\/map-([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\/maps-icons\/([A-Za-z0-9]+\.[A-Za-z0-9]+)" class=".*" title="(.*)" alt="(.*)" tabindex=.* transform: translate3d\(([A-Za-z0-9]+, [A-Za-z0-9]+), [A-Za-z0-9]+\);/)
+          if (!bits) {
+            incProp(k, 'imgButNoMatch')
+          } else {
+            k.matches++
+            incProp(k.mapIds, bits[1])
+            incProp(k.iconTypes, bits[2])
+            const [_fullLine, mapId, iconType, title, id, position] = [...bits]
+            myCoolIcons[id] = { id, mapId, iconType, title, position }
+          }
+        }
+        if (s2.includes('/file/Elden-Ring/map-')) {
+          k.hasThat++
+        }
+      }
+      console.dir(k)
+      this.mapMan.addCoolIcons(myCoolIcons, this.canvas.scene)
     } catch (error) {
-      this.errorDialog(error)
+      Dlg.errorDialog(error)
     }
   }
 

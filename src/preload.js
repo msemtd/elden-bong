@@ -6,7 +6,10 @@ contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
-  ping: () => ipcRenderer.invoke('ping'),
+})
+
+contextBridge.exposeInMainWorld('notifications', {
+  onNotifyFromMain: (callback) => ipcRenderer.on('renderer-notify', callback),
 })
 
 // NB: everything in handy API uses invoke and is therefore async
@@ -23,5 +26,4 @@ contextBridge.exposeInMainWorld('handy', {
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
   identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
   renameMapTiles: (...args) => ipcRenderer.invoke('renameMapTiles', ...args),
-  onNotifyFromMain: (callback) => ipcRenderer.on('renderer-notify', callback),
 })

@@ -9,11 +9,25 @@ export class Dlg {
     // eslint-disable-next-line new-cap
     new jBox('Modal', {
       title: 'Error',
-      content: errMsg(error)
+      content: errMsg(error),
+      closeButton: true,
     }).open()
   }
 
   static async awaitableDialog (msg, title) {
+    return new Promise((resolve, _reject) => {
+      new jBox('Modal', {
+        title,
+        content: msg,
+        closeButton: true,
+        onClose: () => {
+          resolve()
+        }
+      }).open()
+    })
+  }
+
+  static async awaitableConfirmDialog (msg, title) {
     return new Promise((resolve, _reject) => {
       new jBox('Modal', {
         title,
