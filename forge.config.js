@@ -3,7 +3,7 @@ const devContentSecurityPolicy = `
 default-src 'self' 'unsafe-inline' data:
 script-src 'self' 'unsafe-eval' 'unsafe-inline' data:
 img-src 'self' mine: file:
-
+connect-src 'self' mine: file:
 `.split('\n').filter(l => l.length).join('; ')
 
 module.exports = {

@@ -33,8 +33,8 @@ class GamepadManager {
   // https://gamepad-tester.com/for-developers
   // https://github.com/luser/gamepadtest
   //
-  constructor (canvas) {
-    this.canvas = canvas
+  constructor (screen) {
+    this.screen = screen
     this.controllers = {}
     this.chosenIndex = 0
     this.config = {
@@ -57,10 +57,10 @@ class GamepadManager {
     // this.scanGamepads()
     this.setupInProgress = setInterval(() => {
       console.log('gamepad setup attempt: 400ms repeat')
-      if (this.canvas?.camera) {
+      if (this.screen?.camera) {
         clearInterval(this.setupInProgress)
         this.setupInProgress = false
-        this.canvas.addMixer?.('gamepads', this.procInputs.bind(this))
+        this.screen.addMixer?.('gamepads', this.procInputs.bind(this))
       }
     }, 400)
   }
@@ -120,7 +120,7 @@ class GamepadManager {
   axisToKeyHold (axisVal, negKey, posKey, c) {
     const amt = Math.abs(axisVal) - c.axisDeadZone
     if (amt > 0) {
-      this.canvas.onKeyHold?.({ deltaTime: c.axisDeltaFixed + (amt * c.axisDeltaMultiplier) }, (axisVal < 0) ? negKey : posKey)
+      this.screen.onKeyHold?.({ deltaTime: c.axisDeltaFixed + (amt * c.axisDeltaMultiplier) }, (axisVal < 0) ? negKey : posKey)
     }
   }
 
@@ -129,7 +129,7 @@ class GamepadManager {
     for (const pad of gamepads) {
       if (pad) {
         this.controllers[pad.index] = pad
-        // todo; simple demo of displaying pad.axes and pad.buttons
+        // TODO: simple demo of displaying pad.axes and pad.buttons
         console.log(pad)
       }
     }

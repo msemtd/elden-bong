@@ -1,6 +1,8 @@
 import jBox from 'jbox'
 import 'jbox/dist/jBox.all.css'
 
+const theme = 'dlgDude'
+
 export const errMsg = (e) => e instanceof Error && e.message ? e.message : `${e}`
 
 export class Dlg {
@@ -11,6 +13,10 @@ export class Dlg {
       title: 'Error',
       content: errMsg(error),
       closeButton: true,
+      overlay: false,
+      draggable: 'title',
+      dragOver: true,
+      theme,
     }).open()
   }
 
@@ -20,6 +26,10 @@ export class Dlg {
         title,
         content: msg,
         closeButton: true,
+        overlay: false,
+        draggable: 'title',
+        dragOver: true,
+        theme,
         onClose: () => {
           resolve()
         }
@@ -29,13 +39,20 @@ export class Dlg {
 
   static async awaitableConfirmDialog (msg, title) {
     return new Promise((resolve, _reject) => {
-      new jBox('Modal', {
+      new jBox('Confirm', {
         title,
         content: msg,
+        confirmButton: 'Confirm',
+        cancelButton: 'Cancel',
+        overlay: false,
+        draggable: 'title',
+        dragOver: true,
+        theme,
         closeButton: true,
-        onClose: () => {
-          resolve()
-        }
+        confirm: () => { resolve('confirm') },
+        cancel: () => { resolve('cancel') },
+        onClose: () => { resolve('close') },
+        onCloseComplete: function () { this.destroy() },
       }).open()
     })
   }
@@ -52,7 +69,7 @@ export class Dlg {
       draggable: 'title',
       closeButton: true,
       dragOver: true,
-      theme: 'tempDialog',
+      theme,
       position: {
         x: 'center',
         y: 'center',

@@ -2,7 +2,10 @@ import * as THREE from 'three'
 import $ from 'jquery'
 import yaml from 'js-yaml'
 import Stats from 'three/addons/libs/stats.module.js'
-import { CanvasThree } from './CanvasThree'
+import ntc from '@yatiac/name-that-color'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { Howl, Howler } from 'howler'
+import { Screen } from './Screen'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
@@ -10,13 +13,20 @@ import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines
 import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
+import destroyedSound from '../sounds/Destroyed.mp3'
+
+async function pick () {
+  const info = await pickFile()
+  if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+  return info.filePaths[0]
+}
 
 class Bong {
   constructor (appDiv) {
     this.settings = loadSettings('eldenBong', exampleConfig)
-    this.canvas = new CanvasThree(appDiv)
-    const c = this.canvas
-    this.gpm = new GamepadManager(this.canvas)
+    this.screen = new Screen(appDiv)
+    const c = this.screen
+    this.gpm = new GamepadManager(this.screen)
     // Right now I want to see if I can define my whole GUI in just lil-gui and
     // a few dialog boxes
     this.gui = new GUI({ width: 310 })
@@ -41,6 +51,11 @@ class Bong {
           rotating: true,
           visible: true,
         },
+        background: {
+          colour: '#aa00ff',
+          x11Colour: '',
+          skyBox: '',
+        }
       },
     }
     this.mapMan = new MapMan()
@@ -54,8 +69,15 @@ class Bong {
       fld.add(this, 'loadItemsScrape')
     }
     {
-      const fld = this.gui.addFolder('test').close()
+      const fld = this.gui.addFolder('Character') // .close()
+      fld.add(this, 'testLoadCharacter')
+    }
+    {
+      const fld = this.gui.addFolder('Test') // .close()
+      fld.add(this, 'youDiedWithSound')
+      fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
+      fld.add(this, 'testConfirmDialog')
       fld.add(this, 'testDialogAsync')
       fld.add(this, 'testIdentify')
     }
@@ -77,9 +99,50 @@ class Bong {
     this.addCamInfo(c)
     this.addDemoCube(c)
     this.makeGui()
+    const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
+    overlay.on('click', this.youDiedFadeOut.bind(this))
   }
 
-  // TODO make this an event listener interface
+  async testLoadCharacter () {
+    const fp = await pick()
+    if (!fp) { return }
+    const u = filePathToMine(fp)
+    console.log(u)
+    const scene = this.screen.scene
+    const e = scene.getObjectByName('character')
+    if (e) {
+      Dlg.errorDialog('character already loaded')
+      return
+    }
+    const loader = new GLTFLoader()
+    loader.load(u, function (g) {
+      scene.add(g.scene)
+    }, undefined, function (error) {
+      console.error(error)
+    })
+  }
+
+  async testConfirmDialog () {
+    const res = await Dlg.awaitableConfirmDialog('this is the message', 'TITLE!')
+    console.dir(res)
+  }
+
+  youDiedWithSound () {
+    const sound = new Howl({ src: [destroyedSound] })
+    sound.play()
+    this.youDiedFadeIn()
+  }
+
+  youDiedFadeOut () {
+    $('#you-died').fadeOut(1400, () => { $('#overlay').css('display', 'none') })
+  }
+
+  youDiedFadeIn () {
+    $('#overlay').css('display', 'block')
+    $('#you-died').fadeIn(2000)
+  }
+
+  // TODO make this an event listener interface?
   notifyFromMain (event, topic, msg) {
     // specifics for job topics...
     if (topic === 'sliceBigMap') {
@@ -101,17 +164,15 @@ class Bong {
       Dlg.errorDialog('busy doing something else!')
       return
     }
-    const info = await pickFile()
-    console.log('file picked: ', info)
-    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-    const fp = info.filePaths[0]
+    const fp = await pick()
+    if (!fp) { return }
     try {
       // pop persistent dialog that should stay up until end of job, receive
       // progress notifications, etc.
       const id = 'slicerDialog'
       if (!$(`#${id}`).length) {
         const h = `<div id="${id}" style="display:none;width:600px;">`
-        const div = $(h).appendTo(this.canvas.container)
+        const div = $(h).appendTo(this.screen.container)
         div.append('Starting to slice...')
       }
       this.slicerDialog = Dlg.tempDialogShow({ title: 'Map Slicing', theme: 'tpDialog' }, $(`#${id}`))
@@ -121,10 +182,13 @@ class Bong {
       const tileSize = 256
       const identifyData = await window.handy.identifyImage({ fp, magick })
       console.dir(identifyData)
-      this.busyDoing = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix, tileSize, identifyData })
       this.busyDoing = ''
-      // TODO close the dialog
+      const mapJsonFile = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix, tileSize, identifyData })
+      this.busyDoing = ''
       this.slicerDialog?.close()
+      // const response = Dlg.prompt('Map processed. Load it?', ['Y', 'N'])
+      // if (response !== 'Y') { return }
+      // await loadMapJson2(mapJsonFile)
     } catch (error) {
       console.log('nah mate')
       console.log(error)
@@ -132,10 +196,8 @@ class Bong {
   }
 
   async testIdentify () {
-    const info = await pickFile()
-    console.log('file picked: ', info)
-    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-    const fp = info.filePaths[0]
+    const fp = await pick()
+    if (!fp) { return }
     const magick = this.settings.tools.magick
     try {
       const result = await window.handy.identifyImage({ fp, magick })
@@ -145,29 +207,13 @@ class Bong {
     }
   }
 
-  async renameMapTiles () {
-    // TODO auto when complete map tiles slice
-    const info = await pickFile()
-    console.log('file picked: ', info)
-    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-    const fp = info.filePaths[0]
-    const pp = await pathParse(fp)
-    const myPrefix = 'aSplitMapMyPrefix-'
-    const postfix = '.png'
-    const result = await window.handy.renameMapTiles(pp.pir, myPrefix, postfix)
-    console.dir(result)
-  }
-
   async loadMapJson () {
     try {
-      console.log('load map definition file')
-      const info = await pickFile()
-      console.log('file picked: ', info)
-      if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-      const fp = info.filePaths[0]
+      const fp = await pick()
+      if (!fp) { return }
       const data = await loadJsonFile(fp)
       const pp = await pathParse(fp)
-      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.canvas.scene)
+      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene)
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -175,12 +221,8 @@ class Bong {
 
   async loadItemsScrape () {
     try {
-      console.log('load items scraped text file')
-      const info = await pickFile()
-      console.log('file picked: ', info)
-      if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-      const fp = info.filePaths[0]
-      console.log(fp)
+      const fp = await pick()
+      if (!fp) { return }
       const lines = await loadTextFileLines(fp)
       const k = {
         hasThat: 0,
@@ -220,14 +262,10 @@ class Bong {
         }
       }
       console.dir(k)
-      this.mapMan.addCoolIcons(myCoolIcons, this.canvas.scene)
+      this.mapMan.addCoolIcons(myCoolIcons, this.screen.scene)
     } catch (error) {
       Dlg.errorDialog(error)
     }
-  }
-
-  async saveMapJson (map) {
-
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
@@ -286,24 +324,40 @@ class Bong {
     {
       const s = this.gui.addFolder('Scene').close()
       const sp = this.PROPS.scene
+      const x11ColourNames = { ...THREE.Color.NAMES }
       {
         const fld = s.addFolder('Fog')
-        fld.add(sp.fog, 'enabled').onChange(v => { this.canvas.scene.fog = v ? this.fog : null })
+        fld.add(sp.fog, 'enabled').onChange(v => { this.screen.scene.fog = v ? this.fog : null })
         fld.addColor(this.fog, 'color')
         fld.add(this.fog, 'near')
         fld.add(this.fog, 'far')
       }
       {
+        const fld = s.addFolder('Background')
+        const con = fld.add(sp.background, 'x11Colour', x11ColourNames).onChange(v => {
+          this.screen.scene.background = new THREE.Color(v)
+          // sp.background.colour =
+        })
+        fld.addColor(sp.background, 'colour').onChange(v => {
+          this.screen.scene.background = new THREE.Color(v)
+          const nc = ntc(v)
+          sp.background.x11Colour = nc.colorName
+          con.updateDisplay()
+        })
+        fld.add(sp.background, 'skyBox')
+        // TODO when ready, load user-saved sky boxes from some dir somewhere
+      }
+      {
         const fld = s.addFolder('Grid')
         fld.add(sp.grid, 'visible').onChange(v => {
-          const g = this.canvas.scene.getObjectByName('grid')
+          const g = this.screen.scene.getObjectByName('grid')
           if (g) g.visible = v
         })
       }
       {
         const fld = s.addFolder('Axes')
         fld.add(sp.axes, 'visible').onChange(v => {
-          const g = this.canvas.scene.getObjectByName('axesHelper')
+          const g = this.screen.scene.getObjectByName('axesHelper')
           if (g) g.visible = v
         })
       }
@@ -311,11 +365,11 @@ class Bong {
         const fld = s.addFolder('Demo Cube')
         fld.add(sp.demoCube, 'rotating')
         fld.add(sp.demoCube, 'visible').onChange(v => {
-          const g = this.canvas.scene.getObjectByName('demoCube')
+          const g = this.screen.scene.getObjectByName('demoCube')
           if (g) g.visible = v
         })
       }
-      s.onChange(() => { this.canvas.forceRedraw = true })
+      s.onChange(() => { this.screen.forceRedraw = true })
     }
   }
 

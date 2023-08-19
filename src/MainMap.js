@@ -98,13 +98,6 @@ class MainMap {
     }
   }
 
-  async renameMapTiles (dir, prefix, postfix) {
-    const files = await fs.readdir(dir)
-    // TODO
-    const fa = files.filter(f => f.startsWith(prefix) && f.endsWith(postfix))
-    console.dir(fa)
-  }
-
   // return list all tiles as special "mine" protocol URLs
   // async getMapTiles () {
   //   try {

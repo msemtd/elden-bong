@@ -1,64 +1,38 @@
 # Elden Bong
 
-## Development
+This is a project just for fun - _not a real game!_
 
-From scratch (Friday November 04 2022)...
-
-```
-yarn create electron-app elden-bong --template=webpack
-```
-
-* added three and camera-controls
-* added eslint (as recommended by eslint-config-standard)
-* `yarn add -D eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n`
-
-* upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
+* I want my own Elden Ring map for strategy planning - with all the publicly available info about items.
+* I want a little funny character editor
+* I want a platform to develop my puns, crazy ideas, and art.
 
 
+# REQUIREMENTS
 
-### TODO
-* add basic scene and sky box
+## basic scene
+* scene controls - ambient light, fog for testing
+* background colour and sky box
+* YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
+
 * basic character and animations
 * load and change scenes
 * upon any gui change force a render
-* basic dialog boxes - get hyped about https://sweetalert2.github.io/
+* basic dialog boxes - get hyped about them
   - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
-* sub process error stderr in main thread needs to get back to renderer thread - DONE in `awaitableSubProcess`
+  - try a few then drop back to jBox because it works well
 
-* the development process with the main and renderer processes makes development slow
-  - could drop restrictions and make it OK later?
-  - get the simple reusable functionality perfected and all will be well
-  - this is my procrastination route - also not productive!
-
-
-
-character
+## character
 * load a model - have some to choose from
   * mage, dork, warrior
   * stats manager
   * weapons/items to hold
   * https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN
 
-* scene controls - ambient light, fog for testing
-* YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
 * gradients - https://cssgradient.io/
 * look at toon materials
 * https://threejs.org/docs/index.html?q=mater#api/en/materials/MeshToonMaterial
 * https://threejs.org/examples/#webgl_materials_toon
 
-# SPEC
-
-## Electron
-
-What it gives: -
-* Native executables for supported platforms distributable as installers.
-The challenges it introduces: -
-* comply with all the latest electron security restrictions
-* no node in renderer
-* context isolation
-* CSP - clues: https://web.dev/csp/#if-you-absolutely-must-use-it
-* preload creates a context bridge for main-renderer thread comms
-* custom protocol for local file access
 
 ## Controllers
 
@@ -68,6 +42,11 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 - find some unique identifier for a controller
 - save the settings for a controller
 - controller button and axis mappings format in JSON (and therefore YAML) with a schema
+- TODO game controller input translation is a bit broken - why are the game controls not just perfect?
+- really need an on-screen display of the controller - lift some ideas
+- deal with noise and the dead zone
+- controls on different platforms - https://vulkk.com/2022/02/26/elden-ring-pc-and-console-controls-guide-and-lists/
+- character-based controls versus free-world controls (like quake no-clip) vs map-based controls
 
 ## Settings
 
@@ -132,13 +111,6 @@ Load a JSON map metadata file: -
 * load a map
 * import a map
 * if no loaded map be in character editor fake location - room that is a wardrobe when you get outside it!
-* full 2D map mode with overlay canvas
-
-
-
-* only load from safe dirs as dictated by main thread in config
-* user chooses the dir and it is saved in settings
-* settings are loaded at startup
 * TODO: back and sides of map tiles need to be another texture or could use a plane
 * https://stackoverflow.com/questions/35877484/three-js-using-cubetextureloader-to-create-a-different-image-on-each-face-of-a
 
@@ -170,7 +142,6 @@ https://github.com/MaxTheMiracle/Dark-Souls-3-Parts-Files/blob/master/Elden%20Ri
 
 db creator methods
 
-
 https://github.com/The-Grand-Archives/Elden-Ring-CT-TGA
 
 Elden Ring - Master Spreadsheet
@@ -196,7 +167,6 @@ I can define the transform from wiki map coord to pixel coord by positioning som
 
 load the items list scrape into an array of strings
 
-
 <img src="/file/Elden-Ring/map-50be4728-3907-4f33-8857-7f063e0d24eb/maps-icons/grace.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Stormhill Shack" alt="527-Stormhill Shack" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(768px, 1319px, 0px); z-index: 1319;">
 
 
@@ -205,10 +175,39 @@ load the items list scrape into an array of strings
 
 
 
-slicer process launched from main thread - prefer a jobs system : https://www.npmjs.com/package/await-spawn
-maybe easier to have events for data and completion/errors
 
 
+## Development
 
+From scratch (Friday November 04 2022)...
 
+```
+yarn create electron-app elden-bong --template=webpack
+```
+
+* added three and camera-controls
+* added eslint (as recommended by eslint-config-standard)
+* `yarn add -D eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n`
+* upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
+* worked out how to load files with a custom URL protocol (what a drag that was!)
+
+## Electron
+
+What it gives: -
+* Native executables for supported platforms distributable as installers.
+The challenges it introduces: -
+* comply with all the latest electron security restrictions
+* no node in renderer
+* context isolation
+* CSP - clues: https://web.dev/csp/#if-you-absolutely-must-use-it
+* preload creates a context bridge for main-renderer thread comms
+* custom protocol for local file access
+* sub process error stderr in main thread needs to get back to renderer thread - DONE in `awaitableSubProcess`
+
+## Basic Desktop App Needs
+* settings, menus, dialog boxes
+* lit-gui for rough test-mode menu
+* not going down the React route for now
+* jBox for dialog boxes
+* YAML for settings in 
 

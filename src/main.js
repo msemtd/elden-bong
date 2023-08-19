@@ -66,7 +66,6 @@ app.whenReady().then(() => {
   ipcMain.handle('configSet', (event, ...args) => { return configSet(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
-  ipcMain.handle('renameMapTiles', (event, ...args) => { return mainMap.renameMapTiles(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
   createWindow()
 })

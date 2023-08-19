@@ -3,15 +3,15 @@ import CameraControls from 'camera-controls'
 
 CameraControls.install({ THREE })
 
-class CanvasThree {
+class Screen extends THREE.EventDispatcher {
   constructor (container) {
     // resizes to fill container
-    // super()
+    super()
     this.container = container
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1)
     const canvas = this.renderer.domElement
-    canvas.id = 'canvasThree'
+    canvas.id = 'screenCanvas'
     this.container.appendChild(canvas)
     this.forceRedraw = false
     this.resizeRequired = true
@@ -94,7 +94,6 @@ class CanvasThree {
   }
 
   cameraSetup (opt, stateToLoad, userOptions) {
-    const canvas = this.renderer.domElement
     if (this.cameraControls) {
       this.cameraControls.dispose()
       this.cameraControls = null
@@ -215,4 +214,4 @@ class CanvasThree {
     }
   }
 }
-export { CanvasThree }
+export { Screen }
