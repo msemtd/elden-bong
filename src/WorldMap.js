@@ -19,14 +19,12 @@ class MapMan {
   // control swapping maps, etc.
   // load maps
 
-  addCoolIcons (myCoolIcons, scene) {
-    const g = new THREE.Group()
-    scene.add(g)
+  addCoolIcons (myCoolIcons, mapIconSets) {
     const box = new THREE.Box2()
     for (const [key, icon] of Object.entries(myCoolIcons)) {
-      console.log(`${key}: ${icon}`)
+      console.log(`${key}: ${icon.iconType}`)
       const geometry = new THREE.PlaneGeometry(2, 2)
-      const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide })
+      const material = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
       const mesh = new THREE.Mesh(geometry, material)
       mesh.name = icon.id
       mesh.userData = icon
@@ -38,7 +36,7 @@ class MapMan {
         mesh.position.set(x, y, z)
         box.expandByPoint(new THREE.Vector2(x, y))
       }
-      g.add(mesh)
+      mapIconSets.getObjectByName(icon.mapId).add(mesh)
     }
     console.dir(box)
     // now scale the group to match the map!
@@ -46,7 +44,7 @@ class MapMan {
     box.getSize(v2)
     const r = Math.max(v2.x, v2.y)
     const f = 40.0 / r
-    g.scale.set(f, f, f)
+    mapIconSets.scale.set(f, f, f)
   }
 
   loadMapData (data, urlPath, scene) {

@@ -32,7 +32,7 @@ div#you-died {
   font-size: 100px;
   color: red;
   text-align: center;
-  background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.4990371148459384) 100%);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.01) 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.8) 70%, rgba(0, 0, 0, 0.01) 100%);
   position: relative;
   top: 50%;
   user-select: none;

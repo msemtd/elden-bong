@@ -42,7 +42,8 @@ const exampleConfig = {
       postfix: '.png',
       dir: 'c:/dev/maps/whatever',
     }
-  ]
+  ],
+  autoLoadMap: '',
 }
 
 const schema = {

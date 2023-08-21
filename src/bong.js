@@ -9,11 +9,12 @@ import { Screen } from './Screen'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile } from './HandyApi'
+import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile, loadBinaryFile } from './HandyApi'
 import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
-import destroyedSound from '../sounds/Destroyed.mp3'
+import { Mouse } from './Mouse'
+import deathSound from '../sounds/Humanoid Fall.mp3'
 
 async function pick () {
   const info = await pickFile()
@@ -21,12 +22,18 @@ async function pick () {
   return info.filePaths[0]
 }
 
+const characterClasses = ['Dork', 'Nerd', 'Jerk', 'Goon', 'Jock', 'Geek', 'Wuss']
+const locations = ['LameGrove', 'Weeping Peanuts', 'Learner Lakes', 'Kale-Eyed']
+
 class Bong {
   constructor (appDiv) {
     this.settings = loadSettings('eldenBong', exampleConfig)
     this.screen = new Screen(appDiv)
     const c = this.screen
     this.gpm = new GamepadManager(this.screen)
+    this.mouse = new Mouse(this.screen)
+    this.mouse.doubleClickHandler = this.doubleClick.bind(this)
+    this.mouse.singleClickHandler = this.singleClick.bind(this)
     // Right now I want to see if I can define my whole GUI in just lil-gui and
     // a few dialog boxes
     this.gui = new GUI({ width: 310 })
@@ -48,7 +55,7 @@ class Bong {
           visible: true,
         },
         demoCube: {
-          rotating: true,
+          rotating: false,
           visible: true,
         },
         background: {
@@ -57,36 +64,15 @@ class Bong {
           skyBox: '',
         }
       },
+      character: {
+        className: 'Dork',
+      }
     }
     this.mapMan = new MapMan()
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     this.slicerDialog = null
-    {
-      const fld = this.gui.addFolder('Maps')
-      fld.add(this, 'sliceBigMap').name('slice big map')
-      fld.add(this, 'loadMapJson').name('load map json')
-      fld.add(this, 'loadItemsScrape')
-    }
-    {
-      const fld = this.gui.addFolder('Character') // .close()
-      fld.add(this, 'testLoadCharacter')
-    }
-    {
-      const fld = this.gui.addFolder('Test') // .close()
-      fld.add(this, 'youDiedWithSound')
-      fld.add(this, 'youDiedFadeIn')
-      fld.add(this, 'testDialog')
-      fld.add(this, 'testConfirmDialog')
-      fld.add(this, 'testDialogAsync')
-      fld.add(this, 'testIdentify')
-    }
-    {
-      const fld = this.gui.addFolder('Settings').close()
-      fld.add(this.settings.tools, 'magick')
-      fld.add(this.settings.tools, 'sliceCommand')
-      fld.add(this, 'resetSettings').name('restore defaults')
-    }
+    c.scene.add(new THREE.AmbientLight())
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
     addGrid(c.scene)
@@ -101,8 +87,18 @@ class Bong {
     this.makeGui()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
+    if (this.settings.autoLoadMap) {
+      this.loadMapJson(this.settings.autoLoadMap)
+    }
   }
 
+  /**
+   * Load a third-party character model and try to make it useful.
+   * Add it to a new group called 'character'.
+   * When loaded the user should be able to examine it and tweak it.
+   * Get a list of animations and test them.
+   * When user is happy with their edits they can save it in a known game format.
+   */
   async testLoadCharacter () {
     const fp = await pick()
     if (!fp) { return }
@@ -115,11 +111,31 @@ class Bong {
       return
     }
     const loader = new GLTFLoader()
-    loader.load(u, function (g) {
-      scene.add(g.scene)
+    // The GLTF loader doesn't like the mine URL type - texture loader seemed OK with it though!
+    // Load the file in main as binary and pass the ArrayBuffer
+    const buffer = await loadBinaryFile(fp)
+    loader.parse(buffer.buffer, '', function (gObj) {
+      const charGroup = new THREE.Group()
+      charGroup.name = 'character'
+      // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
+      // For the ones I have here, the scene is the model
+      charGroup.add(gObj.scene)
+      // the object contains the animations and other stuff which may be useful!
+      charGroup.userData = gObj
+      // need to rotate it upright for some reason, despite Z-up everywhere!
+      gObj.scene.rotateX(Math.PI / 2)
+      scene.add(charGroup)
     }, undefined, function (error) {
       console.error(error)
     })
+  }
+
+  deleteCharacter () {
+    const scene = this.screen.scene
+    const e = scene.getObjectByName('character')
+    if (!e) { return }
+    depthFirstReverseTraverse(null, e, generalObj3dClean)
+    e.removeFromParent()
   }
 
   async testConfirmDialog () {
@@ -128,7 +144,7 @@ class Bong {
   }
 
   youDiedWithSound () {
-    const sound = new Howl({ src: [destroyedSound] })
+    const sound = new Howl({ src: [deathSound] })
     sound.play()
     this.youDiedFadeIn()
   }
@@ -207,13 +223,14 @@ class Bong {
     }
   }
 
-  async loadMapJson () {
+  async loadMapJson (fileIn) {
     try {
-      const fp = await pick()
+      const fp = fileIn || await pick()
       if (!fp) { return }
       const data = await loadJsonFile(fp)
       const pp = await pathParse(fp)
       this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene)
+      this.screen.forceRedraw = true
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -221,10 +238,14 @@ class Bong {
 
   async loadItemsScrape () {
     try {
+      const pg = this.screen.scene
+      if (pg.getObjectByName('mapIconSets')) {
+        throw Error('group named \'mapIconSets\' already exists')
+      }
       const fp = await pick()
       if (!fp) { return }
       const lines = await loadTextFileLines(fp)
-      const k = {
+      const data = {
         hasThat: 0,
         img: 0,
         matches: 0,
@@ -238,34 +259,60 @@ class Bong {
           obj[propName]++
         }
       }
-
       const myCoolIcons = {}
       for (let i = 0; i < lines.length; i++) {
         const s2 = lines[i]
         // const s2 = 'whatever'
         if (s2.startsWith('<img src=')) {
           // <img src="/file/Elden-Ring/map-d8dc59f2-67df-452e-a9ea-d2c00ddc3a2b/maps-icons/shield.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Inverted Hawk Heater Shield" alt="5720-Inverted Hawk Heater Shield" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(524px, 738px, 0px); z-index: 738;">
-          k.img++
+          data.img++
           const bits = s2.match(/^<img src="\/file\/Elden-Ring\/map-([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\/maps-icons\/([A-Za-z0-9]+\.[A-Za-z0-9]+)" class=".*" title="(.*)" alt="(.*)" tabindex=.* transform: translate3d\(([A-Za-z0-9]+, [A-Za-z0-9]+), [A-Za-z0-9]+\);/)
           if (!bits) {
-            incProp(k, 'imgButNoMatch')
+            incProp(data, 'imgButNoMatch')
           } else {
-            k.matches++
-            incProp(k.mapIds, bits[1])
-            incProp(k.iconTypes, bits[2])
+            data.matches++
+            incProp(data.mapIds, bits[1])
+            incProp(data.iconTypes, bits[2])
             const [_fullLine, mapId, iconType, title, id, position] = [...bits]
             myCoolIcons[id] = { id, mapId, iconType, title, position }
           }
         }
         if (s2.includes('/file/Elden-Ring/map-')) {
-          k.hasThat++
+          data.hasThat++
         }
       }
-      console.dir(k)
-      this.mapMan.addCoolIcons(myCoolIcons, this.screen.scene)
+      // console.dir(data)
+      const mapIconSets = new THREE.Group()
+      mapIconSets.name = 'mapIconSets'
+      this.screen.scene.add(mapIconSets)
+      const fld = this.gui.addFolder('mapIconSets')
+      fld.add(mapIconSets, 'visible')
+      fld.onChange(() => { this.screen.forceRedraw = true })
+      for (const [k, v] of Object.entries(data.mapIds)) {
+        const g = new THREE.Group()
+        g.name = k
+        g.userData = v
+        mapIconSets.add(g)
+        const fld2 = fld.addFolder(k)
+        fld2.add(g, 'visible')
+        fld2.add(g, 'userData').disable()
+      }
+      this.mapMan.addCoolIcons(myCoolIcons, mapIconSets)
+
+      const p = {
+        scaleFactor: mapIconSets.scale.x,
+        iconType: ''
+      }
+      fld.add(p, 'iconType', Object.keys(data.iconTypes))
+      fld.add(p, 'scaleFactor').onChange((v) => {
+        console.log(v)
+        mapIconSets.scale.set(v, v, v)
+      })
+
     } catch (error) {
       Dlg.errorDialog(error)
     }
+    this.screen.forceRedraw = true
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
@@ -322,6 +369,31 @@ class Bong {
       fld.add(this.PROPS, 'resetCamera')
     }
     {
+      const fld = this.gui.addFolder('Maps').close()
+      fld.add(this, 'sliceBigMap').name('slice big map')
+      fld.add(this, 'loadMapJson').name('load map json')
+      fld.add(this, 'loadItemsScrape')
+      const loc = {
+        location: locations[0]
+      }
+      fld.add(loc, 'location', locations)
+    }
+    {
+      const fld = this.gui.addFolder('Character') // .close()
+      fld.add(this, 'testLoadCharacter')
+      fld.add(this, 'deleteCharacter')
+      fld.add(this.PROPS.character, 'className', characterClasses)
+    }
+    {
+      const fld = this.gui.addFolder('Test') // .close()
+      fld.add(this, 'youDiedWithSound')
+      fld.add(this, 'youDiedFadeIn')
+      fld.add(this, 'testDialog')
+      fld.add(this, 'testConfirmDialog')
+      fld.add(this, 'testDialogAsync')
+      fld.add(this, 'testIdentify')
+    }
+    {
       const s = this.gui.addFolder('Scene').close()
       const sp = this.PROPS.scene
       const x11ColourNames = { ...THREE.Color.NAMES }
@@ -334,7 +406,7 @@ class Bong {
       }
       {
         const fld = s.addFolder('Background')
-        const con = fld.add(sp.background, 'x11Colour', x11ColourNames).onChange(v => {
+        const con = fld.add(sp.background, 'x11Colour', x11ColourNames).name('cname').onChange(v => {
           this.screen.scene.background = new THREE.Color(v)
           // sp.background.colour =
         })
@@ -369,6 +441,15 @@ class Bong {
           if (g) g.visible = v
         })
       }
+      {
+        const fld = this.gui.addFolder('Settings').close()
+        fld.add(this.settings.tools, 'magick')
+        fld.add(this.settings.tools, 'sliceCommand')
+        fld.add(this.settings, 'autoLoadMap')
+        fld.add(this, 'resetSettings').name('restore defaults')
+        fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
+      }
+
       s.onChange(() => { this.screen.forceRedraw = true })
     }
   }
@@ -376,7 +457,18 @@ class Bong {
   resetSettings () {
     this.settings = saveTheseSettings('eldenBong', exampleConfig)
   }
+
+  singleClick (ev, mousePos) {
+    console.log(mousePos)
+  }
+
+  doubleClick (ev, mousePos) {
+    console.log(mousePos)
+  }
 }
+
+// -----------------------------------------------------------------------------
+// TODO do these functions belong elsewhere?
 
 function addGrid (scene) {
   const width = 100
@@ -408,6 +500,38 @@ function loadSettings (localStorageKey, defaultSettings) {
 function saveTheseSettings (localStorageKey, settings) {
   localStorage.setItem(localStorageKey, yaml.dump(settings))
   return structuredClone(settings)
+}
+
+function generalObj3dClean (p, o) {
+  if (!o) { return }
+  if (o.geometry && o.geometry.dispose instanceof Function) {
+    o.geometry.dispose()
+  }
+  if (o.material) {
+    if (o.material.dispose instanceof Function) {
+      o.material.dispose()
+    }
+  }
+  if (p && p.children && o.parent === p && o.parent.remove instanceof Function) {
+    o.parent.remove(o)
+  }
+}
+
+/**
+ * Helper function to traverse a tree depth first in reverse order (so that is is safe to remove an element from the nest within the callback)
+ *
+ * @param {object} p a parent object with a children array
+ * @param {object} o an object that is a child of a parent(!)
+ * @param {Function} cb a callback to do whatever
+ */
+function depthFirstReverseTraverse (p, o, cb) {
+  if (o.children instanceof Array) {
+    const len = o.children.length
+    for (let i = len - 1; i >= 0; i--) {
+      depthFirstReverseTraverse(o, o.children[i], cb)
+    }
+  }
+  cb(p, o)
 }
 
 export { Bong }
