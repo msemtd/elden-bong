@@ -298,17 +298,34 @@ class Bong {
         fld2.add(g, 'userData').disable()
       }
       this.mapMan.addCoolIcons(myCoolIcons, mapIconSets)
-
+      const v = 0.022
+      mapIconSets.scale.set(v, -v, v)
       const p = {
-        scaleFactor: mapIconSets.scale.x,
-        iconType: ''
+        scaleFactor: v,
+        iconType: 'all',
+        translate: {
+          x: 0,
+          y: 0,
+          z: 0,
+        }
       }
-      fld.add(p, 'iconType', Object.keys(data.iconTypes))
-      fld.add(p, 'scaleFactor').onChange((v) => {
-        console.log(v)
-        mapIconSets.scale.set(v, v, v)
+      const allIconTypes = ['all', ...Object.keys(data.iconTypes)]
+      fld.add(p, 'iconType', allIconTypes).onChange((v) => {
+        for (const map of mapIconSets.children) {
+          for (const icon of map.children) {
+            icon.visible = (v === 'all' || icon.userData?.iconType === v)
+          }
+        }
       })
-
+      fld.add(p, 'scaleFactor', 0.010, 0.050, 0.001).onChange((v) => {
+        mapIconSets.scale.set(v, -v, v)
+      })
+      fld.add(p.translate, 'x').onChange((v) => {
+        mapIconSets.position.setX(v)
+      })
+      fld.add(p.translate, 'y').onChange((v) => {
+        mapIconSets.position.setY(v)
+      })
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -369,7 +386,7 @@ class Bong {
       fld.add(this.PROPS, 'resetCamera')
     }
     {
-      const fld = this.gui.addFolder('Maps').close()
+      const fld = this.gui.addFolder('Maps') // .close()
       fld.add(this, 'sliceBigMap').name('slice big map')
       fld.add(this, 'loadMapJson').name('load map json')
       fld.add(this, 'loadItemsScrape')
@@ -379,13 +396,13 @@ class Bong {
       fld.add(loc, 'location', locations)
     }
     {
-      const fld = this.gui.addFolder('Character') // .close()
+      const fld = this.gui.addFolder('Character').close()
       fld.add(this, 'testLoadCharacter')
       fld.add(this, 'deleteCharacter')
       fld.add(this.PROPS.character, 'className', characterClasses)
     }
     {
-      const fld = this.gui.addFolder('Test') // .close()
+      const fld = this.gui.addFolder('Test').close()
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')

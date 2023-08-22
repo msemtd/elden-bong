@@ -34,17 +34,10 @@ class MapMan {
       } else {
         const [x, y, z] = [mx[1], mx[2], 0]
         mesh.position.set(x, y, z)
-        box.expandByPoint(new THREE.Vector2(x, y))
       }
       mapIconSets.getObjectByName(icon.mapId).add(mesh)
     }
     console.dir(box)
-    // now scale the group to match the map!
-    const v2 = new THREE.Vector2()
-    box.getSize(v2)
-    const r = Math.max(v2.x, v2.y)
-    const f = 40.0 / r
-    mapIconSets.scale.set(f, f, f)
   }
 
   loadMapData (data, urlPath, scene) {
