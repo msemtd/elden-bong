@@ -4,12 +4,12 @@ import yaml from 'js-yaml'
 import Stats from 'three/addons/libs/stats.module.js'
 import ntc from '@yatiac/name-that-color'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import { Howl, Howler } from 'howler'
+import { Howl } from 'howler'
 import { Screen } from './Screen'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pathParse, pathJoin, readDir, pickFile, loadJsonFile, loadTextFileLines, outputFile, loadBinaryFile } from './HandyApi'
+import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile } from './HandyApi'
 import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
@@ -32,6 +32,7 @@ class Bong {
     const c = this.screen
     this.gpm = new GamepadManager(this.screen)
     this.mouse = new Mouse(this.screen)
+    this.raycaster = new THREE.Raycaster()
     this.mouse.doubleClickHandler = this.doubleClick.bind(this)
     this.mouse.singleClickHandler = this.singleClick.bind(this)
     // Right now I want to see if I can define my whole GUI in just lil-gui and
@@ -229,14 +230,14 @@ class Bong {
       if (!fp) { return }
       const data = await loadJsonFile(fp)
       const pp = await pathParse(fp)
-      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene)
+      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene, () => { this.screen.forceRedraw = true })
       this.screen.forceRedraw = true
     } catch (error) {
       Dlg.errorDialog(error)
     }
   }
 
-  async loadItemsScrape () {
+  async loadMapIcons () {
     try {
       const pg = this.screen.scene
       if (pg.getObjectByName('mapIconSets')) {
@@ -245,43 +246,7 @@ class Bong {
       const fp = await pick()
       if (!fp) { return }
       const lines = await loadTextFileLines(fp)
-      const data = {
-        hasThat: 0,
-        img: 0,
-        matches: 0,
-        mapIds: {},
-        iconTypes: {},
-      }
-      const incProp = (obj, propName) => {
-        if (obj[propName] === undefined) {
-          obj[propName] = 1
-        } else {
-          obj[propName]++
-        }
-      }
-      const myCoolIcons = {}
-      for (let i = 0; i < lines.length; i++) {
-        const s2 = lines[i]
-        // const s2 = 'whatever'
-        if (s2.startsWith('<img src=')) {
-          // <img src="/file/Elden-Ring/map-d8dc59f2-67df-452e-a9ea-d2c00ddc3a2b/maps-icons/shield.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Inverted Hawk Heater Shield" alt="5720-Inverted Hawk Heater Shield" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(524px, 738px, 0px); z-index: 738;">
-          data.img++
-          const bits = s2.match(/^<img src="\/file\/Elden-Ring\/map-([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\/maps-icons\/([A-Za-z0-9]+\.[A-Za-z0-9]+)" class=".*" title="(.*)" alt="(.*)" tabindex=.* transform: translate3d\(([A-Za-z0-9]+, [A-Za-z0-9]+), [A-Za-z0-9]+\);/)
-          if (!bits) {
-            incProp(data, 'imgButNoMatch')
-          } else {
-            data.matches++
-            incProp(data.mapIds, bits[1])
-            incProp(data.iconTypes, bits[2])
-            const [_fullLine, mapId, iconType, title, id, position] = [...bits]
-            myCoolIcons[id] = { id, mapId, iconType, title, position }
-          }
-        }
-        if (s2.includes('/file/Elden-Ring/map-')) {
-          data.hasThat++
-        }
-      }
-      // console.dir(data)
+      const data = this.mapMan.iconsFromText(lines)
       const mapIconSets = new THREE.Group()
       mapIconSets.name = 'mapIconSets'
       this.screen.scene.add(mapIconSets)
@@ -297,18 +262,20 @@ class Bong {
         fld2.add(g, 'visible')
         fld2.add(g, 'userData').disable()
       }
-      this.mapMan.addCoolIcons(myCoolIcons, mapIconSets)
-      const v = 0.022
-      mapIconSets.scale.set(v, -v, v)
+      this.mapMan.addCoolIcons(data.myCoolIcons, mapIconSets)
+      const v = 0.017
       const p = {
         scaleFactor: v,
         iconType: 'all',
         translate: {
           x: 0,
-          y: 0,
+          y: 31.5,
           z: 0,
         }
       }
+      const d = p.translate
+      mapIconSets.scale.set(v, -v, v)
+      mapIconSets.position.set(d.x, d.y, d.z)
       const allIconTypes = ['all', ...Object.keys(data.iconTypes)]
       fld.add(p, 'iconType', allIconTypes).onChange((v) => {
         for (const map of mapIconSets.children) {
@@ -326,6 +293,7 @@ class Bong {
       fld.add(p.translate, 'y').onChange((v) => {
         mapIconSets.position.setY(v)
       })
+      this.mapIconSets = mapIconSets
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -389,7 +357,7 @@ class Bong {
       const fld = this.gui.addFolder('Maps') // .close()
       fld.add(this, 'sliceBigMap').name('slice big map')
       fld.add(this, 'loadMapJson').name('load map json')
-      fld.add(this, 'loadItemsScrape')
+      fld.add(this, 'loadMapIcons').name('load map icons')
       const loc = {
         location: locations[0]
       }
@@ -476,7 +444,19 @@ class Bong {
   }
 
   singleClick (ev, mousePos) {
-    console.log(mousePos)
+    // console.log(mousePos)
+    this.raycaster.setFromCamera(mousePos, this.screen.camera)
+    // TODO modes of operation
+    const clickable = this.mapIconSets
+    if (!clickable) { return }
+    const hits = this.raycaster.intersectObject(clickable)
+    if (hits.length) {
+      console.dir(hits)
+      const h = hits[0]
+      if (h.object?.name) {
+        console.log(h.object.name)
+      }
+    }
   }
 
   doubleClick (ev, mousePos) {

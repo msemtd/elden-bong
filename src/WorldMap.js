@@ -40,7 +40,48 @@ class MapMan {
     console.dir(box)
   }
 
-  loadMapData (data, urlPath, scene) {
+  iconsFromText (lines) {
+    const data = {
+      hasThat: 0,
+      img: 0,
+      matches: 0,
+      mapIds: {},
+      iconTypes: {},
+    }
+    const incProp = (obj, propName) => {
+      if (obj[propName] === undefined) {
+        obj[propName] = 1
+      } else {
+        obj[propName]++
+      }
+    }
+    const myCoolIcons = {}
+    for (let i = 0; i < lines.length; i++) {
+      const s2 = lines[i]
+      // const s2 = 'whatever'
+      if (s2.startsWith('<img src=')) {
+        // <img src="/file/Elden-Ring/map-d8dc59f2-67df-452e-a9ea-d2c00ddc3a2b/maps-icons/shield.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Inverted Hawk Heater Shield" alt="5720-Inverted Hawk Heater Shield" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(524px, 738px, 0px); z-index: 738;">
+        data.img++
+        const bits = s2.match(/^<img src="\/file\/Elden-Ring\/map-([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\/maps-icons\/([A-Za-z0-9]+\.[A-Za-z0-9]+)" class=".*" title="(.*)" alt="(.*)" tabindex=.* transform: translate3d\(([A-Za-z0-9]+, [A-Za-z0-9]+), [A-Za-z0-9]+\);/)
+        if (!bits) {
+          incProp(data, 'imgButNoMatch')
+        } else {
+          data.matches++
+          incProp(data.mapIds, bits[1])
+          incProp(data.iconTypes, bits[2])
+          const [_fullLine, mapId, iconType, title, id, position] = [...bits]
+          myCoolIcons[id] = { id, mapId, iconType, title, position }
+        }
+      }
+      if (s2.includes('/file/Elden-Ring/map-')) {
+        data.hasThat++
+      }
+    }
+    data.myCoolIcons = myCoolIcons
+    return data
+  }
+
+  loadMapData (data, urlPath, scene, redraw) {
     const { tilesX, tilesY, tiles, tileSize, name, bigOriginalFile } = data
     const m = bigOriginalFile?.match(/\..*$/)?.[0]
     const ext = m || '.png'
@@ -70,7 +111,9 @@ class MapMan {
       for (let x = 0; x < tilesX; x++) {
         const f = tileFile(name, tileSize, x, y, pad, ext)
         const geometry = new THREE.BoxGeometry(size, size, thickness)
-        const material = new THREE.MeshBasicMaterial({ map: loader.load(`${urlPath}/${f}`) })
+        const material = new THREE.MeshBasicMaterial({
+          map: loader.load(`${urlPath}/${f}`, redraw)
+        })
         const tile = new THREE.Mesh(geometry, material)
         tile.position.set(x * size, y * size, 0)
         grp.add(tile)
