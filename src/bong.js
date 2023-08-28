@@ -444,7 +444,6 @@ class Bong {
   }
 
   singleClick (ev, mousePos) {
-    // console.log(mousePos)
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
     const clickable = this.mapIconSets
@@ -454,7 +453,7 @@ class Bong {
       console.dir(hits)
       const h = hits[0]
       if (h.object?.name) {
-        console.log(h.object.name)
+        Dlg.popup(h.object.name)
       }
     }
   }

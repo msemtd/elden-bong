@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="525.8045"
+   height="315.23849"
+   viewBox="0 0 139.11911 83.406854"
+   version="1.1"
+   id="svg1241"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1238" />
+  <g
+     id="layer1"
+     transform="translate(0.1252621,0.12491985)">
+    <g
+       id="controller"
+       transform="translate(-30.441777,-155.23655)">
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnL2"
+         width="15.114473"
+         height="7"
+         x="22.310383"
+         y="161.55946"
+         rx="1"
+         ry="1"
+         transform="rotate(-7.6767415)" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnR2"
+         width="15.114473"
+         height="7"
+         x="-175.65126"
+         y="134.87582"
+         rx="1"
+         ry="1"
+         transform="matrix(-0.99103751,-0.1335839,-0.1335839,0.99103751,0,0)" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnR1"
+         width="15.114473"
+         height="7"
+         x="-175.33888"
+         y="143.51978"
+         rx="1"
+         ry="1"
+         transform="matrix(-0.99103751,-0.1335839,-0.1335839,0.99103751,0,0)" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnL1"
+         width="15.114473"
+         height="7"
+         x="22.622749"
+         y="170.20341"
+         rx="1"
+         ry="1"
+         transform="rotate(-7.6767415)" />
+      <path
+         id="outline"
+         style="opacity:1;fill:#ffffff;stroke:#000000;stroke-width:0.944882"
+         d="m 377.48438,622.85547 -209.38477,17.77344 c -8.34542,0.70836 -16.5957,18.07226 -16.5957,18.07226 0,0 -40.0375,89.23309 -36.1875,135.97852 2.42737,29.47234 16.00545,59.56088 36.53515,80.8457 13.07336,13.55426 32.00601,28.03051 50.60938,25.10742 26.49746,-4.16341 27.26162,-51.92437 57.64062,-56.14648 9.80568,-1.36279 51.23612,2.15155 117.38282,2.21289 66.14669,-0.0613 107.57713,-3.57568 117.38281,-2.21289 30.37901,4.22211 31.14315,51.98307 57.64062,56.14648 18.60337,2.92309 37.53599,-11.55316 50.60938,-25.10742 20.52967,-21.28482 34.10779,-51.37336 36.53515,-80.8457 3.84998,-46.74543 -36.1875,-135.97852 -36.1875,-135.97852 0,0 -8.25028,-17.3639 -16.5957,-18.07226 z"
+         transform="scale(0.26458333)" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="touchPad"
+         width="50"
+         height="24.999998"
+         x="74.875961"
+         y="167.92075"
+         rx="3.9999974"
+         ry="3.9999971" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnMic"
+         width="3"
+         height="7"
+         x="217.78883"
+         y="-103.37596"
+         rx="1"
+         ry="1"
+         transform="rotate(90)" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnPs"
+         cx="99.875961"
+         cy="209.71017"
+         r="5" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.249999"
+         id="stickLeftOuter"
+         cx="72.094711"
+         cy="209.71017"
+         r="11.908247" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.249999"
+         id="stickLeft"
+         cx="72.094711"
+         cy="209.71017"
+         r="6.243484" />
+      <path
+         id="dPadUp"
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         d="m 49.372559,177.53327 v 1.7109 3.43617 l 3.436177,3.43618 3.436178,-3.43618 v -3.43617 -1.7109 z" />
+      <path
+         id="dPadDown"
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         d="m 49.372559,196.24999 v -1.7109 -3.43618 l 3.436177,-3.43618 3.436178,3.43618 v 3.43618 1.7109 z" />
+      <path
+         id="dPadRight"
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         d="M 62.167098,183.45545 H 60.456197 57.02002 l -3.436173,3.43618 3.436173,3.43617 h 3.436177 1.710901 z" />
+      <path
+         id="dPadLeft"
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         d="m 43.450375,183.45545 h 1.710901 3.436177 l 3.436177,3.43618 -3.436177,3.43617 h -3.436177 -1.710901 z" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnShare"
+         width="3"
+         height="7"
+         x="68.875961"
+         y="170.7749"
+         rx="1"
+         ry="1" />
+      <rect
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnMenu"
+         width="3"
+         height="7"
+         x="127.87597"
+         y="170.7749"
+         rx="1"
+         ry="1" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnTriangle"
+         cx="145.98482"
+         cy="180.84035"
+         r="4.4487848" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnCross"
+         cx="145.98482"
+         cy="198.6355"
+         r="4.4487848" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnCircle"
+         cx="154.8824"
+         cy="189.73793"
+         r="4.4487848" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.25"
+         id="btnSquare"
+         cx="137.08725"
+         cy="189.73793"
+         r="4.4487848" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.249999"
+         id="stickRightOuter"
+         cx="127.65721"
+         cy="209.71017"
+         r="11.908247" />
+      <circle
+         style="opacity:1;fill:#00ff00;stroke:#000000;stroke-width:0.249999"
+         id="stickRight"
+         cx="127.65721"
+         cy="209.71017"
+         r="6.243484" />
+    </g>
+  </g>
+</svg>

@@ -76,6 +76,25 @@ div#elden {
   user-select: none;
 }
 
+div#gamePad {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  background-color: rgb(15, 131, 246);
+  user-select: none;
+}
+
+div#gamePad svg .btn {
+  opacity:1;
+  fill:#00ff00;
+  stroke:#000000;
+  stroke-width:0.25;
+}
+
+div#gamePad svg .btnPushed {
+  fill:#ff0011;
+}
+
 /* Dialog box theme dlgDude */
 
 .jBox-dlgDude {

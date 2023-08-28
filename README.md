@@ -21,6 +21,13 @@ This is a project just for fun - _not a real game!_
   - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
   - try a few then drop back to jBox because it works well
 
+## Settings
+
+Persistent user settings: -
+* preferably with a schema - although js-schema with ajv under electron-store package has proven difficult!
+* js-yaml fallback - since easily accessed from the renderer process via LocalStorage
+* map configurations to live here
+
 ## character
 * load a model - have some to choose from
   * mage, dork, warrior
@@ -48,14 +55,15 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 - controls on different platforms - https://vulkk.com/2022/02/26/elden-ring-pc-and-console-controls-guide-and-lists/
 - character-based controls versus free-world controls (like quake no-clip) vs map-based controls
 
-## Settings
-
-Persistent user settings: -
-* preferably with a schema - although js-schema with ajv under electron-store package has proven difficult!
-* js-yaml fallback - since easily accessed from the renderer process via LocalStorage
-* map configurations to live here
-
 ## Maps
+
+Map mode and game mode - change scene to be drawn and camera - controls will be different too!
+
+mapScene, mapCamera
+
+keyboard "G" 
+
+
 
 Nice 2D maps with icons to at least compliment and perhaps rival the existing web-based offerings
 * The wiki: https://eldenring.wiki.fextralife.com/Interactive+Map

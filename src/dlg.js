@@ -82,4 +82,23 @@ export class Dlg {
     jb.open()
     return jb
   }
+
+  static popup (msg, title) {
+    const b = new jBox('Notice', {
+      attributes: {
+        x: 'right',
+        y: 'bottom'
+      },
+      stack: false,
+      animation: {
+        open: 'flip',
+        close: 'zoomIn'
+      },
+      delayOnHover: true,
+      showCountdown: true,
+      // color: 'green',
+      title,
+      content: msg,
+    })
+  }
 }
