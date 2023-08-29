@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import $ from 'jquery'
 import yaml from 'js-yaml'
 import Stats from 'three/addons/libs/stats.module.js'
@@ -70,6 +71,7 @@ class Bong {
       }
     }
     this.mapMan = new MapMan()
+    this.mapModeData = null
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     this.slicerDialog = null
@@ -300,6 +302,48 @@ class Bong {
     this.screen.forceRedraw = true
   }
 
+  mapMode () {
+    if (this.mapModeData) {
+      return Dlg.errorDialog('mapMode already activated!')
+    }
+    const s = this.screen
+    const mmd = this.mapModeData = {
+      savedCamera: s.camera,
+      mapControls: null,
+    }
+    s.cameraControls.enabled = false
+    const oc = new THREE.OrthographicCamera()
+    oc.position.z = 5
+    s.camera = oc
+    const mc = new OrbitControls(oc, s.container)
+    mc.enableRotate = false
+    mc.mouseButtons = {
+      LEFT: THREE.MOUSE.PAN,
+      MIDDLE: THREE.MOUSE.ZOOM,
+      RIGHT: THREE.MOUSE.PAN,
+    }
+    mmd.mapControls = mc
+    s.addMixer('mapControls', (_delta) => {
+      mc.update()
+      return true
+    })
+    s.resizeRequired = true
+  }
+
+  notMapMode () {
+    if (!this.mapModeData) {
+      return Dlg.errorDialog('mapMode not activated!')
+    }
+    const s = this.screen
+    // const oc = s.camera
+    s.removeMixer('mapControls')
+    s.camera = this.mapModeData.savedCamera
+    s.cameraControls.enabled = true
+    this.mapModeData.mapControls.dispose()
+    this.mapModeData = null
+    s.resizeRequired = true
+  }
+
   testDialog () { Dlg.errorDialog("that wasn't great!") }
 
   async testDialogAsync () {
@@ -352,6 +396,8 @@ class Bong {
     {
       const fld = this.gui.addFolder('Base Actions')
       fld.add(this.PROPS, 'resetCamera')
+      fld.add(this, 'mapMode')
+      fld.add(this, 'notMapMode')
     }
     {
       const fld = this.gui.addFolder('Maps') // .close()

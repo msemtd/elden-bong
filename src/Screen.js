@@ -120,10 +120,11 @@ class Screen extends THREE.EventDispatcher {
       if (this.camera.type === 'PerspectiveCamera') {
         this.camera.aspect = aspectRatio
       } if (this.camera.type === 'OrthographicCamera') {
-        // this.camera.left = width / -200
-        // this.camera.right = width / 200
-        // this.camera.top = height / 200
-        // this.camera.bottom = height / -200
+        const frustumSize = 30
+        this.camera.left = frustumSize * aspectRatio / -2
+        this.camera.right = frustumSize * aspectRatio / 2
+        this.camera.top = frustumSize / 2
+        this.camera.bottom = frustumSize / -2
       }
       this.camera.updateProjectionMatrix()
     }
