@@ -117,7 +117,7 @@ class Bong {
     // The GLTF loader doesn't like the mine URL type - texture loader seemed OK with it though!
     // Load the file in main as binary and pass the ArrayBuffer
     const buffer = await loadBinaryFile(fp)
-    loader.parse(buffer.buffer, '', function (gObj) {
+    loader.parse(buffer.buffer, '', (gObj) => {
       const charGroup = new THREE.Group()
       charGroup.name = 'character'
       // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
@@ -128,6 +128,7 @@ class Bong {
       // need to rotate it upright for some reason, despite Z-up everywhere!
       gObj.scene.rotateX(Math.PI / 2)
       scene.add(charGroup)
+      this.redraw()
     }, undefined, function (error) {
       console.error(error)
     })
@@ -139,6 +140,7 @@ class Bong {
     if (!e) { return }
     depthFirstReverseTraverse(null, e, generalObj3dClean)
     e.removeFromParent()
+    this.redraw()
   }
 
   async testConfirmDialog () {
@@ -226,14 +228,17 @@ class Bong {
     }
   }
 
+  redraw () {
+    this.screen.forceRedraw = true
+  }
+
   async loadMapJson (fileIn) {
     try {
       const fp = fileIn || await pick()
       if (!fp) { return }
       const data = await loadJsonFile(fp)
       const pp = await pathParse(fp)
-      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene, () => { this.screen.forceRedraw = true })
-      this.screen.forceRedraw = true
+      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene, () => { this.redraw() })
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -254,7 +259,7 @@ class Bong {
       this.screen.scene.add(mapIconSets)
       const fld = this.gui.addFolder('mapIconSets')
       fld.add(mapIconSets, 'visible')
-      fld.onChange(() => { this.screen.forceRedraw = true })
+      fld.onChange(() => { this.redraw() })
       for (const [k, v] of Object.entries(data.mapIds)) {
         const g = new THREE.Group()
         g.name = k
@@ -299,7 +304,7 @@ class Bong {
     } catch (error) {
       Dlg.errorDialog(error)
     }
-    this.screen.forceRedraw = true
+    this.redraw()
   }
 
   mapMode () {
@@ -330,7 +335,7 @@ class Bong {
     s.resizeRequired = true
   }
 
-  notMapMode () {
+  mapModeOff () {
     if (!this.mapModeData) {
       return Dlg.errorDialog('mapMode not activated!')
     }
@@ -342,6 +347,26 @@ class Bong {
     this.mapModeData.mapControls.dispose()
     this.mapModeData = null
     s.resizeRequired = true
+  }
+
+  characterMode () {
+    if (this.mapModeData) {
+      this.mapModeOff()
+    }
+    if (this.characterModeData) {
+      return Dlg.errorDialog('characterMode already activated!')
+    }
+    // target the character and be behind it
+    // set up controls just so
+    this.characterModeData = {}
+  }
+
+  characterModeOff () {
+    if (!this.characterModeData) {
+      return Dlg.errorDialog('characterMode not activated!')
+    }
+    // TODO whatever is required to do whatever
+    this.characterModeData = null
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
@@ -397,7 +422,9 @@ class Bong {
       const fld = this.gui.addFolder('Base Actions')
       fld.add(this.PROPS, 'resetCamera')
       fld.add(this, 'mapMode')
-      fld.add(this, 'notMapMode')
+      fld.add(this, 'mapModeOff')
+      fld.add(this, 'characterMode')
+      fld.add(this, 'characterModeOff')
     }
     {
       const fld = this.gui.addFolder('Maps') // .close()
@@ -481,7 +508,7 @@ class Bong {
         fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
       }
 
-      s.onChange(() => { this.screen.forceRedraw = true })
+      s.onChange(() => { this.redraw() })
     }
   }
 

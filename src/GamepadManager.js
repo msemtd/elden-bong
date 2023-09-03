@@ -25,6 +25,12 @@ axes[1] Vertical axis for left stick (negative up/positive down)
 axes[2] Horizontal axis for right stick (negative left/positive right)
 axes[3] Vertical axis for right stick (negative up/positive down)
 `
+const ps5Buttons = [
+  'btnCross', 'btnCircle', 'btnSquare', 'btnTriangle',
+  'btnL1', 'btnR1', 'btnL2', 'btnR2',
+  'btnShare', 'btnMenu', 'stickLeft', 'stickRight',
+  'dPadUp', 'dPadDown', 'dPadLeft', 'dPadRight',
+  'btnPs', 'touchPad']
 const ps5svg = `
 <g id="controller" transform="translate(0,-100)">
   <rect id="btnL2" class="btn"
@@ -145,15 +151,9 @@ class GamepadManager {
     console.log('gamepadConnected', gamepad)
     // map buttons to svg
     if (this.draw) {
-      const m = [
-        'btnCross', 'btnCircle', 'btnSquare', 'btnTriangle',
-        'btnL1', 'btnR1', 'btnL2', 'btnR2',
-        'btnShare', 'btnMenu', 'stickLeft', 'stickRight',
-        'dPadUp', 'dPadDown', 'dPadLeft', 'dPadRight',
-        'btnPs', 'touchPad']
-      for (let i = 0; i < m.length; i++) {
-        this.svgButtons[i] = this.draw.findOne(`#${m[i]}`)
-      }
+      ps5Buttons.forEach((n, i) => {
+        this.svgButtons[i] = this.draw.findOne(`#${n}`)
+      })
     }
   }
 
