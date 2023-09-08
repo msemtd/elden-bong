@@ -61,7 +61,7 @@ Map mode and game mode - change scene to be drawn and camera - controls will be 
 
 mapScene, mapCamera
 
-keyboard "G" 
+keyboard "G"
 
 
 

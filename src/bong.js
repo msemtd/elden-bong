@@ -24,7 +24,8 @@ async function pick () {
 }
 
 const characterClasses = ['Dork', 'Nerd', 'Jerk', 'Goon', 'Jock', 'Geek', 'Wuss']
-const locations = ['LameGrove', 'Weeping Peanuts', 'Learner Lakes', 'Kale-Eyed']
+const locations = ['LameGrove', 'Weeping Peanuts', 'Learner Lakes', 'Kale-Eyed', 'Londyn', 'Aldi Plateau', 'Capital Suburbs', 'Strumfail Castle', 'Mount Gel-Hair', 'Dessicated Snowfeels', 'Mantelpiece of the Giants']
+const npc = ['Shite-mask Barry', 'iCarly', 'Beck the semi-human', 'Millennia', 'Ranny', 'Rod', 'David Bowie', 'Tina Turner', 'Mick Jagger', 'Captain Sensible', 'Kenneth Williams']
 
 class Bong {
   constructor (appDiv) {
