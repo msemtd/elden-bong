@@ -15,6 +15,8 @@ import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
+import { bongData } from './bongData'
+
 import deathSound from '../sounds/Humanoid Fall.mp3'
 
 async function pick () {
@@ -23,9 +25,8 @@ async function pick () {
   return info.filePaths[0]
 }
 
-const characterClasses = ['Dork', 'Nerd', 'Jerk', 'Goon', 'Jock', 'Geek', 'Wuss']
-const locations = ['LameGrove', 'Weeping Peanuts', 'Learner Lakes', 'Kale-Eyed', 'Londyn', 'Aldi Plateau', 'Capital Suburbs', 'Strumfail Castle', 'Mount Gel-Hair', 'Dessicated Snowfeels', 'Mantelpiece of the Giants']
-const npc = ['Shite-mask Barry', 'iCarly', 'Beck the semi-human', 'Millennia', 'Ranny', 'Rod', 'David Bowie', 'Tina Turner', 'Mick Jagger', 'Captain Sensible', 'Kenneth Williams']
+const characterClasses = bongData.characterClasses
+const locations = bongData.regions.map(x => x.name)
 
 class Bong {
   constructor (appDiv) {
