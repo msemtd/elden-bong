@@ -189,10 +189,38 @@ class Bong {
     if (topic === 'skyBoxes') {
       console.log('main process skyBoxes: ', msg)
       // find menu folder, inject options
+      const gc = this.guiFindByPath('Scene/Background/skyBox')
+      if (!gc) {
+        console.warn('gui path not found')
+        return
+      }
       // if saved value in list then load it
       return
     }
     console.log('main process says: ', topic, msg)
+  }
+
+  // TODO LFAWED!
+  guiFindByPath (p) {
+    const pp = p.split('/')
+    let wad = { children: this.gui.foldersRecursive() }
+    for (let i = 0; i < pp.length; i++) {
+      let dc = null
+      const e = pp[i]
+      for (let j = 0; j < wad.children.length; j++) {
+        if (wad.children[j]._title === e) {
+          dc = wad.children[j]
+          break
+        }
+      }
+      if (!dc) {
+        // not found?
+        console.warn('not found ' + e)
+        return null
+      }
+      wad = dc
+    }
+    return wad
   }
 
   async sliceBigMap () {
