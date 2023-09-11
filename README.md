@@ -217,5 +217,13 @@ The challenges it introduces: -
 * lit-gui for rough test-mode menu
 * not going down the React route for now
 * jBox for dialog boxes
-* YAML for settings in 
+* YAML for settings
+
+# LICENSES AND ATTRIBUTION
+
+Many thanks to the many contributors to the many open source libraries and artworks used in this software. Quite especially...
+
+Sky/Cloud boxes created by Zachery "skiingpenguins" Slocum (freezurbern@gmail.com) http://www.freezurbern.com
+Content released under the Creative Commons Attribution-ShareAlike? 3.0 Unported License.
+http://creativecommons.org/licenses/by-sa/3.0/
 

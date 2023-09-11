@@ -18,14 +18,15 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^6.2.1",
-    "@electron-forge/maker-deb": "^6.2.1",
-    "@electron-forge/maker-rpm": "^6.2.1",
-    "@electron-forge/maker-squirrel": "^6.2.1",
-    "@electron-forge/maker-zip": "^6.2.1",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
-    "@electron-forge/plugin-webpack": "^6.2.1",
+    "@electron-forge/cli": "^6.4.2",
+    "@electron-forge/maker-deb": "^6.4.2",
+    "@electron-forge/maker-rpm": "^6.4.2",
+    "@electron-forge/maker-squirrel": "^6.4.2",
+    "@electron-forge/maker-zip": "^6.4.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.4.2",
+    "@electron-forge/plugin-webpack": "^6.4.2",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.0.0",
     "electron": "25.3.1",
     "eslint": "^8.26.0",
@@ -35,7 +36,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "node-loader": "^2.0.0",
     "style-loader": "^3.0.0",
-    "webpack": "5.0.0"
+    "webpack": "5.1.0"
   },
   "dependencies": {
     "@svgdotjs/svg.js": "^3.2.0",
@@ -50,6 +51,7 @@
     "jquery": "^3.7.0",
     "js-yaml": "^4.1.0",
     "path-browserify": "^1.0.1",
-    "three": "^0.146.0"
+    "three": "^0.146.0",
+    "three.terrain.js": "^2.0.0"
   }
 }

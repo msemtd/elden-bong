@@ -26,3 +26,7 @@ contextBridge.exposeInMainWorld('handy', {
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
   identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
 })
+
+contextBridge.exposeInMainWorld('settings', {
+  passSettingsToMain: (...args) => ipcRenderer.send('settings', ...args),
+})

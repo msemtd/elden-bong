@@ -17,6 +17,8 @@ if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
+const staticDir = path.join(path.resolve(__dirname), '..', 'main', 'static')
+
 const store = new Store({
   // schema, clearInvalidConfig: true
 })
@@ -54,6 +56,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
   setupMine()
   // All the main process functionality exposed in preload...
+  ipcMain.on('settings', (event, ...args) => { settingsFromRenderer(...args) })
   ipcMain.handle('pickFile', pickFile)
   ipcMain.handle('pickDir', pickDir)
   ipcMain.handle('slurp', async (event, ...args) => { return await slurp(...args) })
@@ -94,6 +97,39 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+async function settingsFromRenderer (settings) {
+  dbg('settingsFromRenderer', settings)
+  // const skyBoxes = await getSkyBoxes(settings?.skyBoxDir)
+  const skyBoxes = await getSkyBoxes(path.join(staticDir, 'skyBoxes'))
+  dbg('skyBoxes', skyBoxes)
+  mainWindow.webContents.send('renderer-notify', 'skyBoxes', skyBoxes)
+}
+
+async function getSkyBoxes (p) {
+  if (!p) return []
+  const suitableSubDirectories = []
+  const requiredNames = (n) => {
+    const ia = ['ft', 'bk', 'up', 'dn', 'rt', 'lf']
+    return ia.map(x => `${n}_${x}.jpg`)
+  }
+  let dirs = await fs.readdir(p, { withFileTypes: true })
+  dirs = dirs.filter(de => de.isDirectory())
+  for (let i = 0; i < dirs.length; i++) {
+    const dn = dirs[i].name
+    const sd = path.join(p, dn)
+    let dea = await fs.readdir(sd, { withFileTypes: true })
+    dea = dea.filter(de => de.isFile())
+    const required = requiredNames(dn)
+    const fileNames = dea.map(x => x.name).filter(x => required.includes(x))
+    if (fileNames.length === 6) {
+      suitableSubDirectories.push(dn)
+    } else {
+      dbg(`getSkyBoxes not suitable ${dn}`)
+    }
+  }
+  return suitableSubDirectories
+}
 
 async function pickDir () {
   const result = await dialog.showOpenDialog(mainWindow, {

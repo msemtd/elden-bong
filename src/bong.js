@@ -31,6 +31,7 @@ const locations = bongData.regions.map(x => x.name)
 class Bong {
   constructor (appDiv) {
     this.settings = loadSettings('eldenBong', exampleConfig)
+    this.distributeSettings()
     this.screen = new Screen(appDiv)
     const c = this.screen
     this.gpm = new GamepadManager(this.screen)
@@ -95,6 +96,12 @@ class Bong {
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }
+  }
+
+  distributeSettings () {
+    // send settings to components and have them validated!
+    // quite especially pass settings to main process (which may cause other async events)
+    window.settings.passSettingsToMain(this.settings)
   }
 
   /**
@@ -177,6 +184,12 @@ class Bong {
         p = p.replace(topic, '')
         this.slicerDialog.setContent(`progress: ${p}`, true)
       }
+      return
+    }
+    if (topic === 'skyBoxes') {
+      console.log('main process skyBoxes: ', msg)
+      // find menu folder, inject options
+      // if saved value in list then load it
       return
     }
     console.log('main process says: ', topic, msg)
