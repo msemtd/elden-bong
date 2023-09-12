@@ -66,7 +66,8 @@ class Bong {
         background: {
           colour: '#aa00ff',
           x11Colour: '',
-          skyBox: '',
+          skyBox: '...none',
+          skyBoxList: ['...none'],
         }
       },
       character: {
@@ -186,41 +187,36 @@ class Bong {
       }
       return
     }
-    if (topic === 'skyBoxes') {
-      console.log('main process skyBoxes: ', msg)
-      // find menu folder, inject options
-      const gc = this.guiFindByPath('Scene/Background/skyBox')
-      if (!gc) {
-        console.warn('gui path not found')
-        return
-      }
-      // if saved value in list then load it
-      return
+    if (topic === 'skyBoxList') {
+      return this.setSkyBoxList(msg)
     }
     console.log('main process says: ', topic, msg)
   }
 
-  // TODO LFAWED!
-  guiFindByPath (p) {
-    const pp = p.split('/')
-    let wad = { children: this.gui.foldersRecursive() }
-    for (let i = 0; i < pp.length; i++) {
-      let dc = null
-      const e = pp[i]
-      for (let j = 0; j < wad.children.length; j++) {
-        if (wad.children[j]._title === e) {
-          dc = wad.children[j]
-          break
-        }
-      }
-      if (!dc) {
-        // not found?
-        console.warn('not found ' + e)
-        return null
-      }
-      wad = dc
+  setSkyBox (v) {
+    console.log('TODO setSkyBox: ', v)
+  }
+
+  setSkyBoxList (va) {
+    console.log('main process skyBoxList: ', va)
+    if (!Array.isArray(va)) {
+      throw Error('bad skyBoxList')
     }
-    return wad
+    // find gui folder, inject options
+    let fld = this.gui.folders.find(x => x._title === 'Scene')
+    fld = fld?.folders.find(x => x._title === 'Background')
+    const ctr = fld?.controllers.find(x => x._name === 'skyBox')
+    if (!ctr) {
+      console.warn('gui path not found')
+      return
+    }
+    const o = ctr.object
+    if (Array.isArray(o.skyBoxList)) {
+      o.skyBoxList = ['...none', ...va]
+      ctr.options(o.skyBoxList).onChange((v) => { this.setSkyBox(v) })
+    } else {
+      console.warn('gui not right!')
+    }
   }
 
   async sliceBigMap () {
@@ -517,8 +513,9 @@ class Bong {
           sp.background.x11Colour = nc.colorName
           con.updateDisplay()
         })
-        fld.add(sp.background, 'skyBox')
-        // TODO when ready, load user-saved sky boxes from some dir somewhere
+        fld.add(sp.background, 'skyBox', [sp.skyBoxList]).onChange(v => {
+          this.setSkyBox(v)
+        })
       }
       {
         const fld = s.addFolder('Grid')

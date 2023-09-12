@@ -100,13 +100,14 @@ app.on('activate', () => {
 
 async function settingsFromRenderer (settings) {
   dbg('settingsFromRenderer', settings)
-  // const skyBoxes = await getSkyBoxes(settings?.skyBoxDir)
-  const skyBoxes = await getSkyBoxes(path.join(staticDir, 'skyBoxes'))
-  dbg('skyBoxes', skyBoxes)
-  mainWindow.webContents.send('renderer-notify', 'skyBoxes', skyBoxes)
+  // right now there are a few skyBox folders in static dir
+  // const skyBoxList = await getSkyBoxList(settings?.skyBoxDir)
+  const skyBoxList = await getSkyBoxList(path.join(staticDir, 'skyBoxes'))
+  dbg('skyBoxList', skyBoxList)
+  mainWindow.webContents.send('renderer-notify', 'skyBoxList', skyBoxList)
 }
 
-async function getSkyBoxes (p) {
+async function getSkyBoxList (p) {
   if (!p) return []
   const suitableSubDirectories = []
   const requiredNames = (n) => {
@@ -125,7 +126,7 @@ async function getSkyBoxes (p) {
     if (fileNames.length === 6) {
       suitableSubDirectories.push(dn)
     } else {
-      dbg(`getSkyBoxes not suitable ${dn}`)
+      dbg(`skyBox not suitable ${dn}`)
     }
   }
   return suitableSubDirectories

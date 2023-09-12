@@ -5,6 +5,7 @@ This is a project just for fun - _not a real game!_
 * I want my own Elden Ring map for strategy planning - with all the publicly available info about items.
 * I want a little funny character editor
 * I want a platform to develop my puns, crazy ideas, and art.
+* Parody game data in bongData structure for customisation
 
 
 # REQUIREMENTS

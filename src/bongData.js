@@ -3,6 +3,7 @@ const bongData = {
     'mildly amusing puns',
     '70s, 80s, 90s music and television (UK)',
     'British accents',
+    'in-game currency is "Prunes" rather than "Runes", "Sites Of Grace" are "Site Of Grapes", there will be fruit puns',
   ],
   characters: [
     'Shite-mask Barry',
