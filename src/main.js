@@ -4,7 +4,7 @@ import path from 'path'
 import * as Store from 'electron-store'
 import { schema } from './config'
 import { MainMap } from './MainMap'
-import { mineToFilePath } from './util'
+import { mineToFilePath, filePathToMine } from './util'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -70,6 +70,7 @@ app.whenReady().then(() => {
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
+  ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
   createWindow()
 })
 
@@ -107,13 +108,20 @@ async function settingsFromRenderer (settings) {
   mainWindow.webContents.send('renderer-notify', 'skyBoxList', skyBoxList)
 }
 
+function skyBoxFileNames (n) {
+  // The image order required for CubeTexture is...
+  // 'px.png', 'nx.png',
+  // 'py.png', 'ny.png',
+  // 'pz.png', 'nz.png'
+  // For map-based cartesian coordinates, When north is forward/front/positive-Y
+  const ia = ['ft', 'bk', 'up', 'dn', 'rt', 'lf']
+  // const ia = ['rt', 'lf', 'ft', 'bk', 'up', 'dn']
+  return ia.map(x => `${n}_${x}.jpg`)
+}
+
 async function getSkyBoxList (p) {
   if (!p) return []
   const suitableSubDirectories = []
-  const requiredNames = (n) => {
-    const ia = ['ft', 'bk', 'up', 'dn', 'rt', 'lf']
-    return ia.map(x => `${n}_${x}.jpg`)
-  }
   let dirs = await fs.readdir(p, { withFileTypes: true })
   dirs = dirs.filter(de => de.isDirectory())
   for (let i = 0; i < dirs.length; i++) {
@@ -121,7 +129,7 @@ async function getSkyBoxList (p) {
     const sd = path.join(p, dn)
     let dea = await fs.readdir(sd, { withFileTypes: true })
     dea = dea.filter(de => de.isFile())
-    const required = requiredNames(dn)
+    const required = skyBoxFileNames(dn)
     const fileNames = dea.map(x => x.name).filter(x => required.includes(x))
     if (fileNames.length === 6) {
       suitableSubDirectories.push(dn)
@@ -130,6 +138,12 @@ async function getSkyBoxList (p) {
     }
   }
   return suitableSubDirectories
+}
+
+async function getSkyBoxMineUrlList (n) {
+  const d = path.resolve(path.join(staticDir, 'skyBoxes', n))
+  const ua = skyBoxFileNames(n).map(x => filePathToMine(path.join(d, x)))
+  return ua
 }
 
 async function pickDir () {

@@ -193,8 +193,23 @@ class Bong {
     console.log('main process says: ', topic, msg)
   }
 
-  setSkyBox (v) {
+  async setSkyBox (v) {
     console.log('TODO setSkyBox: ', v)
+    const scene = this.screen.scene
+    if (scene.background?.isTexture) {
+      scene.background.dispose()
+    }
+    if (v === '...none') {
+      // TODO - chose previous colour
+      scene.background = new THREE.Color(0xff0000)
+      return
+    }
+    const urls = await window.handy.getSkyBoxMineUrlList(v)
+    console.log(urls)
+    new THREE.CubeTextureLoader().load(urls, (textureCube) => {
+      scene.background = textureCube
+      this.redraw()
+    })
   }
 
   setSkyBoxList (va) {
