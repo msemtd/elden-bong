@@ -14,13 +14,17 @@ This is a project just for fun - _not a real game!_
 * scene controls - ambient light, fog for testing
 * background colour and sky box
 * YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
-
 * basic character and animations
 * load and change scenes
 * upon any gui change force a render
 * basic dialog boxes - get hyped about them
   - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
   - try a few then drop back to jBox because it works well
+* map mode, world-building mode, character-game mode
+* the terrain lib three.terrain.js is a bit hard to get working so I will use something else
+* create an actual mesh and use it like https://github.com/yomotsu/meshwalk
+
+
 
 ## Settings
 
@@ -51,7 +55,7 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 - save the settings for a controller
 - controller button and axis mappings format in JSON (and therefore YAML) with a schema
 - TODO game controller input translation is a bit broken - why are the game controls not just perfect?
-- really need an on-screen display of the controller - lift some ideas
+- on-screen display of the controller - SVG controller diagram with buttons is working nicely - need to animate joysticks too
 - deal with noise and the dead zone
 - controls on different platforms - https://vulkk.com/2022/02/26/elden-ring-pc-and-console-controls-guide-and-lists/
 - character-based controls versus free-world controls (like quake no-clip) vs map-based controls
