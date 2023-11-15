@@ -18,6 +18,7 @@ import { Mouse } from './Mouse'
 import { bongData } from './bongData'
 
 import deathSound from '../sounds/Humanoid Fall.mp3'
+import { UserControls } from './Controls'
 
 async function pick () {
   const info = await pickFile()
@@ -36,6 +37,7 @@ class Bong {
     const c = this.screen
     this.gpm = new GamepadManager(this.screen)
     this.mouse = new Mouse(this.screen)
+    this.userControls = new UserControls(this.screen)
     this.raycaster = new THREE.Raycaster()
     this.mouse.doubleClickHandler = this.doubleClick.bind(this)
     this.mouse.singleClickHandler = this.singleClick.bind(this)
@@ -135,7 +137,7 @@ class Bong {
       charGroup.add(gObj.scene)
       // the object contains the animations and other stuff which may be useful!
       charGroup.userData = gObj
-      // need to rotate it upright for some reason, despite Z-up everywhere!
+      // need to rotate it upright for our Z-up...
       gObj.scene.rotateX(Math.PI / 2)
       scene.add(charGroup)
       this.redraw()
@@ -410,9 +412,19 @@ class Bong {
     if (this.characterModeData) {
       return Dlg.errorDialog('characterMode already activated!')
     }
+    const s = this.screen
     // target the character and be behind it
     // set up controls just so
-    this.characterModeData = {}
+    this.characterModeData = {
+      // position and direction is implicit but animations need to be tracked
+      loadedCharacter: s.scene.getObjectByName('character')
+    }
+    // add a mixer for live character movement
+    s.addMixer('characterLive', (_delta) => {
+      // read inputs - figure out what happened and act
+      const redraw = this.userControls.characterActOnInputs(this.characterModeData?.loadedCharacter, _delta)
+      return redraw
+    })
   }
 
   characterModeOff () {
@@ -421,6 +433,8 @@ class Bong {
     }
     // TODO whatever is required to do whatever
     this.characterModeData = null
+    const s = this.screen
+    s.removeMixer('characterLive')
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
@@ -504,6 +518,7 @@ class Bong {
       fld.add(this, 'testConfirmDialog')
       fld.add(this, 'testDialogAsync')
       fld.add(this, 'testIdentify')
+      fld.add(this, 'generateLandscape')
     }
     {
       const s = this.gui.addFolder('Scene').close()
@@ -588,6 +603,24 @@ class Bong {
 
   doubleClick (ev, mousePos) {
     console.log(mousePos)
+  }
+
+  generateLandscape () {
+    const p = this.screen.scene
+    const nom = 'landscape'
+    const existing = p.getObjectByName(nom)
+    if (existing) {
+      Dlg.errorDialog('landscape already exists')
+      return
+    }
+    // TODO
+    const floor = new THREE.PlaneGeometry(400, 400, 63, 63)
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+    const plane = new THREE.Mesh(floor, material)
+    const g = new THREE.Group()
+    g.name = nom
+    g.add(plane)
+    p.add(g)
   }
 }
 

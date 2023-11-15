@@ -45,10 +45,9 @@ Persistent user settings: -
 * https://threejs.org/docs/index.html?q=mater#api/en/materials/MeshToonMaterial
 * https://threejs.org/examples/#webgl_materials_toon
 
+## Controls
 
-## Controllers
-
-When a controller is plugged in (and a button pressed - as per Web API for controllers)...
+When a game controller is plugged in (and a button pressed - as per Web API for controllers)...
 - the controller is added to the list of controllers and configured if a config has been saved for it
 - many controllers required including duplicates of the same model
 - find some unique identifier for a controller
@@ -59,6 +58,41 @@ When a controller is plugged in (and a button pressed - as per Web API for contr
 - deal with noise and the dead zone
 - controls on different platforms - https://vulkk.com/2022/02/26/elden-ring-pc-and-console-controls-guide-and-lists/
 - character-based controls versus free-world controls (like quake no-clip) vs map-based controls
+
+'''HTML
+<table>
+<thead>
+<tr><th>Action</th><th>PC Defaults</th><th>Change to</th></tr></thead>
+<tbody>
+<tr><td>Movement Speed Control</td><td>ALT</td><td>Z</td></tr>
+<tr><td>Move Forwards</td><td>W</td><td></td></tr>
+<tr><td>Move Backwards</td><td>S</td><td></td></tr>
+<tr><td>Move Left</td><td>A</td><td></td></tr>
+<tr><td>Move Right</td><td>D</td><td></td></tr>
+<tr><td>Backstep / Dodge Roll / Dash</td><td>SPACE</td><td>ALT</td></tr>
+<tr><td>Jump</td><td>F</td><td>SPACE</td></tr>
+<tr><td>Crouch / Stand Up</td><td>X</td><td>C</td></tr>
+<tr><td>Move Camera / Change Target (Up)</td><td></td><td>SHIFT+↑</td></tr>
+<tr><td>Move Camera / Change Target (Down)</td><td></td><td>SHIFT+↓</td></tr>
+<tr><td>Move Camera / Change Target (Left)</td><td></td><td>SHIFT+←</td></tr>
+<tr><td>Move Camera / Change Target (Right)</td><td></td><td>SHIIFT+→</td></tr>
+<tr><td>Reset Camera / Lock-On / Remove Target</td><td>Q / MMB</td><td></td></tr>
+<tr><td>Switch Sorcery / Incantation</td><td>↑</td><td>1</td></tr>
+<tr><td>Switch Item</td><td>↓</td><td>2</td></tr>
+<tr><td>Switch Right-Hand Armament</td><td>→ / SHIFT+SCROLL↑</td><td>3</td></tr>
+<tr><td>Switch Left-Hand Armament</td><td>← / SHIFT+SCROLL↓</td><td>4</td></tr>
+<tr><td>Attack (RH &amp; 2H Armament)</td><td>LMB</td><td></td></tr>
+<tr><td>Strong Attack (LH Armament)</td><td>SHIFT+LMB</td><td></td></tr>
+<tr><td>Guard</td><td>RMB</td><td></td></tr>
+<tr><td>Skill</td><td>SHIFT+RMB</td><td></td></tr>
+<tr><td>Use Item</td><td>R</td><td></td></tr>
+<tr><td>Event Action (Talk, Examine, Open etc)</td><td>E</td><td></td></tr>
+<tr><td>Map</td><td>G</td><td></td></tr>
+<tr><td>Switch RH 1H &amp; 2H</td><td>E+LMB</td><td></td></tr>
+<tr><td>Switch LH 1H &amp; 2H</td><td>E+RMB</td><td></td></tr>
+<tr><td>Sprint</td><td>Hold SPACE</td><td></td></tr>
+</tbody></table>
+'''
 
 ## Maps
 

@@ -5697,11 +5697,6 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==
 
-three.terrain.js@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/three.terrain.js/-/three.terrain.js-2.0.0.tgz#a9508bbebccb194e828de57fdaad30a312936956"
-  integrity sha512-M3DLpZ4Vo/yuxp2g64ZUvoCxcR/WMDwK3ZxcohPQqYR2y/SfO70XZ8pG+OvyHiMJvnoMoPefAOSfs2Pu4jVJsg==
-
 three@^0.146.0:
   version "0.146.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.146.0.tgz#fd80f0d128ab4bb821a02191ae241e4e6326f17a"

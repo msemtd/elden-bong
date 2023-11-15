@@ -7,6 +7,7 @@ const bongData = {
     'Runes -> Prunes',
     'Sites of Grace -> Site Of Grapes',
     'Erdtree -> NerdTree',
+    'Tarnished -> Varnished',
     'Two Fingers -> already funny but needs to change',
   ],
   characters: [
