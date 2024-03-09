@@ -35,7 +35,7 @@ let mainWindow = null
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     icon: path.join(process.cwd(), 'stuff', 'icon.ico'),
-    fullscreen: true,
+    fullscreen: false,
     webPreferences: {
       // eslint-disable-next-line no-undef
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -48,6 +48,12 @@ const createWindow = () => {
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12' && !input.control && !input.alt && !input.meta && !input.shift) {
       mainWindow.webContents.openDevTools()
+      event.preventDefault()
+    }
+  })
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F11' && !input.control && !input.alt && !input.meta && !input.shift) {
+      mainWindow.setFullScreen(!mainWindow.isFullScreen())
       event.preventDefault()
     }
   })

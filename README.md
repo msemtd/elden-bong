@@ -228,13 +228,16 @@ load the items list scrape into an array of strings
 
 From scratch (Friday November 04 2022)...
 
-```
+```BASH
 yarn create electron-app elden-bong --template=webpack
-```
+cd elden-bong
+yarn add -D webpack copy-webpack-plugin
+# add eslint - I want a configurable lint based on Standard JS (as recommended by eslint-config-standard)
+yarn add -D eslint eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
+yarn add three camera-controls jquery js-yaml jbox fs-extra path-browserify debug
 
-* added three and camera-controls
-* added eslint (as recommended by eslint-config-standard)
-* `yarn add -D eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n`
+```
+The above can also be used to upgrade the app platform: create a new empty app and compare the results with the current app.
 * upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
 * worked out how to load files with a custom URL protocol (what a drag that was!)
 
