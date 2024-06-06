@@ -6,11 +6,12 @@ This is a project just for fun - _not a real game!_
 * I want a little funny character editor
 * I want a platform to develop my puns, crazy ideas, and art.
 * Parody game data in bongData structure for customisation
-
+* for merging a number of seemingly unrelated projects with a common app framework that is hopefully pleasing
 
 # REQUIREMENTS
 
 ## basic scene
+* use three.js
 * scene controls - ambient light, fog for testing
 * background colour and sky box
 * YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
