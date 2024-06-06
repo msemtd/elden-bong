@@ -63,9 +63,9 @@ class MainMap {
       const args = sliceCommand.split(' ')
       for (let i = 0; i < args.length; i++) {
         let s = args[i]
-        s = s.replace('{{BIG_MAP_FILE}}', fp)
-        s = s.replace('{{PREFIX}}', prefix)
-        s = s.replace('{{TILE_SIZE}}', tileSize)
+        s = s.replaceAll('{{BIG_MAP_FILE}}', fp)
+        s = s.replaceAll('{{PREFIX}}', prefix)
+        s = s.replaceAll('{{TILE_SIZE}}', tileSize)
         args[i] = s
       }
       const topic = 'sliceBigMap'
