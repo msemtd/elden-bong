@@ -7,6 +7,11 @@ class Screen extends THREE.EventDispatcher {
   constructor (container) {
     // resizes to fill container
     super()
+    if (THREE.REVISION >= 149) {
+      THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1)
+    } else {
+      THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1)
+    }
     this.container = container
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1)
