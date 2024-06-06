@@ -5,11 +5,10 @@ import * as Store from 'electron-store'
 import { schema } from './config'
 import { MainMap } from './MainMap'
 import { mineToFilePath, filePathToMine } from './util'
+import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
 
 const dbg = debug('main')
 debug.enable('main')
-
-const { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } = require('electron')
 
 dbg('we appear to be alive')
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
