@@ -20,7 +20,7 @@ class Screen extends THREE.EventDispatcher {
     this.container.appendChild(canvas)
     this.forceRedraw = false
     this.resizeRequired = true
-    this.debugResize = true
+    this.debugResize = false
     this.rendererViewportGeom = new THREE.Vector4()
     this.camera = null
     this.cameraControls = null

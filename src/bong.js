@@ -5,12 +5,13 @@ import yaml from 'js-yaml'
 import Stats from 'three/addons/libs/stats.module.js'
 import ntc from '@yatiac/name-that-color'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import { Howl } from 'howler'
 import { Screen } from './Screen'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile } from './HandyApi'
+import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile } from './HandyApi'
 import { filePathToMine } from './util'
 import { exampleConfig } from './config'
 import { Dlg } from './dlg'
@@ -519,6 +520,7 @@ class Bong {
       fld.add(this, 'testDialogAsync')
       fld.add(this, 'testIdentify')
       fld.add(this, 'generateLandscape')
+      fld.add(this, 'trySomeSvg')
     }
     {
       const s = this.gui.addFolder('Scene').close()
@@ -621,6 +623,83 @@ class Bong {
     g.name = nom
     g.add(plane)
     p.add(g)
+  }
+
+  async trySomeSvg () {
+    // get an SVG image from the custom URL
+    const cp = '066f8'
+    const kvgDir = 'C:\\Users\\msemt\\Documents\\dev\\kanjivg'
+    const f = `${kvgDir}/kanji/${cp}.svg`
+    const url = filePathToMine(f)
+    const alreadyGotData = await loadTextFile(f)
+    await this.loadSvg(url, this.screen.scene, alreadyGotData)
+  }
+
+  async loadSvg (url, scene, alreadyGotData) {
+    // taken from https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_svg.html
+    const guiData = {
+      currentURL: '',
+      drawFillShapes: true,
+      drawStrokes: true,
+      fillShapesWireframe: false,
+      strokesWireframe: false
+    }
+    const loader = new SVGLoader()
+    const callback = (data) => {
+      const group = new THREE.Group()
+      group.scale.multiplyScalar(0.1)
+      group.position.x = 5
+      group.position.y = 5
+      group.position.z = 1
+      group.scale.y *= -1
+      let renderOrder = 0
+      for (const path of data.paths) {
+        const fillColor = path.userData.style.fill
+        if (guiData.drawFillShapes && fillColor !== undefined && fillColor !== 'none') {
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setStyle(fillColor),
+            opacity: path.userData.style.fillOpacity,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            wireframe: guiData.fillShapesWireframe
+          })
+          const shapes = SVGLoader.createShapes(path)
+          for (const shape of shapes) {
+            const geometry = new THREE.ShapeGeometry(shape)
+            const mesh = new THREE.Mesh(geometry, material)
+            mesh.renderOrder = renderOrder++
+            group.add(mesh)
+          }
+        }
+        const strokeColor = path.userData.style.stroke
+        if (guiData.drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setStyle(strokeColor),
+            opacity: path.userData.style.strokeOpacity,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            wireframe: guiData.strokesWireframe
+          })
+          for (const subPath of path.subPaths) {
+            const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style)
+            if (geometry) {
+              const mesh = new THREE.Mesh(geometry, material)
+              mesh.renderOrder = renderOrder++
+              group.add(mesh)
+            }
+          }
+        }
+      }
+      scene.add(group)
+    }
+    if (alreadyGotData) {
+      const parsedData = loader.parse(alreadyGotData)
+      callback(parsedData)
+    } else {
+      loader.load(url, callback)
+    }
   }
 }
 
