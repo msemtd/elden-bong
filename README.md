@@ -6,7 +6,8 @@ This is a project just for fun - _not a real game!_
 * I want a little funny character editor
 * I want a platform to develop my puns, crazy ideas, and art.
 * Parody game data in bongData structure for customisation
-* for merging a number of seemingly unrelated projects with a common app framework that is hopefully pleasing
+* for merging a number of seemingly unrelated projects with a common app framework that
+  is hopefully pleasing - see below for detail
 
 # REQUIREMENTS
 
@@ -241,6 +242,8 @@ yarn add three camera-controls jquery js-yaml jbox fs-extra path-browserify debu
 The above can also be used to upgrade the app platform: create a new empty app and compare the results with the current app.
 * upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
 * worked out how to load files with a custom URL protocol (what a drag that was!)
+  Still not worked out how to get the data into three-js loaders - for now reading
+  file data into buffers in the main thread and passing through the preload API 
 
 ## Electron
 
@@ -261,6 +264,22 @@ The challenges it introduces: -
 * not going down the React route for now
 * jBox for dialog boxes
 * YAML for settings
+
+# As a container for little game ideas
+Why maintain multiple repos for projects that nobody else cares about?
+Hmmm, my goal is to evolve a convenient and enjoyable platform for mostly 3D desktop applications.
+I can just bundle all my other throwaway junk apps in here and use this app as a vehicle.
+
+* pitrain-node
+* Kanjifun
+* cards-dude
+* moanswooper
+
+2D game mode with "mostly" fixed camera - allow user to choose a nice camera position (relative to gameplay board) and save it in a list of favourites. Pause and resume of sub-games.
+Maybe tie into the Elden Bong narrative and use them as side-quests!
+
+
+
 
 # LICENSES AND ATTRIBUTION
 

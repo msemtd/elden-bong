@@ -17,7 +17,9 @@ import { exampleConfig } from './config'
 import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
 import { bongData } from './bongData'
-
+import { VanStuff } from './VanStuff'
+import { MoanSwooper } from './MoanSwooper/MoanSwooper'
+import { CardsDude } from './CardsDude/CardsDude'
 import deathSound from '../sounds/Humanoid Fall.mp3'
 import { UserControls } from './Controls'
 
@@ -94,12 +96,18 @@ class Bong {
     this.addStats(c)
     this.addCamInfo(c)
     this.addDemoCube(c)
+    this.addMoanSwooper(c)
     this.makeGui()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }
+  }
+
+  testVanStuff () {
+    const v = new VanStuff()
+    v.testModal()
   }
 
   distributeSettings () {
@@ -486,6 +494,20 @@ class Bong {
     })
   }
 
+  addMoanSwooper (c) {
+    this.moanSwooper = new MoanSwooper()
+    const g = new THREE.Group()
+    g.name = 'MoanSwooper'
+    g.position.set(2, -1, 1)
+    g.scale.set(0.5, 0.5, 0.5)
+    this.moanSwooper.setupThreeGroup(g)
+    // s.addMixer('MoanSwooper', (_delta) => {
+    //   return moanSwooper.update()
+    // })
+    c.scene.add(g)
+    this.redraw()
+  }
+
   makeGui () {
     {
       const fld = this.gui.addFolder('Base Actions')
@@ -521,6 +543,13 @@ class Bong {
       fld.add(this, 'testIdentify')
       fld.add(this, 'generateLandscape')
       fld.add(this, 'trySomeSvg')
+      fld.add(this, 'testVanStuff')
+      fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
+      // TODO -
+      // enable/disable mixer
+      // show/hide group
+      // create/destroy group
+      // position/scale
     }
     {
       const s = this.gui.addFolder('Scene').close()
