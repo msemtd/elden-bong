@@ -71,7 +71,7 @@ function xyToIdx (x, y, xSize) {
 }
 
 function idxToXy (idx, xSize) {
-  return [Math.floor(idx / xSize), idx % xSize]
+  return [idx % xSize, Math.floor(idx / xSize)]
 }
 
 function gridToString (ga, mode) {
@@ -86,10 +86,24 @@ function gridToString (ga, mode) {
   return s
 }
 
+function getAdj (x, y, xSize, ySize) {
+  const adj = []
+  for (let row = y - 1; row <= y + 1; row++) {
+    if (row < 0 || row >= ySize) continue
+    for (let col = x - 1; col <= x + 1; col++) {
+      if (col < 0 || col >= xSize) continue
+      if (row === y && col === x) continue
+      adj.push([col, row])
+    }
+  }
+  return adj
+}
+
 class MoanSwooper {
   constructor () {
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
+    this.active = true
   }
 
   runTest () {
@@ -98,6 +112,21 @@ class MoanSwooper {
     const s = gridToString(this.grid, this.mode)
     console.log(s)
     // this.guiProvider.drawGrid(this)
+  }
+
+  intersect (raycaster) {
+    const clickables = [...this.group.children]
+    const hits = raycaster.intersectObjects(clickables, false)
+    if (hits.length) {
+      console.dir(hits)
+      const h = hits[0]
+      if (h.object?.name) {
+        console.log(h.object.name)
+        const p = h.object.position
+        const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
+        console.dir(adj)
+      }
+    }
   }
 
   setupThreeGroup (g) {
@@ -116,6 +145,7 @@ class MoanSwooper {
       const line = new THREE.LineSegments(edges, matLines)
       mesh.position.set(x, y, 0)
       mesh.add(line)
+      mesh.name = `tile_${x}_${y}`
       this.group.add(mesh)
     }
   }

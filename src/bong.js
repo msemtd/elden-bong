@@ -620,7 +620,10 @@ class Bong {
   singleClick (ev, mousePos) {
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
-    const clickable = this.mapIconSets
+    if (this.moanSwooper?.active) {
+      return this.moanSwooper.intersect(this.raycaster)
+    }
+    const clickable = this.moanSwooper?.active ? this.moanSwooper.group : this.mapIconSets
     if (!clickable) { return }
     const hits = this.raycaster.intersectObject(clickable)
     if (hits.length) {
