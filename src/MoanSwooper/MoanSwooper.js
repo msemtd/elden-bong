@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 
 /**
  * Grid of tiles in 2D space
@@ -104,39 +105,54 @@ class MoanSwooper {
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
     this.active = true
+    this.state = 'NEW_GAME'
   }
 
   runTest () {
-    console.log('Helloooooooooooo')
     this.grid = makeGrid(this.mode)
     const s = gridToString(this.grid, this.mode)
     console.log(s)
-    // this.guiProvider.drawGrid(this)
+    this.resetThreeGroup()
   }
 
-  intersect (raycaster) {
+  intersect (raycaster, ev) {
+    // first see what event looks like
+    const btn = ev ? ev.button : 0
     const clickables = [...this.group.children]
     const hits = raycaster.intersectObjects(clickables, false)
-    if (hits.length) {
-      console.dir(hits)
-      const h = hits[0]
-      if (h.object?.name) {
-        console.log(h.object.name)
-        const p = h.object.position
-        const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
-        console.dir(adj)
-      }
+    if (!hits.length) { return }
+    console.dir(hits)
+    const h = hits[0]
+    if (!h.object?.name) { return }
+    console.log(`button ${btn} on ${h.object.name}`)
+    const p = h.object.position
+    const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
+    if (btn === 1) {
+      // dig here
+      console.log('DIG!')
+      // first
+    } else if (btn === 2) {
+      console.log('FLAG!')
     }
+    console.dir(adj)
   }
 
-  setupThreeGroup (g) {
-    this.group = g
-    // TODO remake group contents
+  resetThreeGroup () {
+    // TODO remove any existing group contents
+    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+    
+
+
     const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.1)
     const edges = new THREE.EdgesGeometry(geometry)
-    const mat1 = new THREE.MeshBasicMaterial({ color: 0x9504f6 })
-    const mat2 = new THREE.MeshBasicMaterial({ color: 0xf604a9 })
-    const matLines = new THREE.LineBasicMaterial({ color: 0xce9909 })
+    const matOpts = {
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
+    }
+    const mat1 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
+    const mat2 = new THREE.MeshLambertMaterial({ ...matOpts, color: 0xf604a9 })
+    const matLines = new THREE.LineBasicMaterial({ color: 'green' })
     // TODO retain materials for management
     for (let idx = 0; idx < this.grid.length; idx++) {
       const val = this.grid[idx]

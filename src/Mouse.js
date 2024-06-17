@@ -15,6 +15,7 @@ class Mouse {
     canvas.addEventListener('mousemove', this.onMove.bind(this), false)
     canvas.addEventListener('dblclick', this.onDblClick.bind(this), false)
     canvas.addEventListener('click', this.onClick.bind(this), false)
+    canvas.addEventListener('contextmenu', this.onClick.bind(this), false)
     this.canvas = canvas
     this.screenPosition = new THREE.Vector2()
     this.doubleClickHandler = null

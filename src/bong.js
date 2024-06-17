@@ -22,6 +22,7 @@ import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { CardsDude } from './CardsDude/CardsDude'
 import deathSound from '../sounds/Humanoid Fall.mp3'
 import { UserControls } from './Controls'
+import { depthFirstReverseTraverse, generalObj3dClean } from './threeUtil'
 
 async function pick () {
   const info = await pickFile()
@@ -496,11 +497,13 @@ class Bong {
 
   addMoanSwooper (c) {
     this.moanSwooper = new MoanSwooper()
+    // we control the group - it controls its own group contents
     const g = new THREE.Group()
     g.name = 'MoanSwooper'
     g.position.set(2, -1, 1)
     g.scale.set(0.5, 0.5, 0.5)
-    this.moanSwooper.setupThreeGroup(g)
+    this.moanSwooper.group = g
+    this.moanSwooper.resetThreeGroup()
     // s.addMixer('MoanSwooper', (_delta) => {
     //   return moanSwooper.update()
     // })
@@ -621,9 +624,9 @@ class Bong {
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
     if (this.moanSwooper?.active) {
-      return this.moanSwooper.intersect(this.raycaster)
+      return this.moanSwooper.intersect(this.raycaster, ev)
     }
-    const clickable = this.moanSwooper?.active ? this.moanSwooper.group : this.mapIconSets
+    const clickable = this.mapIconSets
     if (!clickable) { return }
     const hits = this.raycaster.intersectObject(clickable)
     if (hits.length) {
@@ -768,38 +771,6 @@ function loadSettings (localStorageKey, defaultSettings) {
 function saveTheseSettings (localStorageKey, settings) {
   localStorage.setItem(localStorageKey, yaml.dump(settings))
   return structuredClone(settings)
-}
-
-function generalObj3dClean (p, o) {
-  if (!o) { return }
-  if (o.geometry && o.geometry.dispose instanceof Function) {
-    o.geometry.dispose()
-  }
-  if (o.material) {
-    if (o.material.dispose instanceof Function) {
-      o.material.dispose()
-    }
-  }
-  if (p && p.children && o.parent === p && o.parent.remove instanceof Function) {
-    o.parent.remove(o)
-  }
-}
-
-/**
- * Helper function to traverse a tree depth first in reverse order (so that is is safe to remove an element from the nest within the callback)
- *
- * @param {object} p a parent object with a children array
- * @param {object} o an object that is a child of a parent(!)
- * @param {Function} cb a callback to do whatever
- */
-function depthFirstReverseTraverse (p, o, cb) {
-  if (o.children instanceof Array) {
-    const len = o.children.length
-    for (let i = len - 1; i >= 0; i--) {
-      depthFirstReverseTraverse(o, o.children[i], cb)
-    }
-  }
-  cb(p, o)
 }
 
 export { Bong }
