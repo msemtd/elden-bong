@@ -74,6 +74,9 @@ class Bong {
           x11Colour: '',
           skyBox: '...none',
           skyBoxList: ['...none'],
+          rotateX: 0,
+          rotateY: 0,
+          rotateZ: 0,
         }
       },
       character: {
@@ -220,6 +223,7 @@ class Bong {
     console.log(urls)
     new THREE.CubeTextureLoader().load(urls, (textureCube) => {
       scene.background = textureCube
+      scene.backgroundRotation?.set(0, Math.PI / 2, 0)
       this.redraw()
     })
   }
@@ -580,6 +584,14 @@ class Bong {
         fld.add(sp.background, 'skyBox', [sp.skyBoxList]).onChange(v => {
           this.setSkyBox(v)
         })
+        const rotMap = { '0 deg': 0, '90 deg': Math.PI / 2, '180 deg': Math.PI, '270 deg': Math.PI * 3 / 2 }
+        const setRot = () => {
+          this.screen.scene.backgroundRotation?.set(sp.background.rotateX, sp.background.rotateY, sp.background.rotateZ)
+          this.redraw()
+        }
+        fld.add(sp.background, 'rotateX', rotMap).onChange(v => { setRot() })
+        fld.add(sp.background, 'rotateY', rotMap).onChange(v => { setRot() })
+        fld.add(sp.background, 'rotateZ', rotMap).onChange(v => { setRot() })
       }
       {
         const fld = s.addFolder('Grid')
