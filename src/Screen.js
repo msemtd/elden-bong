@@ -109,10 +109,12 @@ class Screen extends THREE.EventDispatcher {
     this.camera.position.z = 1
     this.doResize()
     const cc = new CameraControls(this.camera, this.renderer.domElement)
-    cc.dollyToCursor = true
-    // cc.infinityDolly = true
-    cc.minDistance = 0.01
-    cc.maxDistance = 5000
+    Object.assign(cc, {
+      dollyToCursor: true,
+      infinityDolly: true,
+      minDistance: 0.5,
+      maxDistance: 5000,
+    })
     cc.updateCameraUp()
     this.cameraControls = cc
     cc.saveState()
