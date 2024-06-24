@@ -26,6 +26,17 @@ import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
  *
  */
 
+const testField1 = `
+.@........
+......@...
+..........
+.@........
+..@.....@.
+....@.....
+.........@
+......@@@.
+`
+
 const modes = {
   easy: {
     xSize: 10,
@@ -67,11 +78,42 @@ function makeGrid (mode = modes.easy) {
   return m
 }
 
+function setGridNumbers (grid, mode) {
+  for (let y = 0; y < mode.ySize; y++) {
+    for (let x = 0; x < mode.xSize; x++) {
+      const gi = xyToIdx(x, y, mode.xSize)
+      const tile = grid[gi]
+      if (tile === '@') continue
+      // not a bomb - look at neighbours
+      const na = getAdj(x, y, mode.xSize, mode.ySize)
+      let count = 0
+      for (const pr of na) {
+        const ix = xyToIdx(pr[0], pr[1], mode.xSize)
+        if (grid[ix] === '@') {
+          count++
+        }
+      }
+      grid[gi] = `${count || '.'}`
+    }
+  }
+}
+
 function xyToIdx (x, y, xSize) {
+  console.assert(Number.isInteger(x))
+  console.assert(Number.isInteger(y))
+  console.assert(Number.isInteger(xSize))
+  console.assert(x >= 0)
+  console.assert(y >= 0)
+  console.assert(xSize > 0)
+  console.assert(x < xSize)
   return y * xSize + x
 }
 
 function idxToXy (idx, xSize) {
+  console.assert(Number.isInteger(idx))
+  console.assert(Number.isInteger(xSize))
+  console.assert(idx >= 0)
+  console.assert(xSize > 0)
   return [idx % xSize, Math.floor(idx / xSize)]
 }
 
@@ -85,6 +127,21 @@ function gridToString (ga, mode) {
     s += '\n'
   }
   return s
+}
+
+function gridFromString (s, mode) {
+  const lines = s.split('\n').map(x => x.trim()).filter(x => x.length)
+  if (lines.length !== mode.ySize) {
+    throw Error('bad lines count')
+  }
+  let g = ''
+  for (const line of lines) {
+    if (line.length !== mode.xSize) {
+      throw Error('bad line length')
+    }
+    g += line
+  }
+  return g.split('')
 }
 
 function getAdj (x, y, xSize, ySize) {
@@ -109,10 +166,17 @@ class MoanSwooper {
   }
 
   runTest () {
-    this.grid = makeGrid(this.mode)
-    const s = gridToString(this.grid, this.mode)
+    const mode = modes.easy
+    const grid = gridFromString(testField1, mode)
+    // this.grid = makeGrid(this.mode)
+    // let s = gridToString(this.grid, this.mode)
+    // setGridNumbers(this.grid, this.mode)
+    let s = gridToString(grid, mode)
     console.log(s)
-    this.resetThreeGroup()
+    setGridNumbers(grid, mode)
+    s = gridToString(grid, mode)
+    console.log(s)
+    // this.resetThreeGroup()
   }
 
   intersect (raycaster, ev) {
@@ -140,8 +204,6 @@ class MoanSwooper {
   resetThreeGroup () {
     // TODO remove any existing group contents
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-    
-
 
     const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.1)
     const edges = new THREE.EdgesGeometry(geometry)
