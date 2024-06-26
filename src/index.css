@@ -74,14 +74,17 @@ div#elden {
   padding-bottom: 3px;
   padding-left: 9px;
   user-select: none;
+  pointer-events:none;
 }
 
 div#gamePad {
   position: absolute;
   bottom: 0px;
   left: 0px;
-  background-color: rgb(15, 131, 246);
+  background-color: rgba(0, 0, 0, 0.501);
   user-select: none;
+  overflow: hidden;
+  pointer-events:none;
 }
 
 div#gamePad svg .btn {
