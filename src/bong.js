@@ -513,6 +513,11 @@ class Bong {
     // })
     c.scene.add(g)
     this.redraw()
+    this.moanSwooper.addEventListener('state', this.onMoanSwooperGameState.bind(this))
+  }
+
+  onMoanSwooperGameState (ev) {
+    console.warn(ev)
   }
 
   makeGui () {

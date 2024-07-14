@@ -12,6 +12,7 @@ class Mouse {
   constructor (screen) {
     this.screen = screen
     const canvas = screen.renderer.domElement
+    canvas.addEventListener('mousedown', this.onDown.bind(this), false)
     canvas.addEventListener('mousemove', this.onMove.bind(this), false)
     canvas.addEventListener('dblclick', this.onDblClick.bind(this), false)
     canvas.addEventListener('click', this.onClick.bind(this), false)
@@ -22,13 +23,17 @@ class Mouse {
     this.singleClickHandler = null
   }
 
+  onDown (ev) {
+    this.clicker(ev, false)
+  }
+
   onMove (ev) {
     this.positionUpdate(ev)
     ev.preventDefault()
   }
 
   onClick (ev) {
-    this.clicker(ev, false)
+    // this.clicker(ev, false)
   }
 
   onDblClick (ev) {
@@ -44,7 +49,6 @@ class Mouse {
   clicker (ev, double) {
     this.positionUpdate(ev)
     this.canvas.focus()
-    // this.prepareRaycaster()
     if (double) {
       this.doubleClickHandler?.(ev, this.screenPosition)
     } else {

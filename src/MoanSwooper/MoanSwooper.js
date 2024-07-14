@@ -157,12 +157,20 @@ function getAdj (x, y, xSize, ySize) {
   return adj
 }
 
-class MoanSwooper {
+function todo (s) {
+  console.warn(`TODO: ${s}`)
+}
+
+class MoanSwooper extends THREE.EventDispatcher {
   constructor () {
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
-    this.active = true
+    this.flags = this.grid.slice().fill('.')
     this.state = 'NEW_GAME'
+    // in new state there's no point in setting the numbers yet - wait until first opening move
+    // setGridNumbers(grid, mode)
+    this.active = true
+    // TODO: have a visual indicator of game state
   }
 
   runTest () {
@@ -190,15 +198,51 @@ class MoanSwooper {
     if (!h.object?.name) { return }
     console.log(`button ${btn} on ${h.object.name}`)
     const p = h.object.position
+    const idx = xyToIdx(p.x, p.y, this.mode.xSize)
     const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
     if (btn === 1) {
-      // dig here
-      console.log('DIG!')
-      // first
+      this.dig(idx, p.x, p.y)
     } else if (btn === 2) {
-      console.log('FLAG!')
+      this.flag(idx, p.x, p.y)
     }
     console.dir(adj)
+  }
+
+  setState (state) {
+    this.state = state
+    this.dispatchEvent({ type: 'state', value: this.state })
+  }
+
+  openUp(idx, x, y, obj){
+    // how does this work?
+    // delete this tile and any other empty ones adjacent?
+    // Show the numbers
+    
+  
+
+  }
+
+  dig (idx, x, y, obj) {
+    console.log('DIG!')
+    if (this.state === 'NEW_GAME') {
+      // TODO: rotate field until no boom
+      while (this.grid[idx] === '@') {
+        // find a random space and swap or something simpler?
+        console.log('mine there so shuffle')
+        fyShuffle(this.grid)
+      }
+      this.openUp(idx, x, y, obj)
+      todo('TIMER START')
+      this.setState('PLAYING')
+    }
+    if (this.grid[idx] === '@') {
+      this.setState('GAME_OVER')
+    }
+  }
+
+  flag (idx, x, y) {
+    console.log('FLAG!')
+    // flags needs a flag map!
   }
 
   resetThreeGroup () {
