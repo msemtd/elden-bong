@@ -163,6 +163,7 @@ function todo (s) {
 
 class MoanSwooper extends THREE.EventDispatcher {
   constructor () {
+    super()
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
     this.flags = this.grid.slice().fill('.')
