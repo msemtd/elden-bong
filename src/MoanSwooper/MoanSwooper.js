@@ -195,7 +195,7 @@ class MoanSwooper extends THREE.EventDispatcher {
   runTestBomb () {
     const o = this.makeBomb()
     this.group.add(o)
-    o.position.sub(this.group.position)
+    o.position.copy(this.group.worldToLocal(new THREE.Vector3()))
     this.redraw()
   }
 
@@ -214,6 +214,7 @@ class MoanSwooper extends THREE.EventDispatcher {
     const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
     if (btn === 1) {
       this.dig(idx, p.x, p.y)
+      h.object.visible = false
     } else if (btn === 2) {
       this.flag(idx, p.x, p.y)
     }
@@ -233,8 +234,8 @@ class MoanSwooper extends THREE.EventDispatcher {
   }
 
   dig (idx, x, y, obj) {
-    console.log('DIG!')
     if (this.state === 'NEW_GAME') {
+      console.log('DIG: first move!')
       // TODO: rotate field until no boom
       while (this.grid[idx] === '@') {
         // find a random space and swap or something simpler?
@@ -245,14 +246,27 @@ class MoanSwooper extends THREE.EventDispatcher {
       todo('TIMER START')
       this.setState('PLAYING')
     }
-    if (this.grid[idx] === '@') {
-      this.setState('GAME_OVER')
+    if (this.state === 'PLAYING') {
+      // first, if this is a flagged square then nothing happens
+      if (this.flags[idx] === 'F') {
+        console.log('DIG: hit flag, do nothing!')
+        return
+      }
+      // todo remove the square here - maybe colour it green?
+
+      if (this.grid[idx] === '@') {
+        console.log('DIG: hit mine!')
+        this.setState('GAME_OVER')
+      }
     }
   }
 
   flag (idx, x, y) {
     console.log('FLAG!')
-    // flags needs a flag map!
+    if (this.flags[idx] === '.') {
+      this.flags[idx] = 'F'
+      todo('create flag object here')
+    }
   }
 
   resetThreeGroup () {
@@ -267,8 +281,8 @@ class MoanSwooper extends THREE.EventDispatcher {
       polygonOffsetUnits: 1
     }
     const mat1 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
-    const mat2 = new THREE.MeshLambertMaterial({ ...matOpts, color: 0xf604a9 })
-    const matLines = new THREE.LineBasicMaterial({ color: 'green' })
+    const mat2 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'orange' })
+    const matLines = new THREE.LineBasicMaterial({ color: 'purple' })
     // TODO retain materials for management
     for (let idx = 0; idx < this.grid.length; idx++) {
       const val = this.grid[idx]
@@ -279,6 +293,16 @@ class MoanSwooper extends THREE.EventDispatcher {
       mesh.add(line)
       mesh.name = `tile_${x}_${y}`
       this.group.add(mesh)
+    }
+    // add a green-baize backdrop
+    {
+      const w = this.mode.xSize + 2
+      const h = this.mode.ySize + 2
+      const g = new THREE.BoxGeometry(w, h, 0.2)
+      const m = new THREE.MeshLambertMaterial({ color: 'green' })
+      const o = new THREE.Mesh(g, m)
+      o.position.set((w / 2) - 1.5, (h / 2) - 1.5, -0.2)
+      this.group.add(o)
     }
   }
 
