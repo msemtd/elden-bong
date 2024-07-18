@@ -1,0 +1,712 @@
+{
+  "metadata": {},
+  "project": {
+    "shadows": true,
+    "shadowType": 1,
+    "toneMapping": 0,
+    "toneMappingExposure": 1
+  },
+  "camera": {
+    "metadata": {
+      "version": 4.6,
+      "type": "Object",
+      "generator": "Object3D.toJSON"
+    },
+    "object": {
+      "uuid": "b21e7c9c-c618-42e4-a162-3e695334b1a4",
+      "type": "PerspectiveCamera",
+      "name": "Camera",
+      "layers": 1,
+      "matrix": [
+        -0.25806455713799537,
+        5.551115123125783e-17,
+        0.9661276749732257,
+        0,
+        0.28938853172100554,
+        0.9540854820624001,
+        0.07729922784943051,
+        0,
+        -0.9217683885106558,
+        0.2995344603176029,
+        -0.24621564740022417,
+        0,
+        -1.4443906587475166,
+        0.4693638682432673,
+        -0.38581446877014935,
+        1
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fov": 50,
+      "zoom": 1,
+      "near": 0.01,
+      "far": 1000,
+      "focus": 10,
+      "aspect": 1.770011273957159,
+      "filmGauge": 35,
+      "filmOffset": 0
+    }
+  },
+  "scene": {
+    "metadata": {
+      "version": 4.6,
+      "type": "Object",
+      "generator": "Object3D.toJSON"
+    },
+    "geometries": [
+      {
+        "uuid": "bf493066-89b1-485e-b10c-2a40a552e54d",
+        "type": "IcosahedronGeometry",
+        "radius": 1,
+        "detail": 1
+      },
+      {
+        "uuid": "b5410429-7607-4796-be54-7a801897109a",
+        "type": "CylinderGeometry",
+        "radiusTop": 1,
+        "radiusBottom": 1,
+        "height": 1,
+        "radialSegments": 32,
+        "heightSegments": 1,
+        "openEnded": false,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307179586
+      }
+    ],
+    "materials": [
+      {
+        "uuid": "9d89cefc-d249-4c18-9a4b-6c695400985b",
+        "type": "MeshStandardMaterial",
+        "color": 16777215,
+        "roughness": 1,
+        "metalness": 0,
+        "emissive": 0,
+        "envMapRotation": [
+          0,
+          0,
+          0,
+          "XYZ"
+        ],
+        "envMapIntensity": 1,
+        "blendColor": 0
+      },
+      {
+        "uuid": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0",
+        "type": "MeshStandardMaterial",
+        "color": 16777215,
+        "roughness": 1,
+        "metalness": 0,
+        "emissive": 0,
+        "envMapRotation": [
+          0,
+          0,
+          0,
+          "XYZ"
+        ],
+        "envMapIntensity": 1,
+        "blendColor": 0
+      }
+    ],
+    "object": {
+      "uuid": "bd616913-a27a-4fe6-b1cc-4cccc05126ca",
+      "type": "Scene",
+      "name": "Scene",
+      "layers": 1,
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "children": [
+        {
+          "uuid": "18230892-56ab-47a0-89df-e3d77bb576c9",
+          "type": "AmbientLight",
+          "name": "AmbientLight",
+          "layers": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "color": 2236962,
+          "intensity": 1
+        },
+        {
+          "uuid": "68f4ec2a-4331-4242-9a78-c045293bb692",
+          "type": "HemisphereLight",
+          "name": "HemisphereLight",
+          "layers": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            10,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "color": 43775,
+          "intensity": 1,
+          "groundColor": 16755200
+        },
+        {
+          "uuid": "8a467dc2-6f63-4713-84c1-0533db6553ce",
+          "type": "DirectionalLight",
+          "name": "DirectionalLight",
+          "layers": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            5,
+            10,
+            7.5,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "color": 16777215,
+          "intensity": 1,
+          "shadow": {
+            "camera": {
+              "uuid": "413b8340-a155-462d-b801-8df12380afcd",
+              "type": "OrthographicCamera",
+              "layers": 1,
+              "up": [
+                0,
+                1,
+                0
+              ],
+              "zoom": 1,
+              "left": -5,
+              "right": 5,
+              "top": 5,
+              "bottom": -5,
+              "near": 0.5,
+              "far": 500
+            }
+          },
+          "target": "7e7842da-ece7-4498-b772-203928e474b5"
+        },
+        {
+          "uuid": "ef237a99-8a5f-49a5-95e2-cf76bccfd10d",
+          "type": "Group",
+          "name": "bomba",
+          "layers": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "children": [
+            {
+              "uuid": "b61924e9-9c53-427c-a1e3-04650ff13c9e",
+              "type": "Mesh",
+              "name": "Icosahedron",
+              "visible": true,
+              "layers": 1,
+              "matrix": [
+                0.381,
+                0,
+                0,
+                0,
+                0,
+                0.38118124992922847,
+                0,
+                0,
+                0,
+                0,
+                0.38118124992922847,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "up": [
+                0,
+                1,
+                0
+              ],
+              "geometry": "bf493066-89b1-485e-b10c-2a40a552e54d",
+              "material": "9d89cefc-d249-4c18-9a4b-6c695400985b"
+            },
+            {
+              "uuid": "7c4ef183-b5d6-4d8a-baca-d074a67dc12d",
+              "type": "Group",
+              "name": "Group",
+              "layers": 1,
+              "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "up": [
+                0,
+                1,
+                0
+              ],
+              "children": [
+                {
+                  "uuid": "98cc7ad4-4ed6-46bf-a6e6-3958f239e71e",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    1.5543122344752193e-17,
+                    1.5543122344752193e-17,
+                    0.07,
+                    0,
+                    -1,
+                    0,
+                    2.220446049250313e-16,
+                    0,
+                    0,
+                    -0.07,
+                    1.5543122344752193e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "d324cd56-9c19-4981-9e22-9598c01fdaf9",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -2.220446049250313e-16,
+                    -1,
+                    0,
+                    0,
+                    0.07,
+                    -1.5543122344752193e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "c697a0cc-21ea-4f0c-8b4e-08c6bd1cb495",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                }
+              ]
+            },
+            {
+              "uuid": "e7cb5aad-faab-477d-a1fa-7fc10be89db9",
+              "type": "Group",
+              "name": "Group",
+              "layers": 1,
+              "matrix": [
+                0.7071067811865475,
+                0.4999999999999999,
+                -0.49999999999999994,
+                0,
+                -5.551115123125782e-17,
+                0.7071067811865475,
+                0.7071067811865474,
+                0,
+                0.7071067811865474,
+                -0.4999999999999999,
+                0.5,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "up": [
+                0,
+                1,
+                0
+              ],
+              "children": [
+                {
+                  "uuid": "44864ec0-a4be-4b3c-87d0-0b98d379614e",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    2.331468351712829e-17,
+                    2.7200464103316338e-17,
+                    0.06999999999999999,
+                    0,
+                    0.9999999999999998,
+                    1.1102230246251565e-16,
+                    -1.6653345369377348e-16,
+                    0,
+                    3.885780586188048e-18,
+                    0.06999999999999999,
+                    -1.5543122344752193e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "f0027c21-4d85-40f7-ae60-97c1a516e665",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -2.220446049250313e-16,
+                    -1,
+                    0,
+                    0,
+                    0.07,
+                    -1.5543122344752193e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "193bed14-ee86-4474-b2a3-9bd93468f6b7",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -0.07,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                }
+              ]
+            },
+            {
+              "uuid": "a7d365ba-4aad-4ca8-b128-d96a6df6bcf5",
+              "type": "Group",
+              "name": "Group",
+              "layers": 1,
+              "matrix": [
+                0.7071067811865475,
+                0.49999999999999994,
+                0.4999999999999999,
+                0,
+                -0.7071067811865474,
+                0.5,
+                0.49999999999999994,
+                0,
+                -5.551115123125782e-17,
+                -0.7071067811865474,
+                0.7071067811865475,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "up": [
+                0,
+                1,
+                0
+              ],
+              "children": [
+                {
+                  "uuid": "d60d5643-fac3-42cc-ad34-0af810680e3c",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    2.331468351712829e-17,
+                    2.7200464103316338e-17,
+                    0.06999999999999999,
+                    0,
+                    0.9999999999999998,
+                    1.1102230246251565e-16,
+                    -1.6653345369377348e-16,
+                    0,
+                    3.885780586188048e-18,
+                    0.06999999999999999,
+                    -1.5543122344752193e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "207fccce-2741-4146-a598-a8fbc1ccd8dc",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    -0.06816502752682237,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -2.1946098458840612e-16,
+                    -0.988364408414708,
+                    0,
+                    0,
+                    0.05697661918675706,
+                    -1.265135089728743e-17,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                },
+                {
+                  "uuid": "33f2b5ae-eb8e-47d0-bb4a-b12380575133",
+                  "type": "Mesh",
+                  "name": "Cylinder",
+                  "layers": 1,
+                  "matrix": [
+                    -0.06816502752682237,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -0.988364408414708,
+                    0,
+                    0,
+                    0,
+                    0,
+                    -0.05697661918675706,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "up": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "geometry": "b5410429-7607-4796-be54-7a801897109a",
+                  "material": "f1030be3-6a1d-40cc-9f61-92ffc6a3f4d0"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "backgroundRotation": [
+        0,
+        0,
+        0,
+        "XYZ"
+      ],
+      "environmentRotation": [
+        0,
+        0,
+        0,
+        "XYZ"
+      ]
+    }
+  },
+  "scripts": {},
+  "history": {
+    "undos": [],
+    "redos": []
+  },
+  "environment": null
+}

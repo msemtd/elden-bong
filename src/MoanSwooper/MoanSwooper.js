@@ -188,6 +188,17 @@ class MoanSwooper extends THREE.EventDispatcher {
     // this.resetThreeGroup()
   }
 
+  redraw () {
+    this.dispatchEvent({ type: 'redraw' })
+  }
+
+  runTestBomb () {
+    const o = this.makeBomb()
+    this.group.add(o)
+    o.position.sub(this.group.position)
+    this.redraw()
+  }
+
   intersect (raycaster, ev) {
     // first see what event looks like
     const btn = ev ? ev.button : 0
@@ -214,12 +225,10 @@ class MoanSwooper extends THREE.EventDispatcher {
     this.dispatchEvent({ type: 'state', value: this.state })
   }
 
-  openUp(idx, x, y, obj){
+  openUp (idx, x, y, obj) {
     // how does this work?
     // delete this tile and any other empty ones adjacent?
     // Show the numbers
-    
-  
 
   }
 
@@ -271,6 +280,65 @@ class MoanSwooper extends THREE.EventDispatcher {
       mesh.name = `tile_${x}_${y}`
       this.group.add(mesh)
     }
+  }
+
+  makeBomb () {
+    // start with a simple implementation (for fun) and maybe improve later (again, for fun!)
+    const bomb = new THREE.Group()
+    bomb.name = 'bomb'
+    const matOpts = {
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
+    }
+    const matBox = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
+    const matLines = new THREE.LineBasicMaterial({ color: 'purple' })
+    {
+      const name = 'ball'
+      const g = new THREE.IcosahedronGeometry(1, 1)
+      const edges = new THREE.EdgesGeometry(g)
+      const mesh = new THREE.Mesh(g, matBox)
+      const line = new THREE.LineSegments(edges, matLines)
+      mesh.name = name
+      mesh.add(line)
+      bomb.add(mesh)
+      mesh.visible = true
+    }
+    {
+      const grp = new THREE.Group()
+      const name = 'cyl'
+      const g = new THREE.CylinderGeometry(0.1, 0.1, 2.5, 5)
+      const edges = new THREE.EdgesGeometry(g)
+      const mesh = new THREE.Mesh(g, matBox)
+      const line = new THREE.LineSegments(edges, matLines)
+      mesh.name = name
+      mesh.add(line)
+      grp.add(mesh)
+      {
+        const c2 = mesh.clone()
+        c2.rotateX(Math.PI / 2)
+        grp.add(c2)
+      }
+      {
+        const c2 = mesh.clone()
+        c2.rotateZ(Math.PI / 2)
+        grp.add(c2)
+      }
+      bomb.add(grp)
+      {
+        const g2 = grp.clone()
+        g2.rotateX(Math.PI / 4)
+        g2.rotateY(Math.PI / 4)
+        bomb.add(g2)
+      }
+      {
+        const g2 = grp.clone()
+        g2.rotateX(Math.PI / -4)
+        g2.rotateY(Math.PI / -4)
+        bomb.add(g2)
+      }
+    }
+    return bomb
   }
 }
 

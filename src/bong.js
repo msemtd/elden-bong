@@ -514,6 +514,7 @@ class Bong {
     c.scene.add(g)
     this.redraw()
     this.moanSwooper.addEventListener('state', this.onMoanSwooperGameState.bind(this))
+    this.moanSwooper.addEventListener('redraw', this.redraw.bind(this))
   }
 
   onMoanSwooperGameState (ev) {
@@ -522,7 +523,7 @@ class Bong {
 
   makeGui () {
     {
-      const fld = this.gui.addFolder('Base Actions')
+      const fld = this.gui.addFolder('Base Actions').close()
       fld.add(this.PROPS, 'resetCamera')
       fld.add(this, 'mapMode')
       fld.add(this, 'mapModeOff')
@@ -530,7 +531,7 @@ class Bong {
       fld.add(this, 'characterModeOff')
     }
     {
-      const fld = this.gui.addFolder('Maps') // .close()
+      const fld = this.gui.addFolder('Maps').close()
       fld.add(this, 'sliceBigMap').name('slice big map')
       fld.add(this, 'loadMapJson').name('load map json')
       fld.add(this, 'loadMapIcons').name('load map icons')
@@ -546,7 +547,8 @@ class Bong {
       fld.add(this.PROPS.character, 'className', characterClasses)
     }
     {
-      const fld = this.gui.addFolder('Test').close()
+      const fld = this.gui.addFolder('Test') // .close()
+      fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
