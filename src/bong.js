@@ -104,6 +104,11 @@ class Bong {
     this.makeGui()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
+    setTimeout(this.whenReady.bind(this), 30)
+  }
+
+  whenReady () {
+    this.moanSwooper.runTestBomb()
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }

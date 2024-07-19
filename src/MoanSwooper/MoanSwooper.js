@@ -193,9 +193,24 @@ class MoanSwooper extends THREE.EventDispatcher {
   }
 
   runTestBomb () {
-    const o = this.makeBomb()
-    this.group.add(o)
-    o.position.copy(this.group.worldToLocal(new THREE.Vector3()))
+    const eb = this.group.getObjectByName('bomb')
+    if (eb) {
+      eb.removeFromParent()
+    } else {
+      const o = this.makeBomb()
+      o.name = 'bomb'
+      o.position.copy(this.group.worldToLocal(new THREE.Vector3(0, 0, 0)))
+      this.group.add(o)
+    }
+    const ef = this.group.getObjectByName('flag')
+    if (ef) {
+      ef.removeFromParent()
+    } else {
+      const o = this.makeFlag()
+      o.name = 'flag'
+      o.position.copy(this.group.worldToLocal(new THREE.Vector3(1, 0, 0)))
+      this.group.add(o)
+    }
     this.redraw()
   }
 
@@ -306,10 +321,27 @@ class MoanSwooper extends THREE.EventDispatcher {
     }
   }
 
+  makeFlag () {
+    const grp = new THREE.Group()
+    const matFlag = new THREE.MeshLambertMaterial({ color: 'red' })
+    const matPole = new THREE.MeshLambertMaterial({ color: 'white' })
+    {
+      const g = new THREE.CylinderGeometry(0.1, 0.1, 1.0, 7)
+      const m = new THREE.Mesh(g, matPole)
+      m.position.set(-0.25, 0, 0)
+      grp.add(m)
+      const b = new THREE.BoxGeometry()
+      const m2 = new THREE.Mesh(b, matFlag)
+      m2.scale.set(0.520, 0.462, 0.141)
+      m2.position.set(0.075, 0.241, 0)
+      grp.add(m2)
+    }
+    return grp
+  }
+
   makeBomb () {
     // start with a simple implementation (for fun) and maybe improve later (again, for fun!)
     const bomb = new THREE.Group()
-    bomb.name = 'bomb'
     const matOpts = {
       polygonOffset: true,
       polygonOffsetFactor: 1,
