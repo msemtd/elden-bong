@@ -1,3 +1,5 @@
+import * as THREE from 'three'
+
 export function generalObj3dClean (p, o) {
   if (!o) { return }
   if (o.geometry && o.geometry.dispose instanceof Function) {
@@ -20,11 +22,26 @@ export function generalObj3dClean (p, o) {
  * @param {Function} cb a callback to do whatever
  */
 export function depthFirstReverseTraverse (p, o, cb) {
-  if (o.children instanceof Array) {
+  if (o?.children instanceof Array) {
     const len = o.children.length
     for (let i = len - 1; i >= 0; i--) {
       depthFirstReverseTraverse(o, o.children[i], cb)
     }
   }
   cb(p, o)
+}
+
+
+export function addGrid (scene) {
+  const width = 100
+  const gridPos = new THREE.Vector3(0, 0, 0)
+  const gridVisible = true
+
+  const grid = new THREE.GridHelper(width, width)
+  grid.geometry.rotateX(Math.PI / 2)
+
+  grid.position.copy(gridPos)
+  grid.name = 'grid'
+  grid.visible = gridVisible
+  scene.add(grid)
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
+import tileImage from './grass_tile_256.png'
 
 /**
  * Grid of tiles in 2D space
@@ -172,6 +173,28 @@ class MoanSwooper extends THREE.EventDispatcher {
     // setGridNumbers(grid, mode)
     this.active = true
     // TODO: have a visual indicator of game state
+    this.masterMineObj = this.makeBomb()
+    this.masterFlagObj = this.makeFlag()
+    //
+
+    const ctx = document.createElement('canvas').getContext('2d')
+    ctx.canvas.width = 256
+    ctx.canvas.height = 256
+    ctx.fillStyle = '#FFF'
+    ctx.fillRect(0, 0, 256, 256)
+    const img = new Image()
+    img.src = tileImage
+    ctx.drawImage(img, 0, 0)
+    const texture = new THREE.CanvasTexture(ctx.canvas)
+    const material = new THREE.MeshBasicMaterial({ map: texture })
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(), material)
+    this.canvasCube = cube
+    cube.position.set(-1.25, -1.25, 0.7)
+    const ta = new Array(9)
+    for (let i = 0; i < ta.length; i++) {
+      // make a canvas texture with text of a certain font in centre
+    }
+    // this.tileFaceTextures = ta
   }
 
   runTest () {
@@ -214,38 +237,37 @@ class MoanSwooper extends THREE.EventDispatcher {
     this.redraw()
   }
 
-  intersect (raycaster, ev) {
+  intersect (rayCaster, ev) {
     // first see what event looks like
-    const btn = ev ? ev.button : 0
-    const clickables = [...this.group.children]
-    const hits = raycaster.intersectObjects(clickables, false)
+    const btn = ev ? ev.button : null
+    const obs = [...this.group.children].filter(x => x.name?.startsWith('tile_'))
+    const hits = rayCaster.intersectObjects(obs, false)
     if (!hits.length) { return }
     console.dir(hits)
     const h = hits[0]
-    if (!h.object?.name) { return }
-    console.log(`button ${btn} on ${h.object.name}`)
-    const p = h.object.position
+    const obj = h.object
+    console.log(`button ${btn} on ${obj.name}`)
+    const p = obj.position
     const idx = xyToIdx(p.x, p.y, this.mode.xSize)
-    const adj = getAdj(p.x, p.y, this.mode.xSize, this.mode.ySize)
-    if (btn === 1) {
-      this.dig(idx, p.x, p.y)
-      h.object.visible = false
+    if (btn === 0) {
+      this.dig(idx, p.x, p.y, obj)
     } else if (btn === 2) {
-      this.flag(idx, p.x, p.y)
+      this.flag(idx, p.x, p.y, obj)
     }
-    console.dir(adj)
   }
 
   setState (state) {
     this.state = state
-    this.dispatchEvent({ type: 'state', value: this.state })
+    this.dispatchEvent({ type: 'moanState', value: this.state })
   }
 
   openUp (idx, x, y, obj) {
     // how does this work?
     // delete this tile and any other empty ones adjacent?
     // Show the numbers
-
+    todo('animate tile dig removal')
+    obj.visible = false
+    const adj = getAdj(x, y, this.mode.xSize)
   }
 
   dig (idx, x, y, obj) {
@@ -257,7 +279,6 @@ class MoanSwooper extends THREE.EventDispatcher {
         console.log('mine there so shuffle')
         fyShuffle(this.grid)
       }
-      this.openUp(idx, x, y, obj)
       todo('TIMER START')
       this.setState('PLAYING')
     }
@@ -267,20 +288,25 @@ class MoanSwooper extends THREE.EventDispatcher {
         console.log('DIG: hit flag, do nothing!')
         return
       }
-      // todo remove the square here - maybe colour it green?
-
       if (this.grid[idx] === '@') {
         console.log('DIG: hit mine!')
-        this.setState('GAME_OVER')
+        this.setState('BANG_GAME_OVER')
+        this.active = false
+        return
       }
+      this.openUp(idx, x, y, obj)
     }
   }
 
-  flag (idx, x, y) {
+  flag (idx, x, y, obj) {
     console.log('FLAG!')
     if (this.flags[idx] === '.') {
       this.flags[idx] = 'F'
       todo('create flag object here')
+      const obj = this.masterFlagObj.clone()
+      obj.name = `flag_${idx}_${x}_${y}}`
+      obj.position.set(x, y, 0)
+      this.group.add(obj)
     }
   }
 
@@ -319,6 +345,7 @@ class MoanSwooper extends THREE.EventDispatcher {
       o.position.set((w / 2) - 1.5, (h / 2) - 1.5, -0.2)
       this.group.add(o)
     }
+    this.group.add(this.canvasCube)
   }
 
   makeFlag () {

@@ -1,28 +1,28 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import $ from 'jquery'
-import yaml from 'js-yaml'
 import Stats from 'three/addons/libs/stats.module.js'
-import ntc from '@yatiac/name-that-color'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
-import { Howl } from 'howler'
-import { Screen } from './Screen'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import $ from 'jquery'
+import { Howl } from 'howler'
+import ntc from '@yatiac/name-that-color'
+
+import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile } from './HandyApi'
 import { filePathToMine } from './util'
-import { exampleConfig } from './config'
+import { exampleConfig, loadSettings, saveTheseSettings, distributeSettings } from './config'
 import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
 import { bongData } from './bongData'
 import { VanStuff } from './VanStuff'
 import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { CardsDude } from './CardsDude/CardsDude'
-import deathSound from '../sounds/Humanoid Fall.mp3'
 import { UserControls } from './Controls'
-import { depthFirstReverseTraverse, generalObj3dClean } from './threeUtil'
+import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
+import deathSound from '../sounds/Humanoid Fall.mp3'
 
 async function pick () {
   const info = await pickFile()
@@ -36,7 +36,7 @@ const locations = bongData.regions.map(x => x.name)
 class Bong {
   constructor (appDiv) {
     this.settings = loadSettings('eldenBong', exampleConfig)
-    this.distributeSettings()
+    distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
     const c = this.screen
     this.gpm = new GamepadManager(this.screen)
@@ -89,6 +89,11 @@ class Bong {
     this.busyDoing = ''
     this.slicerDialog = null
     c.scene.add(new THREE.AmbientLight())
+    {
+      const dl = new THREE.DirectionalLight(0xffffff, 0.7)
+      dl.position.set(50, 100, 75)
+      c.scene.add(dl)
+    }
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
     addGrid(c.scene)
@@ -99,7 +104,7 @@ class Bong {
     }
     this.addStats(c)
     this.addCamInfo(c)
-    this.addDemoCube(c)
+    // this.addDemoCube(c)
     this.addMoanSwooper(c)
     this.makeGui()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
@@ -117,12 +122,6 @@ class Bong {
   testVanStuff () {
     const v = new VanStuff()
     v.testModal()
-  }
-
-  distributeSettings () {
-    // send settings to components and have them validated!
-    // quite especially pass settings to main process (which may cause other async events)
-    window.settings.passSettingsToMain(this.settings)
   }
 
   /**
@@ -518,12 +517,15 @@ class Bong {
     // })
     c.scene.add(g)
     this.redraw()
-    this.moanSwooper.addEventListener('state', this.onMoanSwooperGameState.bind(this))
+    this.moanSwooper.addEventListener('moanState', this.onMoanSwooperGameState.bind(this))
     this.moanSwooper.addEventListener('redraw', this.redraw.bind(this))
   }
 
   onMoanSwooperGameState (ev) {
     console.warn(ev)
+    if (ev.value === 'BANG_GAME_OVER') {
+      this.youDiedWithSound()
+    }
   }
 
   makeGui () {
@@ -623,7 +625,7 @@ class Bong {
         const fld = s.addFolder('Demo Cube')
         fld.add(sp.demoCube, 'rotating')
         fld.add(sp.demoCube, 'visible').onChange(v => {
-          const g = this.screen.scene.getObjectByName('demoCube')
+          const g = this.screen?.scene?.getObjectByName('demoCube')
           if (g) g.visible = v
         })
       }
@@ -760,41 +762,6 @@ class Bong {
       loader.load(url, callback)
     }
   }
-}
-
-// -----------------------------------------------------------------------------
-// TODO do these functions belong elsewhere?
-
-function addGrid (scene) {
-  const width = 100
-  const gridPos = new THREE.Vector3(0, 0, 0)
-  const gridVisible = true
-
-  const grid = new THREE.GridHelper(width, width)
-  grid.geometry.rotateX(Math.PI / 2)
-
-  grid.position.copy(gridPos)
-  grid.name = 'grid'
-  grid.visible = gridVisible
-  scene.add(grid)
-}
-
-function loadSettings (localStorageKey, defaultSettings) {
-  let settings = structuredClone(defaultSettings)
-  const sy = localStorage.getItem(localStorageKey)
-  if (!sy) { return saveTheseSettings(localStorageKey, defaultSettings) }
-  try {
-    settings = yaml.load(sy)
-  } catch (error) {
-    console.error(`failed to load settings key as YAML: ${error}`)
-    return saveTheseSettings(localStorageKey, defaultSettings)
-  }
-  return settings
-}
-
-function saveTheseSettings (localStorageKey, settings) {
-  localStorage.setItem(localStorageKey, yaml.dump(settings))
-  return structuredClone(settings)
 }
 
 export { Bong }

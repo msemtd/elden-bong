@@ -7,7 +7,7 @@ This is a project just for fun - _not a real game!_
 * I want a platform to develop my puns, crazy ideas, and art.
 * Parody game data in bongData structure for customisation
 * for merging a number of seemingly unrelated projects with a common app framework that
-  is hopefully pleasing - see below for detail
+  is hopefully pleasing - see MINI-GAMES below for detail
 
 # REQUIREMENTS
 
@@ -261,11 +261,14 @@ The challenges it introduces: -
 ## Basic Desktop App Needs
 * settings, menus, dialog boxes
 * lit-gui for rough test-mode menu
-* not going down the React route for now
+* not going down the React route for now though I am enjoying Van-JS!
 * jBox for dialog boxes
 * YAML for settings
 
-# As a container for little game ideas
+# MINI-GAMES
+
+As a container for little game and app ideas!
+
 Why maintain multiple repos for projects that nobody else cares about?
 Hmmm, my goal is to evolve a convenient and enjoyable platform for mostly 3D desktop applications.
 I can just bundle all my other throwaway junk apps in here and use this app as a vehicle.
@@ -273,12 +276,12 @@ I can just bundle all my other throwaway junk apps in here and use this app as a
 * pitrain-node
 * Kanjifun
 * cards-dude
-* moanswooper
+* moan-swooper
 
 2D game mode with "mostly" fixed camera - allow user to choose a nice camera position (relative to gameplay board) and save it in a list of favourites. Pause and resume of sub-games.
 Maybe tie into the Elden Bong narrative and use them as side-quests!
 
-
+"Let's Play Moan-Swooper!"
 
 
 # LICENSES AND ATTRIBUTION
@@ -289,3 +292,4 @@ Sky/Cloud boxes created by Zachery "skiingpenguins" Slocum (freezurbern@gmail.co
 Content released under the Creative Commons Attribution-ShareAlike? 3.0 Unported License.
 http://creativecommons.org/licenses/by-sa/3.0/
 
+Grass Texture https://opengameart.org/node/9710

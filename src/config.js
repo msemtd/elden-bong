@@ -1,6 +1,15 @@
+import yaml from 'js-yaml'
+
 // Starting with an example config we can run it through a tool such as...
 // https://json-schema-inferrer.herokuapp.com/
 // to infer a schema.
+
+// I tried using the schema with electron-store but it wasn't as much fun as I
+// expected so I think all I'm providing here is an example configuration for
+// persistence.
+
+// In the Electron context, it seems easier to just use local-storage from
+// the browser and then tell the main thread of any changes using preload
 
 const exampleConfig = {
   tools: {
@@ -372,4 +381,31 @@ const schema = {
   }]
 }
 
-export { schema, exampleConfig }
+function loadSettings (localStorageKey, defaultSettings) {
+  let settings = structuredClone(defaultSettings)
+  const sy = localStorage.getItem(localStorageKey)
+  if (!sy) { return saveTheseSettings(localStorageKey, defaultSettings) }
+  try {
+    settings = yaml.load(sy)
+  } catch (error) {
+    console.error(`failed to load settings key as YAML: ${error}`)
+    return saveTheseSettings(localStorageKey, defaultSettings)
+  }
+  return settings
+}
+
+function saveTheseSettings (localStorageKey, settings) {
+  localStorage.setItem(localStorageKey, yaml.dump(settings))
+  return structuredClone(settings)
+}
+
+// Send settings to components and have them validated.
+// Quite especially, in the Electron context, pass settings to main process
+// (which may cause other async events)
+// This expects preload to have made some things available on the window object.
+// See passSettingsToMain in preload.js and settingsFromRenderer in main.js
+function distributeSettings (settings) {
+  window?.settings?.passSettingsToMain?.(settings)
+}
+
+export { schema, exampleConfig, loadSettings, saveTheseSettings, distributeSettings }
