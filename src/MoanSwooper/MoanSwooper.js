@@ -175,26 +175,6 @@ class MoanSwooper extends THREE.EventDispatcher {
     // TODO: have a visual indicator of game state
     this.masterMineObj = this.makeBomb()
     this.masterFlagObj = this.makeFlag()
-    //
-
-    const ctx = document.createElement('canvas').getContext('2d')
-    ctx.canvas.width = 256
-    ctx.canvas.height = 256
-    ctx.fillStyle = '#FFF'
-    ctx.fillRect(0, 0, 256, 256)
-    const img = new Image()
-    img.src = tileImage
-    ctx.drawImage(img, 0, 0)
-    const texture = new THREE.CanvasTexture(ctx.canvas)
-    const material = new THREE.MeshBasicMaterial({ map: texture })
-    const cube = new THREE.Mesh(new THREE.BoxGeometry(), material)
-    this.canvasCube = cube
-    cube.position.set(-1.25, -1.25, 0.7)
-    const ta = new Array(9)
-    for (let i = 0; i < ta.length; i++) {
-      // make a canvas texture with text of a certain font in centre
-    }
-    // this.tileFaceTextures = ta
   }
 
   runTest () {
@@ -345,7 +325,29 @@ class MoanSwooper extends THREE.EventDispatcher {
       o.position.set((w / 2) - 1.5, (h / 2) - 1.5, -0.2)
       this.group.add(o)
     }
-    this.group.add(this.canvasCube)
+    //
+    const cb = (img) => {
+      const ctx = document.createElement('canvas').getContext('2d')
+      ctx.canvas.width = 256
+      ctx.canvas.height = 256
+      // ctx.fillStyle = '#FFF'
+      // ctx.fillRect(0, 0, 256, 256)
+      ctx.drawImage(img, 0, 0)
+      const texture = new THREE.CanvasTexture(ctx.canvas)
+      const material = new THREE.MeshBasicMaterial({ map: texture })
+      const cube = new THREE.Mesh(new THREE.BoxGeometry(), material)
+      this.canvasCube = cube
+      cube.position.set(-1.25, -1.25, 0.7)
+      this.group.add(cube)
+    }
+    const loader = new THREE.ImageLoader()
+    loader.load(tileImage, cb, undefined, (err) => { console.error('failed ', err) })
+
+    const ta = new Array(9)
+    for (let i = 0; i < ta.length; i++) {
+      // make a canvas texture with text of a certain font in centre
+    }
+    // this.tileFaceTextures = ta
   }
 
   makeFlag () {
