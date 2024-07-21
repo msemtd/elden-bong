@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 import tileImage from './grass_tile_256.png'
+import { Text } from 'troika-three-text'
 
 /**
  * Grid of tiles in 2D space
@@ -214,6 +215,16 @@ class MoanSwooper extends THREE.EventDispatcher {
       o.position.copy(this.group.worldToLocal(new THREE.Vector3(1, 0, 0)))
       this.group.add(o)
     }
+    const myText = new Text()
+    this.group.add(myText)
+    // Set properties to configure:
+    myText.text = 'Moan Swooper!'
+    myText.fontSize = 0.8
+    myText.position.set(0, -0.35, 0)
+    myText.color = 0x9966FF
+    // Update the rendering:
+    myText.sync()
+
     this.redraw()
   }
 
@@ -243,6 +254,7 @@ class MoanSwooper extends THREE.EventDispatcher {
 
   openUp (idx, x, y, obj) {
     // how does this work?
+    // https://www.reddit.com/r/Minesweeper/comments/v481jm/i_want_to_know_how_the_tiles_open_up_when_clicked/
     // delete this tile and any other empty ones adjacent?
     // Show the numbers
     todo('animate tile dig removal')
@@ -256,7 +268,6 @@ class MoanSwooper extends THREE.EventDispatcher {
       // TODO: rotate field until no boom
       while (this.grid[idx] === '@') {
         // find a random space and swap or something simpler?
-        console.log('mine there so shuffle')
         fyShuffle(this.grid)
       }
       todo('TIMER START')
@@ -282,11 +293,17 @@ class MoanSwooper extends THREE.EventDispatcher {
     console.log('FLAG!')
     if (this.flags[idx] === '.') {
       this.flags[idx] = 'F'
-      todo('create flag object here')
       const obj = this.masterFlagObj.clone()
       obj.name = `flag_${idx}_${x}_${y}}`
       obj.position.set(x, y, 0)
       this.group.add(obj)
+    } else if (this.flags[idx] === 'F') {
+      this.flags[idx] = '.'
+      const n = `flag_${idx}_${x}_${y}}`
+      const o = this.group.getObjectByName(n)
+      o.removeFromParent()
+    } else {
+      console.warn('bad state in flag')
     }
   }
 

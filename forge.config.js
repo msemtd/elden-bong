@@ -1,9 +1,10 @@
 const devContentSecurityPolicy = `
 
 default-src 'self' 'unsafe-inline' data:
-script-src 'self' 'unsafe-eval' 'unsafe-inline' data:
-img-src 'self' mine: file:
-connect-src 'self' mine: file:
+script-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:
+worker-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:
+img-src 'self' mine: file: data:
+connect-src 'self' mine: file: ws: https:
 `.split('\n').filter(l => l.length).join('; ')
 
 module.exports = {
