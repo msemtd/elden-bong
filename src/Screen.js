@@ -104,9 +104,9 @@ class Screen extends THREE.EventDispatcher {
       this.cameraControls = null
     }
     this.camera = new THREE.PerspectiveCamera()
-    this.camera.position.y = -5
-    this.camera.position.x = 2
-    this.camera.position.z = 1
+    this.camera.position.y = -4
+    this.camera.position.x = 4
+    this.camera.position.z = 10
     this.doResize()
     const cc = new CameraControls(this.camera, this.renderer.domElement)
     Object.assign(cc, {

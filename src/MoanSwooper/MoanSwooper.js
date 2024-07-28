@@ -2,14 +2,13 @@ import * as THREE from 'three'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 import tileImage from './grass_tile_256.png'
 import { Text } from 'troika-three-text'
+import { fyShuffle } from './fyShuffle'
+import { getAdj, gridFromString, gridToString, idxToXy, makeGrid, setGridNumbers, xyToIdx } from './gridUtils'
+import { isString, isObject, isInteger } from './wahWah'
 
 /**
- * Grid of tiles in 2D space
- * variable size
- * click a tile with right or left
- *
  * How does an implementation of minesweeper decide how to distribute the bombs for each difficulty level?
- * Easy, medium, hard sizes.
+ * Easy, medium, hard, and custom modes.
  * Can I find some code somewhere?
  * Should I clean-room it?
  * That's a nice idea - could be fun!
@@ -39,7 +38,7 @@ const testField1 = `
 ......@@@.
 `
 
-const modes = {
+export const modes = {
   easy: {
     xSize: 10,
     ySize: 8,
@@ -55,108 +54,6 @@ const modes = {
     ySize: 20,
     bombs: 99,
   },
-}
-
-function fyShuffle (a) {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const k = a[i]
-    a[i] = a[j]
-    a[j] = k
-  }
-}
-
-function makeGrid (mode = modes.easy) {
-  // choose a distribution based on a seed
-  // return a 2D grid (array of arrays?) 1D array?
-  // ArrayBuffer? Nah!
-
-  const len = mode.xSize * mode.ySize
-  const a = Array(len).fill('.')
-  const b = Array(mode.bombs).fill('@')
-  const m = b.concat(a)
-  m.length = len
-  fyShuffle(m)
-  return m
-}
-
-function setGridNumbers (grid, mode) {
-  for (let y = 0; y < mode.ySize; y++) {
-    for (let x = 0; x < mode.xSize; x++) {
-      const gi = xyToIdx(x, y, mode.xSize)
-      const tile = grid[gi]
-      if (tile === '@') continue
-      // not a bomb - look at neighbours
-      const na = getAdj(x, y, mode.xSize, mode.ySize)
-      let count = 0
-      for (const pr of na) {
-        const ix = xyToIdx(pr[0], pr[1], mode.xSize)
-        if (grid[ix] === '@') {
-          count++
-        }
-      }
-      grid[gi] = `${count || '.'}`
-    }
-  }
-}
-
-function xyToIdx (x, y, xSize) {
-  console.assert(Number.isInteger(x))
-  console.assert(Number.isInteger(y))
-  console.assert(Number.isInteger(xSize))
-  console.assert(x >= 0)
-  console.assert(y >= 0)
-  console.assert(xSize > 0)
-  console.assert(x < xSize)
-  return y * xSize + x
-}
-
-function idxToXy (idx, xSize) {
-  console.assert(Number.isInteger(idx))
-  console.assert(Number.isInteger(xSize))
-  console.assert(idx >= 0)
-  console.assert(xSize > 0)
-  return [idx % xSize, Math.floor(idx / xSize)]
-}
-
-function gridToString (ga, mode) {
-  let s = ''
-  for (let y = 0; y < mode.ySize; y++) {
-    for (let x = 0; x < mode.xSize; x++) {
-      const tile = ga[xyToIdx(x, y, mode.xSize)]
-      s += tile
-    }
-    s += '\n'
-  }
-  return s
-}
-
-function gridFromString (s, mode) {
-  const lines = s.split('\n').map(x => x.trim()).filter(x => x.length)
-  if (lines.length !== mode.ySize) {
-    throw Error('bad lines count')
-  }
-  let g = ''
-  for (const line of lines) {
-    if (line.length !== mode.xSize) {
-      throw Error('bad line length')
-    }
-    g += line
-  }
-  return g.split('')
-}
-
-function getAdj (x, y, xSize, ySize) {
-  const adj = []
-  for (let row = y - 1; row <= y + 1; row++) {
-    if (row < 0 || row >= ySize) continue
-    for (let col = x - 1; col <= x + 1; col++) {
-      if (col < 0 || col >= xSize) continue
-      if (row === y && col === x) continue
-      adj.push([col, row])
-    }
-  }
-  return adj
 }
 
 function todo (s) {
@@ -206,26 +103,49 @@ class MoanSwooper extends THREE.EventDispatcher {
       o.position.copy(this.group.worldToLocal(new THREE.Vector3(0, 0, 0)))
       this.group.add(o)
     }
-    const ef = this.group.getObjectByName('flag')
-    if (ef) {
-      ef.removeFromParent()
+    const existingFlag = this.group.getObjectByName('flag')
+    if (existingFlag) {
+      existingFlag.removeFromParent()
     } else {
       const o = this.makeFlag()
       o.name = 'flag'
       o.position.copy(this.group.worldToLocal(new THREE.Vector3(1, 0, 0)))
       this.group.add(o)
     }
-    const myText = new Text()
-    this.group.add(myText)
-    // Set properties to configure:
-    myText.text = 'Moan Swooper!'
-    myText.fontSize = 0.8
-    myText.position.set(0, -0.35, 0)
-    myText.color = 0x9966FF
-    // Update the rendering:
-    myText.sync()
-
+    this.addTextObj('Moan Swooper', 3, -1, 0, 0x9966FF)
+    // this.addTextObj('0', 0, 0, 0.11, 0xff2222)
+    // this.addTextObj('1', 1, 1, 0.11, 0xff2222)
+    // this.addTextObj('2', 2, 2, 0.11, 0xff2222)
+    // this.addTextObj('3', 3, 3, 0.11, 0xff2222)
     this.redraw()
+  }
+
+  addTextObj (s, x = 0, y = 0, z = 0, c = 0x9966FF) {
+    console.assert(isString(s))
+    const obj = new Text()
+    this.group.add(obj)
+    // Set properties to configure:
+    obj.text = s
+    obj.fontSize = 0.8
+    obj.position.set(x, y, z)
+    obj.color = c
+    obj.anchorX = 'center'
+    obj.anchorY = 'middle'
+    // Update the rendering:
+    obj.sync(() => { this.redraw() })
+    return obj
+  }
+
+  addNum (n, x, y) {
+    console.assert(Number.isInteger(n))
+    const obj = this.addTextObj(`${n}`, x, y, 0.11, 0xff2222)
+    obj.name = `num_at_${x}_${y}`
+    obj.userData = { n }
+  }
+
+  setState (state) {
+    this.state = state
+    this.dispatchEvent({ type: 'moanState', value: this.state })
   }
 
   intersect (rayCaster, ev) {
@@ -247,30 +167,21 @@ class MoanSwooper extends THREE.EventDispatcher {
     }
   }
 
-  setState (state) {
-    this.state = state
-    this.dispatchEvent({ type: 'moanState', value: this.state })
-  }
-
-  openUp (idx, x, y, obj) {
-    // how does this work?
-    // https://www.reddit.com/r/Minesweeper/comments/v481jm/i_want_to_know_how_the_tiles_open_up_when_clicked/
-    // delete this tile and any other empty ones adjacent?
-    // Show the numbers
-    todo('animate tile dig removal')
-    obj.visible = false
-    const adj = getAdj(x, y, this.mode.xSize)
-  }
-
   dig (idx, x, y, obj) {
     if (this.state === 'NEW_GAME') {
       console.log('DIG: first move!')
+      this.grid[idx] = '@'
       // TODO: rotate field until no boom
-      while (this.grid[idx] === '@') {
+      while (this.grid[idx] !== '.') {
         // find a random space and swap or something simpler?
+        console.warn('NEW GAME SHUFFLE')
         fyShuffle(this.grid)
+        setGridNumbers(this.grid, this.mode)
       }
       todo('TIMER START')
+      const s = gridToString(this.grid, this.mode)
+      console.log(s)
+      // drop through and continue playing state...
       this.setState('PLAYING')
     }
     if (this.state === 'PLAYING') {
@@ -285,8 +196,58 @@ class MoanSwooper extends THREE.EventDispatcher {
         this.active = false
         return
       }
-      this.openUp(idx, x, y, obj)
+      this.zeroOpen(idx, x, y, obj)
     }
+  }
+
+  zeroOpen (idx, x, y, obj) {
+    console.assert(isInteger(idx))
+    console.assert(isInteger(x))
+    console.assert(isInteger(y))
+    console.assert(isObject(obj))
+    // how does this work? I just want to know the logic. It's called a zero-open
+    // https://www.reddit.com/r/Minesweeper/comments/v481jm/i_want_to_know_how_the_tiles_open_up_when_clicked/
+    // delete this tile and any other empty ones adjacent?
+    // Show the numbers
+    // for now make tile invisible - it could change colour, descend slightly and become un-clickable (by changing group or name or whatever)
+    // obj.visible = false
+    obj.name = `deadTile_${x}_${y}`
+    obj.position.z -= 0.05
+    obj.material = this.deadTileMaterial
+    const adj = getAdj(x, y, this.mode.xSize, this.mode.ySize)
+    for (const a of adj) {
+      this.drill(a[0], a[1])
+    }
+    this.redraw()
+  }
+
+  drill (x, y) {
+    const idx = xyToIdx(x, y, this.mode.xSize)
+    const val = this.grid[idx]
+    if (val === '@') { return }
+    if (this.flags[idx] === 'F') { return }
+    if (val === '.') {
+      // get tile obj at xy and zero-open here
+      const obj = this.group.getObjectByName(`tile_${x}_${y}`)
+      if (obj) {
+        // recurse!
+        this.zeroOpen(idx, x, y, obj)
+      }
+      return
+    }
+    // TODO surely this can only be a number here...
+    const p = Number.parseInt(val)
+    if (Number.isNaN(p)) {
+      console.assert(!Number.isNaN(p))
+      return
+    }
+    // also, it could already be uncovered but have a number
+    const numName = `num_at_${x}_${y}`
+    if (this.group.getObjectByName(numName)) {
+      console.log('already a number ')
+      return
+    }
+    this.addNum(p, x, y)
   }
 
   flag (idx, x, y, obj) {
@@ -319,13 +280,12 @@ class MoanSwooper extends THREE.EventDispatcher {
       polygonOffsetUnits: 1
     }
     const mat1 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
-    const mat2 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'orange' })
+    this.deadTileMaterial = new THREE.MeshLambertMaterial({ ...matOpts, color: 'brown' })
     const matLines = new THREE.LineBasicMaterial({ color: 'purple' })
     // TODO retain materials for management
     for (let idx = 0; idx < this.grid.length; idx++) {
-      const val = this.grid[idx]
       const [x, y] = idxToXy(idx, this.mode.xSize)
-      const mesh = new THREE.Mesh(geometry, val === '@' ? mat2 : mat1)
+      const mesh = new THREE.Mesh(geometry, mat1)
       const line = new THREE.LineSegments(edges, matLines)
       mesh.position.set(x, y, 0)
       mesh.add(line)

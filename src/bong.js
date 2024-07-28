@@ -33,8 +33,9 @@ async function pick () {
 const characterClasses = bongData.characterClasses
 const locations = bongData.regions.map(x => x.name)
 
-class Bong {
+class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
+    super()
     this.settings = loadSettings('eldenBong', exampleConfig)
     distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
@@ -107,6 +108,7 @@ class Bong {
     // this.addDemoCube(c)
     this.addMoanSwooper(c)
     this.makeGui()
+    this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     setTimeout(this.whenReady.bind(this), 30)
@@ -117,6 +119,7 @@ class Bong {
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }
+    this.dispatchEvent({ type: 'ready' })
   }
 
   testVanStuff () {
