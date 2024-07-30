@@ -60,6 +60,10 @@ function todo (s) {
   console.warn(`TODO: ${s}`)
 }
 
+const numObjName = (x, y) => `num_at_${x}_${y}`
+const tileObjName = (x, y) => `tile_${x}_${y}`
+const deadTileObjName = (x, y) => `deadTile_${x}_${y}`
+
 class MoanSwooper extends THREE.EventDispatcher {
   constructor () {
     super()
@@ -139,8 +143,14 @@ class MoanSwooper extends THREE.EventDispatcher {
   addNum (n, x, y) {
     console.assert(Number.isInteger(n))
     const obj = this.addTextObj(`${n}`, x, y, 0.11, 0xff2222)
-    obj.name = `num_at_${x}_${y}`
+    obj.name = numObjName(x, y)
     obj.userData = { n }
+  }
+
+  removeTile (obj, x, y) {
+    obj.name = deadTileObjName(x, y)
+    obj.position.z = -0.05
+    obj.material = this.deadTileMaterial
   }
 
   setState (state) {
@@ -151,7 +161,7 @@ class MoanSwooper extends THREE.EventDispatcher {
   intersect (rayCaster, ev) {
     // first see what event looks like
     const btn = ev ? ev.button : null
-    const obs = [...this.group.children].filter(x => x.name?.startsWith('tile_'))
+    const obs = [...this.group.children].filter(x => x.name?.startsWith?.('tile_'))
     const hits = rayCaster.intersectObjects(obs, false)
     if (!hits.length) { return }
     console.dir(hits)
@@ -211,9 +221,7 @@ class MoanSwooper extends THREE.EventDispatcher {
     // Show the numbers
     // for now make tile invisible - it could change colour, descend slightly and become un-clickable (by changing group or name or whatever)
     // obj.visible = false
-    obj.name = `deadTile_${x}_${y}`
-    obj.position.z -= 0.05
-    obj.material = this.deadTileMaterial
+    this.removeTile(obj, x, y)
     const adj = getAdj(x, y, this.mode.xSize, this.mode.ySize)
     for (const a of adj) {
       this.drill(a[0], a[1])
@@ -226,25 +234,28 @@ class MoanSwooper extends THREE.EventDispatcher {
     const val = this.grid[idx]
     if (val === '@') { return }
     if (this.flags[idx] === 'F') { return }
+    // not a flagged tile, not a bomb, must be a space or a number...
+    const obj = this.group.getObjectByName(tileObjName(x, y))
+    // get tile obj at xy and zero-open here
     if (val === '.') {
-      // get tile obj at xy and zero-open here
-      const obj = this.group.getObjectByName(`tile_${x}_${y}`)
       if (obj) {
         // recurse!
         this.zeroOpen(idx, x, y, obj)
       }
       return
     }
-    // TODO surely this can only be a number here...
+    // surely this can only be a number here...
     const p = Number.parseInt(val)
     if (Number.isNaN(p)) {
       console.assert(!Number.isNaN(p))
       return
     }
+    // OK, it's a number so remove a tile if it's here...
+    if (obj) {
+      this.removeTile(obj, x, y)
+    }
     // also, it could already be uncovered but have a number
-    const numName = `num_at_${x}_${y}`
-    if (this.group.getObjectByName(numName)) {
-      console.log('already a number ')
+    if (this.group.getObjectByName(numObjName(x, y))) {
       return
     }
     this.addNum(p, x, y)
@@ -268,28 +279,30 @@ class MoanSwooper extends THREE.EventDispatcher {
     }
   }
 
+  /**
+   * Create all graphics objects here
+   */
   resetThreeGroup () {
-    // TODO remove any existing group contents
+    // Cleanup - should do but do some testing...
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
 
-    const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.1)
-    const edges = new THREE.EdgesGeometry(geometry)
     const matOpts = {
       polygonOffset: true,
       polygonOffsetFactor: 1,
       polygonOffsetUnits: 1
     }
-    const mat1 = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
-    this.deadTileMaterial = new THREE.MeshLambertMaterial({ ...matOpts, color: 'brown' })
-    const matLines = new THREE.LineBasicMaterial({ color: 'purple' })
-    // TODO retain materials for management
+    this.tileMaterial = new THREE.MeshLambertMaterial({ ...matOpts, color: 'springGreen' })
+    this.deadTileMaterial = new THREE.MeshLambertMaterial({ ...matOpts, color: 'tan' })
+    const matLines = new THREE.LineBasicMaterial({ color: 'darkSlateGray' })
+    const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.1)
+    const edges = new THREE.EdgesGeometry(geometry)
     for (let idx = 0; idx < this.grid.length; idx++) {
       const [x, y] = idxToXy(idx, this.mode.xSize)
-      const mesh = new THREE.Mesh(geometry, mat1)
+      const mesh = new THREE.Mesh(geometry, this.tileMaterial)
       const line = new THREE.LineSegments(edges, matLines)
       mesh.position.set(x, y, 0)
       mesh.add(line)
-      mesh.name = `tile_${x}_${y}`
+      mesh.name = tileObjName(x, y)
       this.group.add(mesh)
     }
     // add a green-baize backdrop
@@ -302,6 +315,9 @@ class MoanSwooper extends THREE.EventDispatcher {
       o.position.set((w / 2) - 1.5, (h / 2) - 1.5, -0.2)
       this.group.add(o)
     }
+  }
+
+  canvasTextBox () {
     //
     const cb = (img) => {
       const ctx = document.createElement('canvas').getContext('2d')
@@ -319,11 +335,6 @@ class MoanSwooper extends THREE.EventDispatcher {
     }
     const loader = new THREE.ImageLoader()
     loader.load(tileImage, cb, undefined, (err) => { console.error('failed ', err) })
-
-    const ta = new Array(9)
-    for (let i = 0; i < ta.length; i++) {
-      // make a canvas texture with text of a certain font in centre
-    }
     // this.tileFaceTextures = ta
   }
 
