@@ -7,26 +7,15 @@ import { getAdj, gridFromString, gridToString, idxToXy, makeGrid, setGridNumbers
 import { isString, isObject, isInteger } from './wahWah'
 
 /**
- * How does an implementation of minesweeper decide how to distribute the bombs for each difficulty level?
- * Easy, medium, hard, and custom modes.
- * Can I find some code somewhere?
- * Should I clean-room it?
- * That's a nice idea - could be fun!
- * Only what I can deduce!
- * I know how to play it so...
+ * How does an implementation of minesweeper decide how to distribute the bombs
+ * for each difficulty level?
  *
- * implementation in JS
- * grid with content
- * distribution of bombs based on a seed - simple first
- * game loop mechanics
- * timer - easy enough
- * bomb counter
- * game end conditions - win or lose
- * debug mode
- * hooking into Elden Bong
+ * That's the question that this mini-game was created to answer. A clean-room
+ * JS mine-sweeper clone using three-js for graphics.
  *
  */
 
+// Hmm - these dumps are upside down! I should correct that!
 const testField1 = `
 .@........
 ......@...
