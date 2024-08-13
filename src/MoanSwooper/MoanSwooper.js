@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 import tileImage from './grass_tile_256.png'
 import { Text } from 'troika-three-text'
@@ -52,20 +53,53 @@ function todo (s) {
 const numObjName = (x, y) => `num_at_${x}_${y}`
 const tileObjName = (x, y) => `tile_${x}_${y}`
 const deadTileObjName = (x, y) => `deadTile_${x}_${y}`
+const flagObjName = (x, y) => `flag_${x}_${y}}`
 
 class MoanSwooper extends THREE.EventDispatcher {
   constructor () {
     super()
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
-    this.flags = this.grid.slice().fill('.')
-    this.state = 'NEW_GAME'
-    // in new state there's no point in setting the numbers yet - wait until first opening move
-    // setGridNumbers(grid, mode)
+    this.setState('NEW_GAME')
     this.active = true
     // TODO: have a visual indicator of game state
     this.masterMineObj = this.makeBomb()
     this.masterFlagObj = this.makeFlag()
+    this.addTempGui()
+  }
+
+  addTempGui () {
+    this.gui = new GUI({ title: 'Moan Swooper' })
+    const f = this.gui
+    f.add(this, 'restartThisGame')
+    f.add(this, 'debugReveal')
+    f.add(this, 'dump')
+  }
+
+  dump () {
+    // string comes Y-down, reverse to Y-up
+    const s = gridToString(this.grid, this.mode)
+    // console.log(s)
+    const a = s.trim().split('\n').reverse()
+    const s2 = a.join('\n')
+    console.log(s2)
+  }
+
+  restartThisGame () {
+    // TODO need the grid and the opening location!
+    if (!this.moveHistory.length()) { return }
+    const firstMove = this.moveHistory[0]
+    console.dir(firstMove)
+    const [x, y] = [firstMove.x, firstMove.y]
+    const idx = xyToIdx(x, y, this.mode.xSize)
+    this.resetThreeGroup()
+    this.setState('NEW_GAME')
+    const obj = this.group.getObjectByName(tileObjName(x, y))
+    this.dig(idx, x, y, obj)
+  }
+
+  debugReveal () {
+    todo('debugReveal')
   }
 
   runTest () {
@@ -144,6 +178,10 @@ class MoanSwooper extends THREE.EventDispatcher {
 
   setState (state) {
     this.state = state
+    if (state === 'NEW_GAME') {
+      this.moveHistory = []
+      this.flags = this.grid.slice().fill('.')
+    }
     this.dispatchEvent({ type: 'moanState', value: this.state })
   }
 
@@ -161,8 +199,10 @@ class MoanSwooper extends THREE.EventDispatcher {
     const idx = xyToIdx(p.x, p.y, this.mode.xSize)
     if (btn === 0) {
       this.dig(idx, p.x, p.y, obj)
+      this.moveHistory.push({ m: 'dig', x: p.x, y: p.y })
     } else if (btn === 2) {
       this.flag(idx, p.x, p.y, obj)
+      this.moveHistory.push({ m: 'flag', x: p.x, y: p.y })
     }
   }
 
@@ -252,15 +292,15 @@ class MoanSwooper extends THREE.EventDispatcher {
 
   flag (idx, x, y, obj) {
     console.log('FLAG!')
+    const n = flagObjName(x, y)
     if (this.flags[idx] === '.') {
       this.flags[idx] = 'F'
       const obj = this.masterFlagObj.clone()
-      obj.name = `flag_${idx}_${x}_${y}}`
+      obj.name = n
       obj.position.set(x, y, 0)
       this.group.add(obj)
     } else if (this.flags[idx] === 'F') {
       this.flags[idx] = '.'
-      const n = `flag_${idx}_${x}_${y}}`
       const o = this.group.getObjectByName(n)
       o.removeFromParent()
     } else {

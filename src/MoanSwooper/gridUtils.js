@@ -1,6 +1,11 @@
 import { fyShuffle } from './fyShuffle'
 import { modes } from './MoanSwooper'
 
+// Grids held in 1D arrays for a moan swooper type game
+// Get values with indices or x, y
+// NB: x is column, y is row
+// NB: when represented as a string in 2D, Y increases downwards
+
 export function makeGrid (mode = modes.easy) {
   // choose a distribution based on a seed
   // return a 2D grid (array of arrays?) 1D array?
@@ -54,6 +59,11 @@ export function idxToXy (idx, xSize) {
 }
 
 export function gridToString (ga, mode) {
+  console.assert(Array.isArray(ga))
+  console.assert(typeof mode === 'object')
+  console.assert(Number.isInteger(mode.xSize))
+  console.assert(Number.isInteger(mode.ySize))
+  console.assert(ga.length === mode.xSize * mode.ySize)
   let s = ''
   for (let y = 0; y < mode.ySize; y++) {
     for (let x = 0; x < mode.xSize; x++) {
