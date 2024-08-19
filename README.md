@@ -284,6 +284,12 @@ Maybe tie into the Elden Bong narrative and use them as side-quests!
 "Let's Play Moan-Swooper!"
 
 
+# TEST BED FOR CRAZY IDEAS
+
+* scripting LUA with Fengari - https://github.com/fengari-lua/fengari
+* Web Assembly background tasks in worker threads
+* Potree data in the three-js scenes
+
 # LICENSES AND ATTRIBUTION
 
 Many thanks to the many contributors to the many open source libraries and artworks used in this software. Quite especially...
