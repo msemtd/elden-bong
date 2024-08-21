@@ -74,6 +74,7 @@ function tabToList (tab) {
     console.log(`allHaveEmptyFirstAndLast: ${allHaveEmptyFirstAndLast}`)
     if (allSameLength && allHaveEmptyFirstAndLast) {
       for (const line of lines) {
+        // empty front and back columns
         line.shift()
         line.pop()
         // can finally trim the field contents
@@ -81,6 +82,11 @@ function tabToList (tab) {
           line[fi] = line[fi].trim()
         }
       }
+    }
+    // remove the line after the header if it is all dashes...
+    if (lines.length >= 2 && Array.isArray(lines[1])) {
+      const ruler = lines[1].join('')
+      if (ruler.match(/^[-]+$/)) { lines.splice(1, 1) }
     }
   }
   return lines
