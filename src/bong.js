@@ -23,6 +23,7 @@ import { CardsDude } from './CardsDude/CardsDude'
 import { UserControls } from './Controls'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
 import deathSound from '../sounds/Humanoid Fall.mp3'
+import { MiniGames } from './MiniGames'
 
 async function pick () {
   const info = await pickFile()
@@ -106,6 +107,7 @@ class Bong extends THREE.EventDispatcher {
     this.addStats(c)
     this.addCamInfo(c)
     // this.addDemoCube(c)
+    this.miniGames = new MiniGames()
     this.addMoanSwooper(c)
     this.makeGui()
     this.gui.close()

@@ -277,11 +277,32 @@ I can just bundle all my other throwaway junk apps in here and use this app as a
 * Kanjifun
 * cards-dude
 * moan-swooper
+* 2048
+* Suica Game
+* Tetris
 
 2D game mode with "mostly" fixed camera - allow user to choose a nice camera position (relative to gameplay board) and save it in a list of favourites. Pause and resume of sub-games.
 Maybe tie into the Elden Bong narrative and use them as side-quests!
 
+Mini-game chooser or games room
 "Let's Play Moan-Swooper!"
+...back to main game
+
+## Cards Dude
+
+Card design database
+
+| Type of Playing Card | Size (width x Height) | Required Bleed | Recommended Margin | Rounded Corner Size |
+|----------------------|-----------------------|----------------|--------------------|---------------------|
+| Standard (Poker)     | 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
+| Bridge (Slim)        | 2.25in x 3.5in        | 2mm            | 5mm                | 3.5mm               |
+| Tarot                | 2.75in x 4.75in       | 2mm            | 5mm                | 6mm                 |
+| Large                | 3.5in x 5.75in        | 2mm            | 5mm                | 6mm                 |
+| MTG (Magic Gathering)| 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
+
+"Playing card thickness varies widely across types. For simplicity, let’s focus on standard playing cards, typically printed on 14pt silk with laminate on both sides. The thickness of a standard playing card is 0.2mm."
+
+Layout based on game (from card game data) and user spacing preferences
 
 
 # TEST BED FOR CRAZY IDEAS
