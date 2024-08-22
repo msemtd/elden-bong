@@ -1,3 +1,31 @@
+import * as THREE from 'three'
+
+/**
+ * Cards Dude mini-game
+ *
+ * My original game seems to be lost! Recreating it from scratch.
+ *
+ * Card games database - using the terminology and human readable data from xmsol (https://github.com/plastovicka/xmsol)
+ *
+ * Card images and models - https://discourse.threejs.org/t/plane-mesh-with-rounded-corners-that-can-have-an-image-texture/46892
+ * size and shape of real cards
+ * bicycle brand playing cards - https://en.wikipedia.org/wiki/Bicycle_Playing_Cards
+ * - poker size (3.5 by 2.5 inches [8.9 cm × 6.4 cm]), bridge size (3.5 by 2.25 inches [8.9 cm × 5.7 cm])
+ *
+ * - Standard playing card size: 2.5in x 3.5in
+ * - Required bleed: 2mm along each edge
+ * - Recommended margin: 5mm
+ * - Rounded corner size: 3.5mm
+ *
+ *
+ * layout spacing as per user preferences
+ * the card table is the group
+ * the entire group can be scaled in the parent game
+ *
+ * Shuffles - we want a simple seeded PRNG to create reusable shuffles from a shuffle number
+ * Seeding a PRNG in JS https://github.com/davidbau/seedrandom
+ * fisher-yates
+ */
 const games = {
   // use the terminology from xmsol
   bigSpider: {
@@ -24,29 +52,6 @@ const games = {
         `
   }
 }
-
-/**
- * Cards Dude mini-game
- * card images and models
- * size and shape of real cards
- * bicycle brand playing cards - https://en.wikipedia.org/wiki/Bicycle_Playing_Cards
- * - poker size (3.5 by 2.5 inches [8.9 cm × 6.4 cm]), bridge size (3.5 by 2.25 inches [8.9 cm × 5.7 cm])
- *
- * - Standard playing card size: 2.5in x 3.5in
- * - Required bleed: 2mm along each edge
- * - Recommended margin: 5mm
- * - Rounded corner size: 3.5mm
- *
- *
- * layout spacing as per user preferences
- * the card table is the group
- * the entire group can be scaled in the parent game
- *
- *
- *
- *
- *
- */
 
 const cardDims = `
 | Type of Playing Card | Size (width x Height) | Required Bleed | Recommended Margin | Rounded Corner Size |
