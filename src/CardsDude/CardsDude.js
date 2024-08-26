@@ -131,8 +131,10 @@ class CardsDude extends THREE.EventDispatcher {
     }, progressCb, errCb)
     // Card model
     loader.load(cardThing, (data) => {
-      const card = data.scene
-      this.group.add(card)
+      const card = data.scene.children[0]
+      console.assert(card && card.name === 'Card')
+      card.rotateX(Math.PI / 2)
+      // this.group.add(card)
       this.card = card
       this.redraw()
     }, progressCb, errCb)
@@ -154,12 +156,60 @@ class CardsDude extends THREE.EventDispatcher {
 
   testCardsDude () {
     console.log('testCardsDude')
+    // clone card and deal some out
+    // place tablecloth as play-space
+    if (this.group.getObjectByName('mat')) {
+      // TODO clean up
+    } else {
+      const v3 = new THREE.Vector3()
+      { // make the mat
+        const g = new RoundedBoxGeometry(1, 1, 0.1, 5, 0.1)
+        const m = new THREE.MeshLambertMaterial({ color: 0x0a660a })
+        const o = new THREE.Mesh(g, m)
+        o.name = 'mat'
+        this.group.add(o)
+        o.position.set(-0.2, -0.84, 0.83)
+        o.scale.set(1.95, 1.25, 0.5)
+        // put the mat on the table but don't use the table's messed up matrix!
+        // let fld = this.gui.addFolder('mat position').onChange(this.redraw)
+        // fld.add(o.position, 'x').step(0.01)
+        // fld.add(o.position, 'y').step(0.01)
+        // fld.add(o.position, 'z').step(0.01)
+        // fld = this.gui.addFolder('mat scale').onChange(this.redraw)
+        // fld.add(o.scale, 'x').step(0.05)
+        // fld.add(o.scale, 'y').step(0.05)
+        // fld.add(o.scale, 'z').step(0.05)
+        // this.gui.addColor(o.material, 'color').onChange(this.redraw)
+        v3.copy(o.position)
+      }
+      // since the scale of the mat is arbitrary and I'm too thick to sort it
+      // all out, I'll set the location of the playing space...
+      const g = new THREE.Group()
+      g.name = 'playSpace'
+      g.position.copy(v3)
+      this.group.add(g)
+      this.playSpace = g
+      // Shrink the group to make the card size look right and move it
+      // just above the surface of the mat...
+      g.scale.multiplyScalar(0.3)
+      g.position.z += 0.025
+      // TODO proper deal - this is just a test!
+      // we want to clone the master card but replace the front face materials
+      const nc = this.card.clone(true)
+      nc.position.set(0, 0, 0)
+      g.add(nc)
+      const box = new THREE.Box3()
+      box.setFromCenterAndSize(new THREE.Vector3(1, 1, 1), new THREE.Vector3(2, 1, 3))
+      const helper = new THREE.Box3Helper(box, 0xffff00)
+      g.add(helper)
+      this.redraw()
+    }
   }
 
   activate () {
     this.group.visible = true
     this.screen.addMixer('testCardsDude', (_delta) => {
-      this.group.rotation.z += 0.01
+      this.card.rotation.z += 0.01
       return true
     })
     this.redraw()

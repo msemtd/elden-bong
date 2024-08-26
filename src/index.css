@@ -27,7 +27,7 @@ div#overlay {
   display: none;
   z-index: 5000;
 }
-div#big-elden-text {
+div.big-elden-text {
   font-family: 'Elden';
   font-size: 100px;
   color: rgb(236, 238, 143);

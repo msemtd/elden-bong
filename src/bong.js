@@ -84,9 +84,8 @@ class Bong extends THREE.EventDispatcher {
       character: {
         className: 'Dork',
       },
-      gameState: {
-
-      }
+      // this needs to be validated surely?
+      gameState: { ...this.settings.gameState },
     }
     this.mapMan = new MapMan()
     this.mapModeData = null
@@ -113,7 +112,7 @@ class Bong extends THREE.EventDispatcher {
     this.miniGames = null
     this.makeGui()
     this.gui.close()
-    const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
+    const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     setTimeout(this.whenReady.bind(this), 30)
   }
@@ -133,10 +132,11 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'loadMapJson').name('load map json')
       fld.add(this, 'loadMapIcons').name('load map icons')
       const loc = {
-        location: regionNames[0]
+        location: regionNames[this.PROPS.gameState.region]
       }
       fld.add(loc, 'location', regionNames).onChange(v => {
-        this.changeRegionByNumber(v)
+        const i = regionNames.findIndex(x => x === v)
+        this.changeRegionByNumber(i)
       })
     }
     {
@@ -339,15 +339,23 @@ class Bong extends THREE.EventDispatcher {
     this.changeRegionByNumber(gameState.region)
   }
 
-  changeRegionByNumber (newPlace) {
-    console.log(`change region to ${newPlace}`)
-    const inRange = (isInteger(newPlace) && newPlace >= 0 && newPlace < regionNames.length)
+  changeRegionByNumber (n) {
+    console.log(`change region to ${n}`)
+    const inRange = (isInteger(n) && n >= 0 && n < regionNames.length)
     console.assert(inRange)
     if (!inRange) { return }
     // do the location banner thing briefly
     // put the overlay up briefly but allow click-through somehow!
     // want a boom sound
-    const a = 0
+    this.PROPS.gameState.region = n
+    const name = regionNames[n]
+    $('#region-intro').text(name)
+    $('#overlay').css('display', 'block')
+    $('#region-intro').fadeIn(1000, () => {
+      $('#region-intro').fadeOut(2000, () => {
+        $('#overlay').css('display', 'none')
+      })
+    })
   }
 
   // TODO make this an event listener interface?
