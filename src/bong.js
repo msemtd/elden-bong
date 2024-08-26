@@ -118,6 +118,127 @@ class Bong extends THREE.EventDispatcher {
     setTimeout(this.whenReady.bind(this), 30)
   }
 
+  makeGui () {
+    {
+      const fld = this.gui.addFolder('Base Actions').close()
+      fld.add(this.PROPS, 'resetCamera')
+      fld.add(this, 'mapMode')
+      fld.add(this, 'mapModeOff')
+      fld.add(this, 'characterMode')
+      fld.add(this, 'characterModeOff')
+    }
+    {
+      const fld = this.gui.addFolder('Maps').close()
+      fld.add(this, 'sliceBigMap').name('slice big map')
+      fld.add(this, 'loadMapJson').name('load map json')
+      fld.add(this, 'loadMapIcons').name('load map icons')
+      const loc = {
+        location: regionNames[0]
+      }
+      fld.add(loc, 'location', regionNames).onChange(v => {
+        this.changeRegionByNumber(v)
+      })
+    }
+    {
+      const fld = this.gui.addFolder('Character').close()
+      fld.add(this, 'testLoadCharacter')
+      fld.add(this, 'deleteCharacter')
+      fld.add(this.PROPS.character, 'className', characterClasses)
+    }
+    {
+      const fld = this.gui.addFolder('Test') // .close()
+      fld.add(this, 'youDiedWithSound')
+      fld.add(this, 'youDiedFadeIn')
+      fld.add(this, 'testDialog')
+      fld.add(this, 'testConfirmDialog')
+      fld.add(this, 'testDialogAsync')
+      fld.add(this, 'testIdentify')
+      fld.add(this, 'generateLandscape')
+      fld.add(this, 'trySomeSvg')
+      fld.add(this, 'testVanStuff')
+      // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
+      // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
+      // TODO -
+      // enable/disable mixer
+      // show/hide group
+      // create/destroy group
+      // position/scale
+    }
+    {
+      const s = this.gui.addFolder('Scene').close()
+      const sp = this.PROPS.scene
+      const x11ColourNames = { ...THREE.Color.NAMES }
+      {
+        const fld = s.addFolder('Fog')
+        fld.add(sp.fog, 'enabled').onChange(v => { this.screen.scene.fog = v ? this.fog : null })
+        fld.addColor(this.fog, 'color')
+        fld.add(this.fog, 'near')
+        fld.add(this.fog, 'far')
+      }
+      {
+        const fld = s.addFolder('Background')
+        const con = fld.add(sp.background, 'x11Colour', x11ColourNames).name('cname').onChange(v => {
+          this.screen.scene.background = new THREE.Color(v)
+          // sp.background.colour =
+        })
+        fld.addColor(sp.background, 'colour').onChange(v => {
+          this.screen.scene.background = new THREE.Color(v)
+          const nc = ntc(v)
+          sp.background.x11Colour = nc.colorName
+          con.updateDisplay()
+        })
+        fld.add(sp.background, 'skyBox', [sp.skyBoxList]).onChange(v => {
+          this.setSkyBox(v)
+        })
+        const rotMap = { '0 deg': 0, '90 deg': Math.PI / 2, '180 deg': Math.PI, '270 deg': Math.PI * 3 / 2 }
+        const setRot = () => {
+          this.screen.scene.backgroundRotation?.set(sp.background.rotateX, sp.background.rotateY, sp.background.rotateZ)
+          this.redraw()
+        }
+        fld.add(sp.background, 'rotateX', rotMap).onChange(v => { setRot() })
+        fld.add(sp.background, 'rotateY', rotMap).onChange(v => { setRot() })
+        fld.add(sp.background, 'rotateZ', rotMap).onChange(v => { setRot() })
+      }
+      {
+        const fld = s.addFolder('Grid')
+        fld.add(sp.grid, 'visible').onChange(v => {
+          const g = this.screen.scene.getObjectByName('grid')
+          if (g) g.visible = v
+        })
+      }
+      {
+        const fld = s.addFolder('Axes')
+        fld.add(sp.axes, 'visible').onChange(v => {
+          const g = this.screen.scene.getObjectByName('axesHelper')
+          if (g) g.visible = v
+        })
+      }
+      {
+        const fld = s.addFolder('Demo Cube')
+        fld.add(sp.demoCube, 'rotating')
+        fld.add(sp.demoCube, 'visible').onChange(v => {
+          const g = this.screen?.scene?.getObjectByName('demoCube')
+          if (g) g.visible = v
+        })
+      }
+      {
+        const fld = this.gui.addFolder('Settings').close()
+        fld.add(this.settings.tools, 'magick')
+        fld.add(this.settings.tools, 'sliceCommand')
+        fld.add(this.settings, 'autoLoadMap')
+        fld.add(this, 'resetSettings').name('restore defaults')
+        fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
+      }
+
+      s.onChange(() => { this.redraw() })
+    }
+  }
+
+  resetSettings () {
+    console.log('reset settings to defaults')
+    this.settings = saveTheseSettings('eldenBong', exampleConfig)
+  }
+
   whenReady () {
     // this.moanSwooper.runTestBomb()
     if (this.settings.autoLoadMap) {
@@ -538,127 +659,6 @@ class Bong extends THREE.EventDispatcher {
       cube.rotation.z += 0.01
       return true
     })
-  }
-
-  makeGui () {
-    {
-      const fld = this.gui.addFolder('Base Actions').close()
-      fld.add(this.PROPS, 'resetCamera')
-      fld.add(this, 'mapMode')
-      fld.add(this, 'mapModeOff')
-      fld.add(this, 'characterMode')
-      fld.add(this, 'characterModeOff')
-    }
-    {
-      const fld = this.gui.addFolder('Maps').close()
-      fld.add(this, 'sliceBigMap').name('slice big map')
-      fld.add(this, 'loadMapJson').name('load map json')
-      fld.add(this, 'loadMapIcons').name('load map icons')
-      const loc = {
-        location: regionNames[0]
-      }
-      fld.add(loc, 'location', regionNames).onChange(v => {
-        this.changeRegionByNumber(v)
-      })
-    }
-    {
-      const fld = this.gui.addFolder('Character').close()
-      fld.add(this, 'testLoadCharacter')
-      fld.add(this, 'deleteCharacter')
-      fld.add(this.PROPS.character, 'className', characterClasses)
-    }
-    {
-      const fld = this.gui.addFolder('Test') // .close()
-      fld.add(this, 'youDiedWithSound')
-      fld.add(this, 'youDiedFadeIn')
-      fld.add(this, 'testDialog')
-      fld.add(this, 'testConfirmDialog')
-      fld.add(this, 'testDialogAsync')
-      fld.add(this, 'testIdentify')
-      fld.add(this, 'generateLandscape')
-      fld.add(this, 'trySomeSvg')
-      fld.add(this, 'testVanStuff')
-      // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
-      // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
-      // TODO -
-      // enable/disable mixer
-      // show/hide group
-      // create/destroy group
-      // position/scale
-    }
-    {
-      const s = this.gui.addFolder('Scene').close()
-      const sp = this.PROPS.scene
-      const x11ColourNames = { ...THREE.Color.NAMES }
-      {
-        const fld = s.addFolder('Fog')
-        fld.add(sp.fog, 'enabled').onChange(v => { this.screen.scene.fog = v ? this.fog : null })
-        fld.addColor(this.fog, 'color')
-        fld.add(this.fog, 'near')
-        fld.add(this.fog, 'far')
-      }
-      {
-        const fld = s.addFolder('Background')
-        const con = fld.add(sp.background, 'x11Colour', x11ColourNames).name('cname').onChange(v => {
-          this.screen.scene.background = new THREE.Color(v)
-          // sp.background.colour =
-        })
-        fld.addColor(sp.background, 'colour').onChange(v => {
-          this.screen.scene.background = new THREE.Color(v)
-          const nc = ntc(v)
-          sp.background.x11Colour = nc.colorName
-          con.updateDisplay()
-        })
-        fld.add(sp.background, 'skyBox', [sp.skyBoxList]).onChange(v => {
-          this.setSkyBox(v)
-        })
-        const rotMap = { '0 deg': 0, '90 deg': Math.PI / 2, '180 deg': Math.PI, '270 deg': Math.PI * 3 / 2 }
-        const setRot = () => {
-          this.screen.scene.backgroundRotation?.set(sp.background.rotateX, sp.background.rotateY, sp.background.rotateZ)
-          this.redraw()
-        }
-        fld.add(sp.background, 'rotateX', rotMap).onChange(v => { setRot() })
-        fld.add(sp.background, 'rotateY', rotMap).onChange(v => { setRot() })
-        fld.add(sp.background, 'rotateZ', rotMap).onChange(v => { setRot() })
-      }
-      {
-        const fld = s.addFolder('Grid')
-        fld.add(sp.grid, 'visible').onChange(v => {
-          const g = this.screen.scene.getObjectByName('grid')
-          if (g) g.visible = v
-        })
-      }
-      {
-        const fld = s.addFolder('Axes')
-        fld.add(sp.axes, 'visible').onChange(v => {
-          const g = this.screen.scene.getObjectByName('axesHelper')
-          if (g) g.visible = v
-        })
-      }
-      {
-        const fld = s.addFolder('Demo Cube')
-        fld.add(sp.demoCube, 'rotating')
-        fld.add(sp.demoCube, 'visible').onChange(v => {
-          const g = this.screen?.scene?.getObjectByName('demoCube')
-          if (g) g.visible = v
-        })
-      }
-      {
-        const fld = this.gui.addFolder('Settings').close()
-        fld.add(this.settings.tools, 'magick')
-        fld.add(this.settings.tools, 'sliceCommand')
-        fld.add(this.settings, 'autoLoadMap')
-        fld.add(this, 'resetSettings').name('restore defaults')
-        fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
-      }
-
-      s.onChange(() => { this.redraw() })
-    }
-  }
-
-  resetSettings () {
-    console.log('reset settings to defaults')
-    this.settings = saveTheseSettings('eldenBong', exampleConfig)
   }
 
   singleClick (ev, mousePos) {
