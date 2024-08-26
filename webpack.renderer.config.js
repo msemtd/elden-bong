@@ -9,6 +9,10 @@ rules.push({ test: /\.css$/, use: [{ loader: 'style-loader' }, { loader: 'css-lo
     test: /\.mp3$/,
     type: 'asset/resource',
   },
+  {
+    test: /\.(glb|gltf)$/,
+    type: 'asset/resource',
+  },
 )
 
 module.exports = {

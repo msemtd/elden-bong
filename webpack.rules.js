@@ -16,6 +16,10 @@ module.exports = [
       },
     },
   },
+  {
+    test: /\.(png|svg|jpg|jpeg|gif)$/i,
+    type: 'asset/resource',
+  },
   // Put your webpack loader rules in this array.  This is where you would put
   // your ts-loader configuration for instance:
   /**

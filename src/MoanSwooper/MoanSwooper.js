@@ -65,7 +65,7 @@ class MoanSwooper extends THREE.EventDispatcher {
     // TODO: have a visual indicator of game state
     this.masterMineObj = this.makeBomb()
     this.masterFlagObj = this.makeFlag()
-    this.addTempGui()
+    // this.addTempGui()
   }
 
   addTempGui () {
@@ -87,7 +87,7 @@ class MoanSwooper extends THREE.EventDispatcher {
 
   restartThisGame () {
     // TODO need the grid and the opening location!
-    if (!this.moveHistory.length()) { return }
+    if (!this.moveHistory.length) { return }
     const firstMove = this.moveHistory[0]
     console.dir(firstMove)
     const [x, y] = [firstMove.x, firstMove.y]

@@ -6,6 +6,7 @@ import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import $ from 'jquery'
 import { Howl } from 'howler'
+// cSpell:ignore yatiac, kanjivg
 import ntc from '@yatiac/name-that-color'
 
 import { Screen } from './Screen'
@@ -18,12 +19,10 @@ import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
 import { bongData } from './bongData'
 import { VanStuff } from './VanStuff'
-import { MoanSwooper } from './MoanSwooper/MoanSwooper'
-import { CardsDude } from './CardsDude/CardsDude'
 import { UserControls } from './Controls'
+import { MiniGames } from './MiniGames'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
 import deathSound from '../sounds/Humanoid Fall.mp3'
-import { MiniGames } from './MiniGames'
 
 async function pick () {
   const info = await pickFile()
@@ -107,8 +106,7 @@ class Bong extends THREE.EventDispatcher {
     this.addStats(c)
     this.addCamInfo(c)
     // this.addDemoCube(c)
-    this.miniGames = new MiniGames()
-    this.addMoanSwooper(c)
+    this.miniGames = null
     this.makeGui()
     this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div></div>').appendTo('body')
@@ -117,11 +115,20 @@ class Bong extends THREE.EventDispatcher {
   }
 
   whenReady () {
-    this.moanSwooper.runTestBomb()
+    // this.moanSwooper.runTestBomb()
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }
-    this.dispatchEvent({ type: 'ready' })
+    this.miniGames = new MiniGames(this)
+    // OK, now we provide services to all listeners...
+    this.dispatchEvent({
+      type: 'ready',
+      gui: this.gui,
+      group: this.screen.scene,
+      redrawFunc: this.redraw.bind(this),
+      screen: this.screen,
+    })
+    this.redraw()
   }
 
   testVanStuff () {
@@ -508,31 +515,6 @@ class Bong extends THREE.EventDispatcher {
     })
   }
 
-  addMoanSwooper (c) {
-    this.moanSwooper = new MoanSwooper()
-    // we control the group - it controls its own group contents
-    const g = new THREE.Group()
-    g.name = 'MoanSwooper'
-    g.position.set(2, -1, 1)
-    g.scale.set(0.5, 0.5, 0.5)
-    this.moanSwooper.group = g
-    this.moanSwooper.resetThreeGroup()
-    // s.addMixer('MoanSwooper', (_delta) => {
-    //   return moanSwooper.update()
-    // })
-    c.scene.add(g)
-    this.redraw()
-    this.moanSwooper.addEventListener('moanState', this.onMoanSwooperGameState.bind(this))
-    this.moanSwooper.addEventListener('redraw', this.redraw.bind(this))
-  }
-
-  onMoanSwooperGameState (ev) {
-    console.warn(ev)
-    if (ev.value === 'BANG_GAME_OVER') {
-      this.youDiedWithSound()
-    }
-  }
-
   makeGui () {
     {
       const fld = this.gui.addFolder('Base Actions').close()
@@ -560,7 +542,6 @@ class Bong extends THREE.EventDispatcher {
     }
     {
       const fld = this.gui.addFolder('Test') // .close()
-      fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
@@ -570,7 +551,8 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'generateLandscape')
       fld.add(this, 'trySomeSvg')
       fld.add(this, 'testVanStuff')
-      fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
+      // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
+      // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
       // TODO -
       // enable/disable mixer
       // show/hide group
@@ -654,9 +636,9 @@ class Bong extends THREE.EventDispatcher {
   singleClick (ev, mousePos) {
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
-    if (this.moanSwooper?.active) {
-      return this.moanSwooper.intersect(this.raycaster, ev)
-    }
+    // if (this.moanSwooper?.active) {
+    //   return this.moanSwooper.intersect(this.raycaster, ev)
+    // }
     const clickable = this.mapIconSets
     if (!clickable) { return }
     const hits = this.raycaster.intersectObject(clickable)
@@ -694,6 +676,7 @@ class Bong extends THREE.EventDispatcher {
   async trySomeSvg () {
     // get an SVG image from the custom URL
     const cp = '066f8'
+    // TODO: setting for kanjivg folder
     const kvgDir = 'C:\\Users\\msemt\\Documents\\dev\\kanjivg'
     const f = `${kvgDir}/kanji/${cp}.svg`
     const url = filePathToMine(f)

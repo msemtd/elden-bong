@@ -4,7 +4,7 @@ default-src 'self' 'unsafe-inline' data:
 script-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:
 worker-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:
 img-src 'self' mine: file: data:
-connect-src 'self' mine: file: ws: https:
+connect-src 'self' mine: file: ws: https: data: blob:
 `.split('\n').filter(l => l.length).join('; ')
 
 module.exports = {

@@ -14,6 +14,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'static', to: 'static' },
+        // { from: 'node_modules/kanjivg', to: 'static/kanjivg' },
       ],
     }),
   ],

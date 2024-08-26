@@ -1,4 +1,10 @@
 import * as THREE from 'three'
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
+import cardThing from './card-attempt-01.glb'
+import tableThing from './table.glb'
+import { Screen } from '../Screen'
 
 /**
  * Cards Dude mini-game
@@ -97,11 +103,72 @@ function tabToList (tab) {
   return lines
 }
 
-class CardsDude {
-  constructor (game = games.bigSpider) {
+class CardsDude extends THREE.EventDispatcher {
+  constructor (parent, game = games.bigSpider) {
+    super()
+    this.gui = null
+    this.group = new THREE.Group()
+    this.group.name = 'CardsDude'
+    console.assert(parent instanceof THREE.EventDispatcher)
     console.dir(game)
     const ca = tabToList(cardDims)
     console.dir(ca)
+    // make a card, get screen and add
+    this.group = new THREE.Group()
+    // this.group.add(new THREE.Mesh(new RoundedBoxGeometry(1, 2, 0.01, 5, 0.5), new THREE.MeshLambertMaterial()))
+    const loader = new GLTFLoader()
+    const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
+    const errCb = (error) => { console.error('An error happened', error) }
+    // Table model (belongs in parent I suppose)
+    loader.load(tableThing, (data) => {
+      const table = data.scene.children[0]
+      table.rotateX(Math.PI / 2)
+      table.translateY(-1)
+      table.scale.divideScalar(1.7)
+      this.group.add(table)
+      this.table = table
+      this.redraw()
+    }, progressCb, errCb)
+    // Card model
+    loader.load(cardThing, (data) => {
+      const card = data.scene
+      this.group.add(card)
+      this.card = card
+      this.redraw()
+    }, progressCb, errCb)
+
+    parent.addEventListener('ready', (ev) => {
+      console.assert(ev.gui instanceof GUI)
+      console.assert(ev.group instanceof THREE.Object3D)
+      console.assert(typeof ev.redrawFunc === 'function')
+      console.assert(ev.screen instanceof Screen)
+      this.redraw = ev.redrawFunc
+      this.screen = ev.screen
+      ev.group.add(this.group)
+      const f = this.gui = ev.gui.addFolder('Cards Dude!')
+      f.add(this, 'testCardsDude')
+      f.add(this, 'activate')
+      f.add(this, 'deactivate')
+    })
+  }
+
+  testCardsDude () {
+    console.log('testCardsDude')
+  }
+
+  activate () {
+    this.group.visible = true
+    this.screen.addMixer('testCardsDude', (_delta) => {
+      this.group.rotation.z += 0.01
+      return true
+    })
+    this.redraw()
+  }
+
+  deactivate () {
+    // this.group.visible = false
+    this.screen.removeMixer('testCardsDude')
+    this.redraw()
   }
 }
 

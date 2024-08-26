@@ -76,7 +76,7 @@ class Screen extends THREE.EventDispatcher {
       renderRequired = true
     }
     // TODO any pluggable animations?
-    // Update any animation/raycasting mixers: array of mixers that return "didUpdate"
+    // Update any animation/raycaster mixers: array of mixers that return "didUpdate"
     // indicating should render detected alterations to the (current) scene
     if (this.mixers) {
       for (const mixer of this.mixers) {
@@ -156,6 +156,8 @@ class Screen extends THREE.EventDispatcher {
       case 'KeyT': { return cc.reset(true) }
     }
   }
+
+  // cSpell:ignore targ, posn, dirn
 
   /**
    * Rotate camera around the given axis on the spot by given angle and move the orbit target to the given fixed distance away.
