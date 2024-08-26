@@ -23,6 +23,7 @@ import { UserControls } from './Controls'
 import { MiniGames } from './MiniGames'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
 import deathSound from '../sounds/Humanoid Fall.mp3'
+import { isString, isObject, isInteger } from './wahWah'
 
 async function pick () {
   const info = await pickFile()
@@ -31,7 +32,7 @@ async function pick () {
 }
 
 const characterClasses = bongData.characterClasses
-const locations = bongData.regions.map(x => x.name)
+const regionNames = bongData.regions.map(x => x.name)
 
 class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
@@ -82,6 +83,9 @@ class Bong extends THREE.EventDispatcher {
       },
       character: {
         className: 'Dork',
+      },
+      gameState: {
+
       }
     }
     this.mapMan = new MapMan()
@@ -118,6 +122,9 @@ class Bong extends THREE.EventDispatcher {
     // this.moanSwooper.runTestBomb()
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
+    }
+    if (this.settings?.gameState) {
+      this.restoreGameState(this.settings.gameState)
     }
     this.miniGames = new MiniGames(this)
     // OK, now we provide services to all listeners...
@@ -202,6 +209,24 @@ class Bong extends THREE.EventDispatcher {
   youDiedFadeIn () {
     $('#overlay').css('display', 'block')
     $('#you-died').fadeIn(2000)
+  }
+
+  restoreGameState (gameState) {
+    // given this gameState, set props, and make it so
+
+    // region number
+    this.changeRegionByNumber(gameState.region)
+  }
+
+  changeRegionByNumber (newPlace) {
+    console.log(`change region to ${newPlace}`)
+    const inRange = (isInteger(newPlace) && newPlace >= 0 && newPlace < regionNames.length)
+    console.assert(inRange)
+    if (!inRange) { return }
+    // do the location banner thing briefly
+    // put the overlay up briefly but allow click-through somehow!
+    // want a boom sound
+    const a = 0
   }
 
   // TODO make this an event listener interface?
@@ -530,9 +555,11 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'loadMapJson').name('load map json')
       fld.add(this, 'loadMapIcons').name('load map icons')
       const loc = {
-        location: locations[0]
+        location: regionNames[0]
       }
-      fld.add(loc, 'location', locations)
+      fld.add(loc, 'location', regionNames).onChange(v => {
+        this.changeRegionByNumber(v)
+      })
     }
     {
       const fld = this.gui.addFolder('Character').close()
@@ -630,6 +657,7 @@ class Bong extends THREE.EventDispatcher {
   }
 
   resetSettings () {
+    console.log('reset settings to defaults')
     this.settings = saveTheseSettings('eldenBong', exampleConfig)
   }
 

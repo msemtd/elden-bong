@@ -5,7 +5,7 @@ import tileImage from './grass_tile_256.png'
 import { Text } from 'troika-three-text'
 import { fyShuffle } from './fyShuffle'
 import { getAdj, gridFromString, gridToString, idxToXy, makeGrid, setGridNumbers, xyToIdx } from './gridUtils'
-import { isString, isObject, isInteger } from './wahWah'
+import { isString, isObject, isInteger } from '../wahWah'
 
 /**
  * How does an implementation of minesweeper decide how to distribute the bombs

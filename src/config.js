@@ -53,8 +53,15 @@ const exampleConfig = {
     }
   ],
   autoLoadMap: '',
+  /* game state load and save */
+  gameState: {
+    region: 0,
+    lastSafePosition: [0, 0, 0],
+    cameraPosition: [1, -12, 1.7],
+  },
 }
 
+// TODO: The schema is a great idea but I can't work with it easily so I don't!
 const schema = {
   $schema: 'https://json-schema.org/draft/2019-09/schema',
   $id: 'http://example.com/example.json',
