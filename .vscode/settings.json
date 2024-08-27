@@ -5,5 +5,10 @@
         "Raycaster",
         "vars",
         "xmsol"
-    ]
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#00342F",
+        "titleBar.activeBackground": "#004941",
+        "titleBar.activeForeground": "#E4FFFC"
+    }
 }
