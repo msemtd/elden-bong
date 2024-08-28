@@ -56,30 +56,9 @@ class Bong extends THREE.EventDispatcher {
     this.PROPS = {
       resetCamera: () => { c.cameraControls.reset() },
       scene: {
-        fog: {
-          enabled: true,
-        },
-        grid: {
-          visible: true,
-          size: 100,
-          divisions: 100,
-        },
-        axes: {
-          visible: true,
-        },
-        demoCube: {
-          rotating: false,
-          visible: true,
-        },
-        background: {
-          colour: '#aa00ff',
-          x11Colour: '',
-          skyBox: '...none',
-          skyBoxList: ['...none'],
-          rotateX: 0,
-          rotateY: 0,
-          rotateZ: 0,
-        }
+        // This is probably a bad idea - the settings are too volatile
+        // TODO use a real state system like redux!
+        ...this.settings.scene,
       },
       character: {
         className: 'Dork',

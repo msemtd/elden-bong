@@ -5,7 +5,7 @@
  *
  * Overcoming laziness as a learner.
  *
- *
+ * kanjivg and heisig-rtk-index
  *
  *
  */

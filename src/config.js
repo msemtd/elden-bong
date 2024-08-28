@@ -33,6 +33,20 @@ const exampleConfig = {
       rotating: true,
       visible: true,
     },
+    background: {
+      colour: '#aa00ff',
+      x11Colour: '',
+      skyBox: '...none',
+      skyBoxList: ['...none'],
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
+    },
+    onScreen: {
+      showTitleText: true,
+      showControllerSvg: true,
+      showCameraPosition: true,
+    },
   },
   maps: [
     {

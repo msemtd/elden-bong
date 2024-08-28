@@ -3311,6 +3311,10 @@ he@^1.2.0:
   resolved "https://registry.npmjs.org/he/-/he-1.2.0.tgz"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
+"heisig-rtk-index@https://github.com/cyphar/heisig-rtk-index.git":
+  version "0.0.0"
+  resolved "https://github.com/cyphar/heisig-rtk-index.git#4c3edac4a313acd353b99a9eb62ce5044ccd483d"
+
 homedir-polyfill@^1.0.1:
   version "1.0.3"
   resolved "https://registry.npmjs.org/homedir-polyfill/-/homedir-polyfill-1.0.3.tgz"
