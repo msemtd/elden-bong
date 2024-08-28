@@ -34,7 +34,7 @@ const exampleConfig = {
       visible: true,
     },
     background: {
-      colour: '#aa00ff',
+      colour: '#000000',
       x11Colour: '',
       skyBox: '...none',
       skyBoxList: ['...none'],

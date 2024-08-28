@@ -71,11 +71,18 @@ class Bong extends THREE.EventDispatcher {
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     this.slicerDialog = null
-    c.scene.add(new THREE.AmbientLight())
+    // Lighting
     {
-      const dl = new THREE.DirectionalLight(0xffffff, 0.7)
+      const intensity = 3
+      const dl = new THREE.DirectionalLight(0xffffff, 5)
       dl.position.set(50, 100, 75)
       c.scene.add(dl)
+      const skyColor = 0xB1E1FF // light blue
+      const groundColor = 0xB97A20 // brownish orange
+      const light = new THREE.HemisphereLight(skyColor, groundColor, intensity)
+      light.name = 'light'
+      c.scene.add(light)
+      this.light = light
     }
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
@@ -97,6 +104,7 @@ class Bong extends THREE.EventDispatcher {
   }
 
   makeGui () {
+    this.gui.add(this.light, 'intensity', 0, 15, 0.01).onChange(this.redraw.bind(this))
     {
       const fld = this.gui.addFolder('Base Actions').close()
       fld.add(this.PROPS, 'resetCamera')
