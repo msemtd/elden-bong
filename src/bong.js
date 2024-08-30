@@ -214,6 +214,12 @@ class Bong extends THREE.EventDispatcher {
         fld.add(this.settings.tools, 'sliceCommand')
         fld.add(this.settings, 'autoLoadMap')
         fld.add(this, 'resetSettings').name('restore defaults')
+        const sub = fld.addFolder('onScreen').onFinishChange(() => {
+          this.updateOnScreenGubbins()
+        })
+        sub.add(this.settings.scene.onScreen, 'showTitleText')
+        sub.add(this.settings.scene.onScreen, 'showControllerSvg')
+        sub.add(this.settings.scene.onScreen, 'showCameraPosition')
         fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
       }
 
@@ -227,6 +233,7 @@ class Bong extends THREE.EventDispatcher {
   }
 
   whenReady () {
+    this.updateOnScreenGubbins()
     // this.moanSwooper.runTestBomb()
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
@@ -244,6 +251,27 @@ class Bong extends THREE.EventDispatcher {
       screen: this.screen,
     })
     this.redraw()
+  }
+
+  updateOnScreenGubbins () {
+    console.warn('yo')
+    // read from settings
+    const s = this.settings.scene.onScreen
+    if (s.showTitleText) {
+      $('#elden').show()
+    } else {
+      $('#elden').hide()
+    }
+    if (s.showControllerSvg) {
+      $('#gamePad').show()
+    } else {
+      $('#gamePad').hide()
+    }
+    if (s.showCameraPosition) {
+      $('#camInfo').show()
+    } else {
+      $('#camInfo').hide()
+    }
   }
 
   testVanStuff () {
