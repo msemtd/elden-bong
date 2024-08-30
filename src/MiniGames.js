@@ -22,6 +22,12 @@ import { Screen } from './Screen'
  * - add your group to the given group
  * - save the redraw request function
  * - hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
+ * 
+ * 
+ * = The Games Room =
+ * floor, walls, door, windows, furniture, a cafe?
+ * Go to the games room - animate camera movement and go in through the door?
+ * Just move camera
  */
 class MiniGames extends THREE.EventDispatcher {
   constructor (parent) {

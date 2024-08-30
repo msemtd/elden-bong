@@ -2,9 +2,12 @@ import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
+import TWEEN from 'three/addons/libs/tween.module.js'
 import cardThing from './card-attempt-01.glb'
 import tableThing from './table.glb'
 import { Screen } from '../Screen'
+import * as cardUtils from './cardUtils'
+import CameraControls from 'camera-controls'
 
 /**
  * Cards Dude mini-game
@@ -106,16 +109,14 @@ function tabToList (tab) {
 class CardsDude extends THREE.EventDispatcher {
   constructor (parent, game = games.bigSpider) {
     super()
-    this.gui = null
-    this.group = new THREE.Group()
-    this.group.name = 'CardsDude'
     console.assert(parent instanceof THREE.EventDispatcher)
     console.dir(game)
     const ca = tabToList(cardDims)
     console.dir(ca)
-    // make a card, get screen and add
+    this.gui = null // populate when parent is ready!
     this.group = new THREE.Group()
-    // this.group.add(new THREE.Mesh(new RoundedBoxGeometry(1, 2, 0.01, 5, 0.5), new THREE.MeshLambertMaterial()))
+    this.group.name = 'CardsDude'
+    // make a card, get screen and add
     const loader = new GLTFLoader()
     const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
     const errCb = (error) => { console.error('An error happened', error) }
@@ -129,15 +130,18 @@ class CardsDude extends THREE.EventDispatcher {
       this.table = table
       this.redraw()
     }, progressCb, errCb)
-    // Card model
+    // Card model - the "Master-Card"
     loader.load(cardThing, (data) => {
-      const card = data.scene.children[0]
-      console.assert(card && card.name === 'Card')
-      card.rotateX(Math.PI / 2)
+      const masterCard = data.scene.children[0]
+      // test our assumption about the model...
+      console.assert(masterCard && masterCard.name === 'Card')
+      masterCard.rotateX(Math.PI / 2)
       // this.group.add(card)
-      this.card = card
+      this.masterCard = masterCard
       this.redraw()
     }, progressCb, errCb)
+    // active functionality could be common to all mini-games
+    this.active = false
 
     parent.addEventListener('ready', (ev) => {
       console.assert(ev.gui instanceof GUI)
@@ -151,18 +155,37 @@ class CardsDude extends THREE.EventDispatcher {
       f.add(this, 'testCardsDude')
       f.add(this, 'activate')
       f.add(this, 'deactivate')
+      f.add(this, 'lookAtCardTable')
+      this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
     })
+  }
+
+  /**
+   * @returns {boolean} whether a redraw is required
+   */
+  animate (delta) {
+    if (!this.active) { return false }
+    // anything on the TWEEN
+    if (!this.tween) { return false }
+    this.tween.update(delta)
+    return this.tween.isPlaying
   }
 
   testCardsDude () {
     console.log('testCardsDude')
+    this.activate()
     // clone card and deal some out
     // place tablecloth as play-space
     if (this.group.getObjectByName('mat')) {
       // TODO clean up
-    } else {
+      console.warn('already run - add provision for re-run')
+      return
+    }
+
+    // TODO clean up
+    {
       const v3 = new THREE.Vector3()
-      { // make the mat
+      { // make the playing surface mat
         const g = new RoundedBoxGeometry(1, 1, 0.1, 5, 0.1)
         const m = new THREE.MeshLambertMaterial({ color: 0x0a660a })
         const o = new THREE.Mesh(g, m)
@@ -193,14 +216,26 @@ class CardsDude extends THREE.EventDispatcher {
       // just above the surface of the mat...
       g.scale.multiplyScalar(0.3)
       g.position.z += 0.025
+      // -----------------------------------------------------------------------
       // TODO proper deal - this is just a test!
-      // we want to clone the master card but replace the front face materials
-      const nc = this.card.clone(true)
-      nc.position.set(0, 0, 0)
-      g.add(nc)
+      // get a stack of shuffled cards for the game
+      // totally assume bigSpider here!
+
+      const pile = cardUtils.getDecks(3)
+      cardUtils.shuffle(pile)
+      for (let i = 0; i < 13; i++) {
+        const c = pile[i]
+        console.log(c)
+        // We want to clone the master card but replace the front face materials
+        const nc = this.masterCard.clone(true)
+        nc.position.set(i, i, 0)
+        g.add(nc)
+      }
+
       const box = new THREE.Box3()
       box.setFromCenterAndSize(new THREE.Vector3(1, 1, 1), new THREE.Vector3(2, 1, 3))
       const helper = new THREE.Box3Helper(box, 0xffff00)
+      helper.rotateZ(Math.PI / 5)
       g.add(helper)
       this.redraw()
     }
@@ -208,17 +243,30 @@ class CardsDude extends THREE.EventDispatcher {
 
   activate () {
     this.group.visible = true
-    this.screen.addMixer('testCardsDude', (_delta) => {
-      this.card.rotation.z += 0.01
-      return true
-    })
+    this.active = true
+    // a little sample showing activity
+    // this.screen.addMixer('testCardsDude', (_delta) => {
+    //   this.masterCard.rotation.z += 0.01
+    //   return true
+    // })
     this.redraw()
   }
 
   deactivate () {
-    // this.group.visible = false
-    this.screen.removeMixer('testCardsDude')
+    this.group.visible = false
+    this.active = false
+    // this.screen.removeMixer('testCardsDude')
     this.redraw()
+  }
+
+  lookAtCardTable () {
+    console.log('lookAtCardTable')
+    const cc = this.screen?.cameraControls
+    if (!this.playSpace) return
+    console.assert(cc instanceof CameraControls)
+    // cc.moveTo( x, y, z, enableTransition )
+    cc.setLookAt(-0.21, -2.49, 3.32, 0.16, -0.26, -0.16, true)
+    // cc.fitToSphere(this.group, true)
   }
 }
 
