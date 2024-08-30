@@ -192,7 +192,7 @@ class CardsDude extends THREE.EventDispatcher {
         o.name = 'mat'
         this.group.add(o)
         o.position.set(-0.2, -0.84, 0.83)
-        o.scale.set(1.95, 1.25, 0.5)
+        o.scale.set(2, 1.25, 0.5)
         // put the mat on the table but don't use the table's messed up matrix!
         // let fld = this.gui.addFolder('mat position').onChange(this.redraw)
         // fld.add(o.position, 'x').step(0.01)
@@ -207,36 +207,57 @@ class CardsDude extends THREE.EventDispatcher {
       }
       // since the scale of the mat is arbitrary and I'm too thick to sort it
       // all out, I'll set the location of the playing space...
-      const g = new THREE.Group()
-      g.name = 'playSpace'
-      g.position.copy(v3)
-      this.group.add(g)
-      this.playSpace = g
+      const ps = new THREE.Group()
+      ps.name = 'playSpace'
+      ps.position.copy(v3)
+      this.group.add(ps)
+      this.playSpace = ps
       // Shrink the group to make the card size look right and move it
       // just above the surface of the mat...
-      g.scale.multiplyScalar(0.3)
-      g.position.z += 0.025
+      // TODO - the card model centre is arguably wrong, being on the surface of the front face
+      // A face-down card at z = 0 is visible but a face up one is too low and z-fighting would ensue
+      // We could just work with it!
+      ps.scale.multiplyScalar(0.22)
+      ps.position.z += 0.026
+      // Layout on the playing space - this is all done by eye and should be science!
+      // TODO fit the game to the mat
+      const columnToX = (c) => -3.9 + (c * 0.64)
+      const topY = 1.75
       // -----------------------------------------------------------------------
       // TODO proper deal - this is just a test!
       // get a stack of shuffled cards for the game
       // totally assume bigSpider here!
+      // TODO how many rows are dealt out to begin with?
 
-      const pile = cardUtils.getDecks(3)
-      cardUtils.shuffle(pile)
+      // dealing to columns - face up or down - need card 3d box geometry really!
+      // add a box helper to a card and find the real centre
+      // user settings for vertical overlap spacing when face down and face up
+      // if the column is a group then we can arrange them accordingly
+
+      const cardsUnusedPile = cardUtils.getDecks(3)
+      cardUtils.shuffle(cardsUnusedPile)
       for (let i = 0; i < 13; i++) {
-        const c = pile[i]
+        const c = cardsUnusedPile[i] // should probably be pop or shift!
         console.log(c)
         // We want to clone the master card but replace the front face materials
+        // "Material.card_back1.001", "Material.001" is face , "Material.002" is side #BBE700
+        // "CardMesh_2"
         const nc = this.masterCard.clone(true)
-        nc.position.set(i, i, 0)
-        g.add(nc)
+        nc.name = `card_${i}_${c}`
+        nc.userData = { cardValue: c, shufflePos: i, name: nc.name }
+        ps.add(nc)
+        // the placing of a card on a column depends on the existing overlaps
+        // each column can be a group!
+        nc.position.set(columnToX(i), topY, 0)
+        // turn the first card face up! just to test!
+        if (i === 0) { nc.rotateX(Math.PI) }
       }
 
-      const box = new THREE.Box3()
-      box.setFromCenterAndSize(new THREE.Vector3(1, 1, 1), new THREE.Vector3(2, 1, 3))
-      const helper = new THREE.Box3Helper(box, 0xffff00)
-      helper.rotateZ(Math.PI / 5)
-      g.add(helper)
+      // const box = new THREE.Box3()
+      // box.setFromCenterAndSize(new THREE.Vector3(1, 1, 1), new THREE.Vector3(2, 1, 3))
+      // const helper = new THREE.Box3Helper(box, 0xffff00)
+      // helper.rotateZ(Math.PI / 5)
+      // ps.add(helper)
       this.redraw()
     }
   }
