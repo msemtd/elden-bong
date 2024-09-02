@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import TWEEN from 'three/addons/libs/tween.module.js'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
@@ -112,7 +113,7 @@ class Card {
   constructor (rank, suit, faceUp = false) {
     console.assert(isString(rank))
     console.assert(isString(suit))
-    console.assert(rank.length === 1)
+    console.assert(rank.length <= 2)
     console.assert(suit.length === 1)
     this.rank = rank
     this.suit = suit
@@ -140,6 +141,17 @@ class GameState {
     }
     this.history = ['new game of ' + game.name]
   }
+
+  startNew () {
+    const ca = cardUtils.getDecks(this.gameInfo.decks)
+    cardUtils.shuffle(ca)
+    for (const c of ca) {
+      const chars = c.split('')
+      const suit = chars.pop()
+      const rank = chars.join('')
+      this.stock.push(new Card(rank, suit))
+    }
+  }
 }
 
 class CardsDude extends THREE.EventDispatcher {
@@ -150,6 +162,16 @@ class CardsDude extends THREE.EventDispatcher {
     this.gui = null // populate when parent is ready!
     this.group = new THREE.Group()
     this.group.name = 'CardsDude'
+    this.layout = {
+      spacing: {
+        verticalFaceUp: 0.2,
+        verticalFaceDown: 0.1,
+        horizontal: 0.64,
+      },
+      offset: {
+        horizontal: -3.9,
+      },
+    }
     // make a card, get screen and add
     const loader = new GLTFLoader()
     const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
@@ -255,7 +277,7 @@ class CardsDude extends THREE.EventDispatcher {
       ps.position.z += 0.026
       // Layout on the playing space - this is all done by eye and should be science!
       // TODO fit the game to the mat
-      const columnToX = (c) => -3.9 + (c * 0.64)
+      const columnToX = (c) => this.layout.offset.horizontal + (c * this.layout.spacing.horizontal)
       const topY = 1.75
       // -----------------------------------------------------------------------
       // TODO proper deal - this is just a test!
@@ -267,13 +289,14 @@ class CardsDude extends THREE.EventDispatcher {
       // add a box helper to a card and find the real centre
       // user settings for vertical overlap spacing when face down and face up
       // if the column is a group then we can arrange them accordingly
-
-      const cardsUnusedPile = cardUtils.getDecks(3)
+      const gi = this.gameState.gameInfo
+      const cardsUnusedPile = cardUtils.getDecks(gi.decks)
       cardUtils.shuffle(cardsUnusedPile)
-      for (let i = 0; i < 13; i++) {
+      for (let i = 0; i < gi.tableau.count; i++) {
         const c = cardsUnusedPile[i] // should probably be pop or shift!
         console.log(c)
-        // We want to clone the master card but replace the front face materials
+        // We want to clone the master card but replace the front face material
+
         // "Material.card_back1.001", "Material.001" is face , "Material.002" is side #BBE700
         // "CardMesh_2"
         const nc = this.masterCard.clone(true)

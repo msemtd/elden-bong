@@ -35,7 +35,7 @@ const exampleConfig = {
     },
     background: {
       colour: '#000000',
-      x11Colour: '',
+      x11Colour: 'black',
       skyBox: '...none',
       skyBoxList: ['...none'],
       rotateX: 0,
@@ -407,7 +407,8 @@ function loadSettings (localStorageKey, defaultSettings) {
   const sy = localStorage.getItem(localStorageKey)
   if (!sy) { return saveTheseSettings(localStorageKey, defaultSettings) }
   try {
-    settings = yaml.load(sy)
+    const incomingSettings = yaml.load(sy)
+    settings = { ...settings, ...incomingSettings }
   } catch (error) {
     console.error(`failed to load settings key as YAML: ${error}`)
     return saveTheseSettings(localStorageKey, defaultSettings)
