@@ -8,6 +8,7 @@ import tableThing from './table.glb'
 import { Screen } from '../Screen'
 import * as cardUtils from './cardUtils'
 import CameraControls from 'camera-controls'
+import { isString, isObject, isInteger } from '../wahWah'
 
 /**
  * Cards Dude mini-game
@@ -36,10 +37,11 @@ import CameraControls from 'camera-controls'
  * fisher-yates
  */
 const games = {
-  // use the terminology from xmsol
+  // Use the terminology and rules from xmsol
+  // Try to interpret correctly!
   bigSpider: {
     solType: 'spider',
-    rules:
+    rules: // from xmsol info dialog
         `
         Big Spider
         Decks: 3
@@ -58,61 +60,93 @@ const games = {
 
         1x  stock
         Deal: 13
-        `
+        `,
+    // from xmsol source...
+    xmsolRule: `
+        <game name="Big Spider" decks="3">
+        <foundation repeat="4" x="500">k down all cont</foundation>
+        <tableau y="250" repeat="13" count="78" hide="-1">group<out>suit</out></tableau>
+        <stock deal="13"/>
+        </game>
+        `,
+    // converted to YAML...
+    xmsolYaml: `---
+game:
+  "-name": Big Spider
+  "-decks": 3
+  foundation:
+    "-repeat": 4
+    "-x": 500
+    "#text": k down all cont
+  tableau:
+    "-y": 250
+    "-repeat": 13
+    "-count": 78
+    "-hide": -1
+    "#text": group
+  stock:
+    "-deal": 13
+`,
+    // as actual properties...
+    name: 'Big Spider',
+    decks: 3,
+    foundation: {
+      repeat: 4,
+      x: 500,
+      text: 'k down all cont',
+    },
+    tableau: {
+      y: 250,
+      repeat: 13,
+      count: 78,
+      hide: -1,
+      text: 'group',
+    },
+    stock: {
+      deal: 13,
+    },
   }
 }
 
-const cardDims = `
-| Type of Playing Card | Size (width x Height) | Required Bleed | Recommended Margin | Rounded Corner Size |
-|----------------------|-----------------------|----------------|--------------------|---------------------|
-| Standard (Poker)     | 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
-| Bridge (Slim)        | 2.25in x 3.5in        | 2mm            | 5mm                | 3.5mm               |
-| Tarot                | 2.75in x 4.75in       | 2mm            | 5mm                | 6mm                 |
-| Large                | 3.5in x 5.75in        | 2mm            | 5mm                | 6mm                 |
-| MTG (Magic Gathering)| 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
-`
-/**
- * markdown table to 2D array - a bit of fun text processing
- */
-function tabToList (tab) {
-  const lines = tab.split('\n').map(x => x.trim()).filter(x => x.length).map(x => x.split('|'))
-  // Trim edges if appropriate to do so - check the header (the first line)...
-  const regularHeader = lines.length && lines[0].length >= 2 && lines[0][0] === '' && lines[0][lines[0].length - 1] === ''
-  if (regularHeader) {
-    // Some fun with Array.reduce...
-    // Check that all lines are the same length (i.e. same length as the first line)...
-    const allSameLength = lines.reduce((acc, line) => acc && line.length === lines[0].length, true)
-    console.log(`all same length: ${allSameLength}`)
-    // Check that all lines have the first and last elements empty
-    const allHaveEmptyFirstAndLast = lines.reduce((acc, line) => acc && line.length && line[0] === '' && line[line.length - 1] === '', true)
-    console.log(`allHaveEmptyFirstAndLast: ${allHaveEmptyFirstAndLast}`)
-    if (allSameLength && allHaveEmptyFirstAndLast) {
-      for (const line of lines) {
-        // empty front and back columns
-        line.shift()
-        line.pop()
-        // can finally trim the field contents
-        for (let fi = 0; fi < line.length; fi++) {
-          line[fi] = line[fi].trim()
-        }
-      }
-    }
-    // remove the line after the header if it is all dashes...
-    if (lines.length >= 2 && Array.isArray(lines[1])) {
-      const ruler = lines[1].join('')
-      if (ruler.match(/^[-]+$/)) { lines.splice(1, 1) }
-    }
+class Card {
+  constructor (rank, suit, faceUp = false) {
+    console.assert(isString(rank))
+    console.assert(isString(suit))
+    console.assert(rank.length === 1)
+    console.assert(suit.length === 1)
+    this.rank = rank
+    this.suit = suit
+    this.faceUp = !!faceUp
   }
-  return lines
+}
+
+class CardStack extends Array {
+  // Just an array but type
+}
+
+class GameState {
+  constructor (game) {
+    console.assert(isObject(game))
+    console.assert(isString(game.name))
+    console.assert(isInteger(game.tableau?.repeat))
+    console.assert(isInteger(game.tableau?.count))
+    this.gameInfo = Object.create(game)
+    const tn = game.tableau.repeat
+    // NB: constructor doesn't deal right now because we'd like to animate it
+    this.stock = new CardStack()
+    this.tableau = new Array(tn)
+    for (let i = 0; i < this.tableau.length; i++) {
+      this.tableau[i] = new CardStack()
+    }
+    this.history = ['new game of ' + game.name]
+  }
 }
 
 class CardsDude extends THREE.EventDispatcher {
   constructor (parent, game = games.bigSpider) {
     super()
     console.assert(parent instanceof THREE.EventDispatcher)
-    console.dir(game)
-    const ca = tabToList(cardDims)
-    console.dir(ca)
+    this.gameState = new GameState(game)
     this.gui = null // populate when parent is ready!
     this.group = new THREE.Group()
     this.group.name = 'CardsDude'

@@ -1,4 +1,3 @@
-
 // https://en.wikipedia.org/wiki/Standard_52-card_deck
 // A standard 52-card deck comprises 13 ranks in each of the four French suits:
 // clubs (♣), diamonds (♦), hearts (♥) and spades (♠), with reversible (double-headed)
@@ -13,7 +12,27 @@ const theRanks = 'ACE A, TWO 2, THREE 3, FOUR 4, FIVE 5, SIX 6, SEVEN 7, EIGHT 8
 const suitInfo = theFrenchSuits.split(', ').map(x => { return x.split(' ') })
 const rankInfo = theRanks.split(', ').map(x => { return x.split(' ') })
 const aDeck = deck()
-const suitClrs = mkSuitClrs(suitInfo)
+const suitColours = mkSuitColours(suitInfo)
+
+const cardDimensionsMd = `
+| Type of Playing Card | Size (width x Height) | Required Bleed | Recommended Margin | Rounded Corner Size |
+|----------------------|-----------------------|----------------|--------------------|---------------------|
+| Standard (Poker)     | 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
+| Bridge (Slim)        | 2.25in x 3.5in        | 2mm            | 5mm                | 3.5mm               |
+| Tarot                | 2.75in x 4.75in       | 2mm            | 5mm                | 6mm                 |
+| Large                | 3.5in x 5.75in        | 2mm            | 5mm                | 6mm                 |
+| MTG (Magic Gathering)| 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
+`
+
+const cardDimensionsTab =
+[
+  ['Type of Playing Card', 'Size (width x Height)', 'Required Bleed', 'Recommended Margin', 'Rounded Corner Size'],
+  ['Standard (Poker)', '2.5in x 3.5in', '2mm', '5mm', '3.5mm'],
+  ['Bridge (Slim)', '2.25in x 3.5in', '2mm', '5mm', '3.5mm'],
+  ['Tarot', '2.75in x 4.75in', '2mm', '5mm', '6mm'],
+  ['Large', '3.5in x 5.75in', '2mm', '5mm', '6mm'],
+  ['MTG (Magic Gathering)', '2.5in x 3.5in', '2mm', '5mm', '3.5mm']
+]
 
 function deck (long) {
   const d = []
@@ -33,7 +52,7 @@ function getDecks (n) {
   return aa
 }
 
-function mkSuitClrs (aa) {
+function mkSuitColours (aa) {
   const o = {}
   for (let i = 0; i < aa.length; i++) {
     const a = aa[i]
@@ -58,4 +77,4 @@ function shuffle (array) {
   return array
 }
 
-export { getDecks, shuffle, suitClrs }
+export { getDecks, shuffle, rankInfo, suitInfo, suitColours, cardDimensionsMd, cardDimensionsTab }

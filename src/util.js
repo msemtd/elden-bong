@@ -69,3 +69,47 @@ export function mineToFilePath (minePath) {
   }
   return `file://${p}`
 }
+
+/**
+ * markdown table to 2D array - a bit of fun text processing
+ */
+export function tabToList (tab) {
+  const lines = tab.split('\n').map(x => x.trim()).filter(x => x.length).map(x => x.split('|'))
+  // Trim edges if appropriate to do so - check the header (the first line)...
+  const regularHeader = lines.length && lines[0].length >= 2 && lines[0][0] === '' && lines[0][lines[0].length - 1] === ''
+  if (regularHeader) {
+    // Some fun with Array.reduce...
+    // Check that all lines are the same length (i.e. same length as the first line)...
+    const allSameLength = lines.reduce((acc, line) => acc && line.length === lines[0].length, true)
+    console.log(`all same length: ${allSameLength}`)
+    // Check that all lines have the first and last elements empty
+    const allHaveEmptyFirstAndLast = lines.reduce((acc, line) => acc && line.length && line[0] === '' && line[line.length - 1] === '', true)
+    console.log(`allHaveEmptyFirstAndLast: ${allHaveEmptyFirstAndLast}`)
+    if (allSameLength && allHaveEmptyFirstAndLast) {
+      for (const line of lines) {
+        // empty front and back columns
+        line.shift()
+        line.pop()
+        // can finally trim the field contents
+        for (let fi = 0; fi < line.length; fi++) {
+          line[fi] = line[fi].trim()
+        }
+      }
+    }
+    // remove the line after the header if it is all dashes...
+    if (lines.length >= 2 && Array.isArray(lines[1])) {
+      const ruler = lines[1].join('')
+      if (ruler.match(/^[-]+$/)) { lines.splice(1, 1) }
+    }
+  }
+  return lines
+}
+
+export function isInputEvent (event) {
+  const target = event?.target
+  if (!target) return
+  return (target.tagName === 'INPUT' ||
+      target.tagName === 'SELECT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable)
+}
