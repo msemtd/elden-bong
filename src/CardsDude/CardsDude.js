@@ -3,7 +3,6 @@ import TWEEN from 'three/addons/libs/tween.module.js'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
-import TWEEN from 'three/addons/libs/tween.module.js'
 import cardThing from './card-attempt-01.glb'
 import tableThing from './table.glb'
 import { Screen } from '../Screen'
@@ -125,8 +124,9 @@ class CardStack extends Array {
   // Just an array but type
 }
 
-class GameState {
+class GameState extends THREE.EventDispatcher {
   constructor (game) {
+    super()
     console.assert(isObject(game))
     console.assert(isString(game.name))
     console.assert(isInteger(game.tableau?.repeat))
@@ -139,11 +139,12 @@ class GameState {
     for (let i = 0; i < this.tableau.length; i++) {
       this.tableau[i] = new CardStack()
     }
-    this.history = ['new game of ' + game.name]
+    this.history = []
   }
 
   startNew () {
-    const ca = cardUtils.getDecks(this.gameInfo.decks)
+    const nd = this.gameInfo.decks
+    const ca = cardUtils.getDecks(nd)
     cardUtils.shuffle(ca)
     for (const c of ca) {
       const chars = c.split('')
@@ -151,6 +152,12 @@ class GameState {
       const rank = chars.join('')
       this.stock.push(new Card(rank, suit))
     }
+    this.addHistory(`shuffle ${nd} decks for a new game of ${this.game.name}`)
+  }
+
+  addHistory (value) {
+    this.history.push(value)
+    this.dispatchEvent({ type: 'addHistory', value })
   }
 }
 
@@ -158,20 +165,38 @@ class CardsDude extends THREE.EventDispatcher {
   constructor (parent, game = games.bigSpider) {
     super()
     console.assert(parent instanceof THREE.EventDispatcher)
+    // active functionality could be common to all mini-games
+    this.active = false
     this.gameState = new GameState(game)
     this.gui = null // populate when parent is ready!
     this.group = new THREE.Group()
     this.group.name = 'CardsDude'
     this.layout = {
-      spacing: {
-        verticalFaceUp: 0.2,
-        verticalFaceDown: 0.1,
-        horizontal: 0.64,
-      },
-      offset: {
-        horizontal: -3.9,
-      },
+      verticalSpacingFaceUp: 0.2,
+      verticalSpacingFaceDown: 0.1,
+      horizontalSpacing: 0.64,
+      tableauStartX: -3.9,
+      tableauStartY: 1.75,
     }
+    this.loadModels()
+    parent.addEventListener('ready', (ev) => {
+      console.assert(ev.gui instanceof GUI)
+      console.assert(ev.group instanceof THREE.Object3D)
+      console.assert(typeof ev.redrawFunc === 'function')
+      console.assert(ev.screen instanceof Screen)
+      this.redraw = ev.redrawFunc
+      this.screen = ev.screen
+      ev.group.add(this.group)
+      const f = this.gui = ev.gui.addFolder('Cards Dude!')
+      f.add(this, 'testCardsDude')
+      f.add(this, 'activate')
+      f.add(this, 'deactivate')
+      f.add(this, 'lookAtCardTable')
+      this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
+    })
+  }
+
+  loadModels () {
     // make a card, get screen and add
     const loader = new GLTFLoader()
     const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
@@ -196,24 +221,6 @@ class CardsDude extends THREE.EventDispatcher {
       this.masterCard = masterCard
       this.redraw()
     }, progressCb, errCb)
-    // active functionality could be common to all mini-games
-    this.active = false
-
-    parent.addEventListener('ready', (ev) => {
-      console.assert(ev.gui instanceof GUI)
-      console.assert(ev.group instanceof THREE.Object3D)
-      console.assert(typeof ev.redrawFunc === 'function')
-      console.assert(ev.screen instanceof Screen)
-      this.redraw = ev.redrawFunc
-      this.screen = ev.screen
-      ev.group.add(this.group)
-      const f = this.gui = ev.gui.addFolder('Cards Dude!')
-      f.add(this, 'testCardsDude')
-      f.add(this, 'activate')
-      f.add(this, 'deactivate')
-      f.add(this, 'lookAtCardTable')
-      this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
-    })
   }
 
   /**
@@ -277,8 +284,8 @@ class CardsDude extends THREE.EventDispatcher {
       ps.position.z += 0.026
       // Layout on the playing space - this is all done by eye and should be science!
       // TODO fit the game to the mat
-      const columnToX = (c) => this.layout.offset.horizontal + (c * this.layout.spacing.horizontal)
-      const topY = 1.75
+      const columnToX = (c) => this.layout.tableauStartX + (c * this.layout.horizontalSpacing)
+      const topY = this.layout.tableauStartY
       // -----------------------------------------------------------------------
       // TODO proper deal - this is just a test!
       // get a stack of shuffled cards for the game
@@ -292,6 +299,7 @@ class CardsDude extends THREE.EventDispatcher {
       const gi = this.gameState.gameInfo
       const cardsUnusedPile = cardUtils.getDecks(gi.decks)
       cardUtils.shuffle(cardsUnusedPile)
+      const cc = this.gameState.tableau.length
       for (let i = 0; i < gi.tableau.count; i++) {
         const c = cardsUnusedPile[i] // should probably be pop or shift!
         console.log(c)
@@ -305,7 +313,9 @@ class CardsDude extends THREE.EventDispatcher {
         ps.add(nc)
         // the placing of a card on a column depends on the existing overlaps
         // each column can be a group!
-        nc.position.set(columnToX(i), topY, 0)
+        const y = topY
+        const yo = (Math.trunc(i / cc) * this.layout.verticalSpacingFaceDown)
+        nc.position.set(columnToX(i % cc), y, 0)
         // turn the first card face up! just to test!
         if (i === 0) { nc.rotateX(Math.PI) }
       }
