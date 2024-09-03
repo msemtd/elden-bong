@@ -270,22 +270,16 @@ class CardsDude extends THREE.EventDispatcher {
       }
       // since the scale of the mat is arbitrary and I'm too thick to sort it
       // all out, I'll set the location of the playing space...
+      // Shrink the group to make the card size look right and move it
+      // just above the surface of the mat...
+      // TODO automatically fit the game playing space to the top surface of the mat!
       const ps = new THREE.Group()
       ps.name = 'playSpace'
       ps.position.copy(v3)
       this.group.add(ps)
       this.playSpace = ps
-      // Shrink the group to make the card size look right and move it
-      // just above the surface of the mat...
-      // TODO - the card model centre is arguably wrong, being on the surface of the front face
-      // A face-down card at z = 0 is visible but a face up one is too low and z-fighting would ensue
-      // We could just work with it!
       ps.scale.multiplyScalar(0.22)
       ps.position.z += 0.026
-      // Layout on the playing space - this is all done by eye and should be science!
-      // TODO fit the game to the mat
-      const columnToX = (c) => this.layout.tableauStartX + (c * this.layout.horizontalSpacing)
-      const topY = this.layout.tableauStartY
       // -----------------------------------------------------------------------
       // TODO proper deal - this is just a test!
       // get a stack of shuffled cards for the game
@@ -296,6 +290,7 @@ class CardsDude extends THREE.EventDispatcher {
       // add a box helper to a card and find the real centre
       // user settings for vertical overlap spacing when face down and face up
       // if the column is a group then we can arrange them accordingly
+
       const gi = this.gameState.gameInfo
       const cardsUnusedPile = cardUtils.getDecks(gi.decks)
       cardUtils.shuffle(cardsUnusedPile)
@@ -313,9 +308,13 @@ class CardsDude extends THREE.EventDispatcher {
         ps.add(nc)
         // the placing of a card on a column depends on the existing overlaps
         // each column can be a group!
-        const y = topY
-        const yo = (Math.trunc(i / cc) * this.layout.verticalSpacingFaceDown)
-        nc.position.set(columnToX(i % cc), y, 0)
+        const row = Math.trunc(i / cc)
+        const col = i % cc
+        const x = this.layout.tableauStartX + (col * this.layout.horizontalSpacing)
+        const y = this.layout.tableauStartY
+        const yo = (row * this.layout.verticalSpacingFaceDown)
+        const z = row * 0.002
+        nc.position.set(x, y - yo, z)
         // turn the first card face up! just to test!
         if (i === 0) { nc.rotateX(Math.PI) }
       }
