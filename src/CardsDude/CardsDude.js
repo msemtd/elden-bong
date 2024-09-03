@@ -9,6 +9,7 @@ import { Screen } from '../Screen'
 import * as cardUtils from './cardUtils'
 import CameraControls from 'camera-controls'
 import { isString, isObject, isInteger } from '../wahWah'
+import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 
 /**
  * Cards Dude mini-game
@@ -124,6 +125,11 @@ class CardStack extends Array {
   // Just an array but type
 }
 
+/**
+ * events raised:
+ * - update = you need to animate something
+ * - addHistory = this just went on the undo stack
+ */
 class GameState extends THREE.EventDispatcher {
   constructor (game) {
     super()
@@ -145,6 +151,7 @@ class GameState extends THREE.EventDispatcher {
   startNew () {
     const nd = this.gameInfo.decks
     const ca = cardUtils.getDecks(nd)
+    this.stock.length = 0
     cardUtils.shuffle(ca)
     for (const c of ca) {
       const chars = c.split('')
@@ -152,7 +159,10 @@ class GameState extends THREE.EventDispatcher {
       const rank = chars.join('')
       this.stock.push(new Card(rank, suit))
     }
-    this.addHistory(`shuffle ${nd} decks for a new game of ${this.game.name}`)
+    this.dispatchEvent({ type: 'update', act: 'created stock' })
+    // deal
+
+    this.addHistory(`shuffled ${nd} decks and dealt a new game of ${this.game.name}`)
   }
 
   addHistory (value) {
@@ -192,6 +202,7 @@ class CardsDude extends THREE.EventDispatcher {
       f.add(this, 'activate')
       f.add(this, 'deactivate')
       f.add(this, 'lookAtCardTable')
+      this.gameState.addEventListener('update', this.handleGameStateUpdate.bind(this))
       this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
     })
   }
@@ -201,6 +212,47 @@ class CardsDude extends THREE.EventDispatcher {
     const loader = new GLTFLoader()
     const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
     const errCb = (error) => { console.error('An error happened', error) }
+    // make the playing surface mat
+    const makeMat = () => {
+      const g = new RoundedBoxGeometry(1, 1, 0.1, 5, 0.1)
+      const m = new THREE.MeshLambertMaterial({ color: 0x0a660a })
+      const mat = new THREE.Mesh(g, m)
+      mat.name = 'mat'
+      this.group.add(mat)
+      mat.position.set(-0.2, -0.84, 0.83)
+      mat.scale.set(2, 1.25, 0.5)
+      // put the mat on the table but don't use the table's messed up matrix!
+      // let fld = this.gui.addFolder('mat position').onChange(this.redraw)
+      // fld.add(o.position, 'x').step(0.01)
+      // fld.add(o.position, 'y').step(0.01)
+      // fld.add(o.position, 'z').step(0.01)
+      // fld = this.gui.addFolder('mat scale').onChange(this.redraw)
+      // fld.add(o.scale, 'x').step(0.05)
+      // fld.add(o.scale, 'y').step(0.05)
+      // fld.add(o.scale, 'z').step(0.05)
+      // this.gui.addColor(o.material, 'color').onChange(this.redraw)
+      // -----------------------------------------------------------------------
+      // since the scale of the mat is arbitrary and I'm too thick to sort it
+      // all out, I'll set the location of the playing space...
+      // Shrink the group to make the card size look right and move it
+      // just above the surface of the mat...
+      // TODO automatically fit the game playing space to the top surface of the mat!
+      const ps = new THREE.Group()
+      ps.name = 'playSpace'
+      ps.position.copy(mat.position)
+      this.group.add(ps)
+      this.playSpace = ps
+      ps.scale.multiplyScalar(0.22)
+      ps.position.z += 0.026
+    }
+    // Card model - the "Master-Card"
+    loader.load(cardThing, (data) => {
+      const masterCard = data.scene.children[0]
+      // test our assumption about the model...
+      console.assert(masterCard && masterCard.name === 'Card')
+      masterCard.rotateX(Math.PI / 2)
+      this.masterCard = masterCard
+    }, progressCb, errCb)
     // Table model (belongs in parent I suppose)
     loader.load(tableThing, (data) => {
       const table = data.scene.children[0]
@@ -209,16 +261,7 @@ class CardsDude extends THREE.EventDispatcher {
       table.scale.divideScalar(1.7)
       this.group.add(table)
       this.table = table
-      this.redraw()
-    }, progressCb, errCb)
-    // Card model - the "Master-Card"
-    loader.load(cardThing, (data) => {
-      const masterCard = data.scene.children[0]
-      // test our assumption about the model...
-      console.assert(masterCard && masterCard.name === 'Card')
-      masterCard.rotateX(Math.PI / 2)
-      // this.group.add(card)
-      this.masterCard = masterCard
+      makeMat()
       this.redraw()
     }, progressCb, errCb)
   }
@@ -234,40 +277,53 @@ class CardsDude extends THREE.EventDispatcher {
     return this.tween.isPlaying
   }
 
+  handleGameStateUpdate (ev) {
+    console.log(`${ev.type} ${ev.act}`)
+    if (ev.act === 'created stock') {
+      depthFirstReverseTraverse(null, this.stockPile, generalObj3dClean)
+      const g = this.stockPile = new THREE.Group()
+      g.name = 'stockPile'
+      this.playSpace.add(g)
+      // TODO place stock on the table next to the mat perhaps on a box
+      // populate with clones
+      for (const card of this.gameState.stock) {
+        this.create3dCard(card, g)
+      }
+      // spread stock cards in Z
+      for (let i = 0; i < g.children.length; i++) {
+        const c = g.children[i]
+        c.position.z = i * 0.002
+      }
+    }
+    if (ev.act === 'deal card from stock') {
+      console.log('TODO')
+    }
+    this.redraw()
+  }
+
+  create3dCard (card, g) {
+    const nc = this.masterCard.clone(true)
+    // TODO: create and cache card face texture
+    nc.userData = { card }
+    nc.name = `card_${card.rank}_${card.suit}`
+    g.add(nc)
+  }
+
   testCardsDude () {
     console.log('testCardsDude')
     this.activate()
-    // clone card and deal some out
-    // place tablecloth as play-space
-    if (this.group.getObjectByName('mat')) {
+    this.gameState.startNew()
+    console.warn('TODO this is all obsolete!')
+
+    // ------------------------------------------
+
+    if (this.group.getObjectByName('playSpace')) {
       // TODO clean up
       console.warn('already run - add provision for re-run')
       return
     }
-
-    // TODO clean up
+    const mat = this.group.getObjectByName('mat')
     {
-      const v3 = new THREE.Vector3()
-      { // make the playing surface mat
-        const g = new RoundedBoxGeometry(1, 1, 0.1, 5, 0.1)
-        const m = new THREE.MeshLambertMaterial({ color: 0x0a660a })
-        const o = new THREE.Mesh(g, m)
-        o.name = 'mat'
-        this.group.add(o)
-        o.position.set(-0.2, -0.84, 0.83)
-        o.scale.set(2, 1.25, 0.5)
-        // put the mat on the table but don't use the table's messed up matrix!
-        // let fld = this.gui.addFolder('mat position').onChange(this.redraw)
-        // fld.add(o.position, 'x').step(0.01)
-        // fld.add(o.position, 'y').step(0.01)
-        // fld.add(o.position, 'z').step(0.01)
-        // fld = this.gui.addFolder('mat scale').onChange(this.redraw)
-        // fld.add(o.scale, 'x').step(0.05)
-        // fld.add(o.scale, 'y').step(0.05)
-        // fld.add(o.scale, 'z').step(0.05)
-        // this.gui.addColor(o.material, 'color').onChange(this.redraw)
-        v3.copy(o.position)
-      }
       // since the scale of the mat is arbitrary and I'm too thick to sort it
       // all out, I'll set the location of the playing space...
       // Shrink the group to make the card size look right and move it
@@ -275,7 +331,7 @@ class CardsDude extends THREE.EventDispatcher {
       // TODO automatically fit the game playing space to the top surface of the mat!
       const ps = new THREE.Group()
       ps.name = 'playSpace'
-      ps.position.copy(v3)
+      ps.position.copy(mat.position)
       this.group.add(ps)
       this.playSpace = ps
       ps.scale.multiplyScalar(0.22)
