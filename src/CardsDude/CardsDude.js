@@ -179,12 +179,23 @@ class GameState extends THREE.EventDispatcher {
       this.tableau[col].push(card)
       this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
     }
+    this.flipTopCards()
     this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
   }
 
   addHistory (value) {
     this.history.push(value)
     this.dispatchEvent({ type: 'addHistory', value })
+  }
+
+  flipTopCards () {
+    for (const stack of this.tableau) {
+      if (!stack.length) continue
+      const card = stack[stack.length - 1]
+      if (card.faceUp) continue
+      card.faceUp = true
+      this.dispatchEvent({ type: 'update', act: 'flip top card', card })
+    }
   }
 }
 
@@ -294,11 +305,18 @@ class CardsDude extends THREE.EventDispatcher {
     if (!this.active) { return false }
     // anything on the TWEEN
     if (!this.tweenGroup) { return false }
-    return this.tweenGroup.update(delta)
+    // NB: can't use the delta for tween...
+    return this.tweenGroup.update(/* delta */)
   }
 
+  /**
+   * Here we perform all the graphical changes and animations as driven by the
+   * GameState events.
+   *
+   * It might be interesting if this were async and filled a queue with little tasks!
+   */
   handleGameStateUpdate (ev) {
-    console.log(`${ev.type} ${ev.act}`)
+    // console.log(`${ev.type} ${ev.act}`)
     if (ev.act === 'created stock') {
       depthFirstReverseTraverse(null, this.playSpace, generalObj3dClean)
       // TODO place stock on the table next to the mat perhaps on a box
@@ -314,14 +332,29 @@ class CardsDude extends THREE.EventDispatcher {
       }
     }
     if (ev.act === 'deal from stock') {
-      console.log(ev.card, ev.row, ev.col)
+      // console.log(ev.card, ev.row, ev.col)
       const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
       const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
       const z = ev.row * 0.002
-      obj.position.set(x, y, z)
-      // TODO: something wrong with tween
-      // new TWEEN.Tween(obj.position, this.tween).to({ x, y, z }, 1000).start()
+      new TWEEN.Tween(obj.position, this.tweenGroup).to({ x, y, z }, 1000).start()
+      // obj.position.set(x, y, z)
+    }
+    if (ev.act === 'flip top card') {
+      console.log(`${ev.type} ${ev.act}`, ev.card)
+      console.assert(ev.card instanceof Card)
+      const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
+      console.assert(obj instanceof THREE.Object3D)
+      const x = obj.rotation.x + Math.PI
+      new TWEEN.Tween(obj.rotation, this.tweenGroup).to({ x }, 1500).start()
+      // TODO: control this tween so it queues up after all others are done
+      // TODO: adjust height - face up cards need z+=????
+      if (ev.card.faceUp) {
+        // HOWEVER: this won't work when a tween has active control over the position property - it just gets reset
+        // We need a way of waiting until the animation is over
+        // obj.position.z += 0.026
+        // It may be appropriate to use a more sophisticated animation library
+      }
     }
     this.redraw()
   }
@@ -338,75 +371,6 @@ class CardsDude extends THREE.EventDispatcher {
     console.log('testCardsDude')
     this.activate()
     this.gameState.startNew()
-    console.warn('TODO this is all obsolete!')
-
-    // ------------------------------------------
-
-    if (this.group.getObjectByName('playSpace')) {
-      // TODO clean up
-      console.warn('already run - add provision for re-run')
-      return
-    }
-    const mat = this.group.getObjectByName('mat')
-    {
-      // since the scale of the mat is arbitrary and I'm too thick to sort it
-      // all out, I'll set the location of the playing space...
-      // Shrink the group to make the card size look right and move it
-      // just above the surface of the mat...
-      // TODO automatically fit the game playing space to the top surface of the mat!
-      const ps = new THREE.Group()
-      ps.name = 'playSpace'
-      ps.position.copy(mat.position)
-      this.group.add(ps)
-      this.playSpace = ps
-      ps.scale.multiplyScalar(0.22)
-      ps.position.z += 0.026
-      // -----------------------------------------------------------------------
-      // TODO proper deal - this is just a test!
-      // get a stack of shuffled cards for the game
-      // totally assume bigSpider here!
-      // TODO how many rows are dealt out to begin with?
-
-      // dealing to columns - face up or down - need card 3d box geometry really!
-      // add a box helper to a card and find the real centre
-      // user settings for vertical overlap spacing when face down and face up
-      // if the column is a group then we can arrange them accordingly
-
-      const gi = this.gameState.gameInfo
-      const cardsUnusedPile = cardUtils.getDecks(gi.decks)
-      cardUtils.shuffle(cardsUnusedPile)
-      const cc = this.gameState.tableau.length
-      for (let i = 0; i < gi.tableau.count; i++) {
-        const c = cardsUnusedPile[i] // should probably be pop or shift!
-        console.log(c)
-        // We want to clone the master card but replace the front face material
-
-        // "Material.card_back1.001", "Material.001" is face , "Material.002" is side #BBE700
-        // "CardMesh_2"
-        const nc = this.masterCard.clone(true)
-        nc.name = `card_${i}_${c}`
-        nc.userData = { cardValue: c, shufflePos: i, name: nc.name }
-        ps.add(nc)
-        // the placing of a card on a column depends on the existing overlaps
-        // each column can be a group!
-        const row = Math.trunc(i / cc)
-        const col = i % cc
-        const x = this.layout.tableauStartX + (col * this.layout.horizontalSpacing)
-        const y = this.layout.tableauStartY
-        const yo = (row * this.layout.verticalSpacingFaceDown)
-        const z = row * 0.002
-        nc.position.set(x, y - yo, z)
-        // turn the first card face up! just to test!
-        if (i === 0) { nc.rotateX(Math.PI) }
-      }
-
-      // const box = new THREE.Box3()
-      // box.setFromCenterAndSize(new THREE.Vector3(1, 1, 1), new THREE.Vector3(2, 1, 3))
-      // const helper = new THREE.Box3Helper(box, 0xffff00)
-      // helper.rotateZ(Math.PI / 5)
-      // ps.add(helper)
-      this.redraw()
-    }
   }
 
   activate () {
