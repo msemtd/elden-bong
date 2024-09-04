@@ -38,6 +38,7 @@ import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
  * fisher-yates
  */
 const games = {
+  // TODO: make a game class - let's formalise this!
   // Use the terminology and rules from xmsol
   // Try to interpret correctly!
   bigSpider: {
@@ -110,11 +111,13 @@ game:
 }
 
 class Card {
-  constructor (rank, suit, faceUp = false) {
+  constructor (id, rank, suit, faceUp = false) {
+    console.assert(isInteger(id))
     console.assert(isString(rank))
     console.assert(isString(suit))
     console.assert(rank.length <= 2)
     console.assert(suit.length === 1)
+    this.id = id
     this.rank = rank
     this.suit = suit
     this.faceUp = !!faceUp
@@ -149,20 +152,25 @@ class GameState extends THREE.EventDispatcher {
   }
 
   startNew () {
-    const gi = this.gameState.gameInfo
-    const nd = gi.decks
-    const ca = cardUtils.getDecks(nd)
+    // TODO: proper reset of all data!
     this.stock.length = 0
-    cardUtils.shuffle(ca)
+    for (let i = 0; i < this.tableau.length; i++) {
+      this.tableau[i].length = 0
+    }
+    const gi = this.gameInfo
+    const ca = cardUtils.getDecks(gi.decks)
+    let id = 0
     for (const c of ca) {
       const chars = c.split('')
       const suit = chars.pop()
       const rank = chars.join('')
-      this.stock.push(new Card(rank, suit))
+      this.stock.push(new Card(id, rank, suit))
+      id++
     }
+    cardUtils.shuffle(this.stock)
     this.dispatchEvent({ type: 'update', act: 'created stock' })
     // deal n cards to cols
-    const n = this.gameInfo.tableau.count
+    const n = gi.tableau.count
     const cc = this.tableau.length
     for (let i = 0; i < n; i++) {
       const card = this.stock.pop()
@@ -171,7 +179,7 @@ class GameState extends THREE.EventDispatcher {
       this.tableau[col].push(card)
       this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
     }
-    this.addHistory(`shuffled ${nd} decks and dealt a new game of ${this.gameInfo.name}`)
+    this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
   }
 
   addHistory (value) {
@@ -196,7 +204,11 @@ class CardsDude extends THREE.EventDispatcher {
       horizontalSpacing: 0.64,
       tableauStartX: -3.9,
       tableauStartY: 1.75,
+      stockPileX: -5.1,
+      stockPileY: 2.2,
+      stockPileZ: -0.15,
     }
+    this.tweenGroup = new TWEEN.Group()
     this.loadModels()
     parent.addEventListener('ready', (ev) => {
       console.assert(ev.gui instanceof GUI)
@@ -281,44 +293,35 @@ class CardsDude extends THREE.EventDispatcher {
   animate (delta) {
     if (!this.active) { return false }
     // anything on the TWEEN
-    if (!this.tween) { return false }
-    this.tween.update(delta)
-    return this.tween.isPlaying
+    if (!this.tweenGroup) { return false }
+    return this.tweenGroup.update(delta)
   }
 
   handleGameStateUpdate (ev) {
     console.log(`${ev.type} ${ev.act}`)
     if (ev.act === 'created stock') {
-      depthFirstReverseTraverse(null, this.stockPile, generalObj3dClean)
-      const g = this.stockPile = new THREE.Group()
-      g.name = 'stockPile'
-      this.playSpace.add(g)
+      depthFirstReverseTraverse(null, this.playSpace, generalObj3dClean)
       // TODO place stock on the table next to the mat perhaps on a box
       // populate with clones
+      const g = this.playSpace
       for (const card of this.gameState.stock) {
         this.create3dCard(card, g)
       }
       // spread stock cards in Z
       for (let i = 0; i < g.children.length; i++) {
         const c = g.children[i]
-        c.position.z = i * 0.002
+        c.position.set(this.layout.stockPileX, this.layout.stockPileY, this.layout.stockPileZ + (i * 0.002))
       }
     }
     if (ev.act === 'deal from stock') {
       console.log(ev.card, ev.row, ev.col)
-      // take the last card from stock and check it
-      const ca = this.stockPile.children
-      const obj = ca[ca.length = 1]
-      console.assert(obj.userData.card === ev.card)
-      // set a target location to be the top of the col
-
-
-      // TODO: OK, got a small problem - for animation of positions a single
-      // parent group will be required or parents with the same position
-      // Easier to use the playSpace as the single parent and all the child cards
-      // be placed wherever they need to be.
-      // All cards to be given a unique identifier so we can quickly locate them
-      // in the 3D world.
+      const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
+      const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
+      const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
+      const z = ev.row * 0.002
+      obj.position.set(x, y, z)
+      // TODO: something wrong with tween
+      // new TWEEN.Tween(obj.position, this.tween).to({ x, y, z }, 1000).start()
     }
     this.redraw()
   }
@@ -327,7 +330,7 @@ class CardsDude extends THREE.EventDispatcher {
     const nc = this.masterCard.clone(true)
     // TODO: create and cache card face texture
     nc.userData = { card }
-    nc.name = `card_${card.rank}_${card.suit}`
+    nc.name = `card_${card.id}`
     g.add(nc)
   }
 
