@@ -149,7 +149,8 @@ class GameState extends THREE.EventDispatcher {
   }
 
   startNew () {
-    const nd = this.gameInfo.decks
+    const gi = this.gameState.gameInfo
+    const nd = gi.decks
     const ca = cardUtils.getDecks(nd)
     this.stock.length = 0
     cardUtils.shuffle(ca)
@@ -160,9 +161,17 @@ class GameState extends THREE.EventDispatcher {
       this.stock.push(new Card(rank, suit))
     }
     this.dispatchEvent({ type: 'update', act: 'created stock' })
-    // deal
-
-    this.addHistory(`shuffled ${nd} decks and dealt a new game of ${this.game.name}`)
+    // deal n cards to cols
+    const n = this.gameInfo.tableau.count
+    const cc = this.tableau.length
+    for (let i = 0; i < n; i++) {
+      const card = this.stock.pop()
+      const row = Math.trunc(i / cc)
+      const col = i % cc
+      this.tableau[col].push(card)
+      this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
+    }
+    this.addHistory(`shuffled ${nd} decks and dealt a new game of ${this.gameInfo.name}`)
   }
 
   addHistory (value) {
@@ -295,8 +304,21 @@ class CardsDude extends THREE.EventDispatcher {
         c.position.z = i * 0.002
       }
     }
-    if (ev.act === 'deal card from stock') {
-      console.log('TODO')
+    if (ev.act === 'deal from stock') {
+      console.log(ev.card, ev.row, ev.col)
+      // take the last card from stock and check it
+      const ca = this.stockPile.children
+      const obj = ca[ca.length = 1]
+      console.assert(obj.userData.card === ev.card)
+      // set a target location to be the top of the col
+
+
+      // TODO: OK, got a small problem - for animation of positions a single
+      // parent group will be required or parents with the same position
+      // Easier to use the playSpace as the single parent and all the child cards
+      // be placed wherever they need to be.
+      // All cards to be given a unique identifier so we can quickly locate them
+      // in the 3D world.
     }
     this.redraw()
   }
