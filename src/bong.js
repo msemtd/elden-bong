@@ -73,7 +73,7 @@ class Bong extends THREE.EventDispatcher {
     this.slicerDialog = null
     // Lighting
     {
-      const intensity = 3
+      const intensity = 0.05
       const dl = new THREE.DirectionalLight(0xffffff, 5)
       dl.position.set(50, 100, 75)
       c.scene.add(dl)

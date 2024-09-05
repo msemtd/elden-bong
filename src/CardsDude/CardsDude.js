@@ -181,7 +181,7 @@ class GameState extends THREE.EventDispatcher {
     }
     this.flipTopCards()
     this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
-    this.dispatchEvent({ type: 'update', act: 'safety redraw'})
+    this.dispatchEvent({ type: 'update', act: 'safety redraw' })
   }
 
   addHistory (value) {
@@ -224,7 +224,7 @@ class CardsDude extends THREE.EventDispatcher {
       antiFightZ: 0.002,
       faceUpFudgeZ: 0.01, // TODO: measure this properly
     }
-    this.timeLine = gsap.timeline({ autoRemoveChildren: true /* , onComplete: this.redraw.bind(this) */ })
+    this.timeLine = gsap.timeline({ autoRemoveChildren: true, onComplete: this.onEndTimeLine.bind(this) })
     this.loadModels()
     parent.addEventListener('ready', (ev) => {
       console.assert(ev.gui instanceof GUI)
@@ -301,6 +301,43 @@ class CardsDude extends THREE.EventDispatcher {
       makeMat()
       this.redraw()
     }, progressCb, errCb)
+    {
+      // card face images - only need one set...
+      const cm = {}
+      const ca = cardUtils.getDecks(1)
+      for (let i = 0; i < ca.length; i++) {
+        const v = ca[i]
+        const canvas = this.canvasDrawCardFace(v)
+        cm[v] = canvas
+      }
+      this.faceCanvases = cm
+    }
+  }
+
+  canvasDrawCardFace (card) {
+    const defaultCardShape = {
+      width: 0.62,
+      length: 0.88,
+      thickness: 0.01,
+    }
+    const a = card.split('')
+    const suit = a.pop()
+    const rank = a.join('')
+    const clr = cardUtils.suitColours[suit]
+    const p = defaultCardShape
+    const canvas = document.createElement('canvas')
+    canvas.width = 500
+    canvas.height = canvas.width / p.width * p.length
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'lightyellow'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.font = '75px serif'
+    ctx.fillStyle = clr
+    ctx.textBaseline = 'top'
+    ctx.textAlign = 'center'
+    ctx.fillText(rank, 40, 30)
+    ctx.fillText(suit, 40, 100)
+    return canvas
   }
 
   /**
@@ -311,6 +348,11 @@ class CardsDude extends THREE.EventDispatcher {
     // anything on the timeline?
     if (!this.timeLine) { return false }
     return this.timeLine.isActive()
+  }
+
+  onEndTimeLine () {
+    console.log('onEndTimeLine')
+    this.redraw?.()
   }
 
   /**
@@ -341,7 +383,7 @@ class CardsDude extends THREE.EventDispatcher {
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
       const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
       const z = ev.row * this.layout.antiFightZ
-      this.timeLine.to(obj.position, { x, y, z, duration: 0.08 })
+      this.timeLine.to(obj.position, { x, y, z, duration: 0.05 })
       // obj.position.set(x, y, z)
     }
     if (ev.act === 'flip top card') {
@@ -352,16 +394,23 @@ class CardsDude extends THREE.EventDispatcher {
       // this position needs to be absolute based on row and what's face up
       // const stack = this.gameState.tableau[ev.row]
       const z = (ev.row * this.layout.antiFightZ) + this.layout.faceUpFudgeZ
-      this.timeLine.set(obj.position, { z, duration: 0.01 })
+      this.timeLine.set(obj.position, { z })
       const x = obj.rotation.x + Math.PI
       this.timeLine.to(obj.rotation, { x, duration: 0.1 })
     }
+    if (ev.act === 'safety redraw') {
+      // TODO - does this work?
+      // this.timeLine.set().onComplete(() => { this.redraw() })
+    }
+
     this.redraw()
   }
 
   create3dCard (card, g) {
     const nc = this.masterCard.clone(true)
-    // TODO: create and cache card face texture
+    const texture = new THREE.CanvasTexture(this.faceCanvases[card.rank + card.suit])
+    const frontMaterial = new THREE.MeshPhongMaterial({ map: texture })
+    nc.children[1].material = frontMaterial
     nc.userData = { card }
     nc.name = `card_${card.id}`
     g.add(nc)
