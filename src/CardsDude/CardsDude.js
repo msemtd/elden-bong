@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import TWEEN from 'three/addons/libs/tween.module.js'
+import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
@@ -181,6 +181,7 @@ class GameState extends THREE.EventDispatcher {
     }
     this.flipTopCards()
     this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
+    this.dispatchEvent({ type: 'update', act: 'safety redraw'})
   }
 
   addHistory (value) {
@@ -189,12 +190,14 @@ class GameState extends THREE.EventDispatcher {
   }
 
   flipTopCards () {
-    for (const stack of this.tableau) {
+    for (let col = 0; col < this.tableau.length; col++) {
+      const stack = this.tableau[col]
       if (!stack.length) continue
-      const card = stack[stack.length - 1]
+      const row = stack.length - 1
+      const card = stack[row]
       if (card.faceUp) continue
       card.faceUp = true
-      this.dispatchEvent({ type: 'update', act: 'flip top card', card })
+      this.dispatchEvent({ type: 'update', act: 'flip top card', card, row, col })
     }
   }
 }
@@ -218,8 +221,10 @@ class CardsDude extends THREE.EventDispatcher {
       stockPileX: -5.1,
       stockPileY: 2.2,
       stockPileZ: -0.15,
+      antiFightZ: 0.002,
+      faceUpFudgeZ: 0.01, // TODO: measure this properly
     }
-    this.tweenGroup = new TWEEN.Group()
+    this.timeLine = gsap.timeline({ autoRemoveChildren: true /* , onComplete: this.redraw.bind(this) */ })
     this.loadModels()
     parent.addEventListener('ready', (ev) => {
       console.assert(ev.gui instanceof GUI)
@@ -303,10 +308,9 @@ class CardsDude extends THREE.EventDispatcher {
    */
   animate (delta) {
     if (!this.active) { return false }
-    // anything on the TWEEN
-    if (!this.tweenGroup) { return false }
-    // NB: can't use the delta for tween...
-    return this.tweenGroup.update(/* delta */)
+    // anything on the timeline?
+    if (!this.timeLine) { return false }
+    return this.timeLine.isActive()
   }
 
   /**
@@ -326,9 +330,9 @@ class CardsDude extends THREE.EventDispatcher {
         this.create3dCard(card, g)
       }
       // spread stock cards in Z
-      for (let i = 0; i < g.children.length; i++) {
-        const c = g.children[i]
-        c.position.set(this.layout.stockPileX, this.layout.stockPileY, this.layout.stockPileZ + (i * 0.002))
+      for (let row = 0; row < g.children.length; row++) {
+        const c = g.children[row]
+        c.position.set(this.layout.stockPileX, this.layout.stockPileY, this.layout.stockPileZ + (row * this.layout.antiFightZ))
       }
     }
     if (ev.act === 'deal from stock') {
@@ -336,25 +340,21 @@ class CardsDude extends THREE.EventDispatcher {
       const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
       const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
-      const z = ev.row * 0.002
-      new TWEEN.Tween(obj.position, this.tweenGroup).to({ x, y, z }, 1000).start()
+      const z = ev.row * this.layout.antiFightZ
+      this.timeLine.to(obj.position, { x, y, z, duration: 0.08 })
       // obj.position.set(x, y, z)
     }
     if (ev.act === 'flip top card') {
-      console.log(`${ev.type} ${ev.act}`, ev.card)
+      // console.log(`${ev.type} ${ev.act}`, ev.card)
       console.assert(ev.card instanceof Card)
       const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
       console.assert(obj instanceof THREE.Object3D)
+      // this position needs to be absolute based on row and what's face up
+      // const stack = this.gameState.tableau[ev.row]
+      const z = (ev.row * this.layout.antiFightZ) + this.layout.faceUpFudgeZ
+      this.timeLine.set(obj.position, { z, duration: 0.01 })
       const x = obj.rotation.x + Math.PI
-      new TWEEN.Tween(obj.rotation, this.tweenGroup).to({ x }, 1500).start()
-      // TODO: control this tween so it queues up after all others are done
-      // TODO: adjust height - face up cards need z+=????
-      if (ev.card.faceUp) {
-        // HOWEVER: this won't work when a tween has active control over the position property - it just gets reset
-        // We need a way of waiting until the animation is over
-        // obj.position.z += 0.026
-        // It may be appropriate to use a more sophisticated animation library
-      }
+      this.timeLine.to(obj.rotation, { x, duration: 0.1 })
     }
     this.redraw()
   }
