@@ -687,9 +687,10 @@ class Bong extends THREE.EventDispatcher {
   singleClick (ev, mousePos) {
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
-    // if (this.moanSwooper?.active) {
-    //   return this.moanSwooper.intersect(this.raycaster, ev)
-    // }
+    // TODO this.moanSwooper.intersect(this.raycaster, ev)
+    if (this.miniGames.stealIntersectForGame(ev, mousePos, this.raycaster)) {
+      return
+    }
     const clickable = this.mapIconSets
     if (!clickable) { return }
     const hits = this.raycaster.intersectObject(clickable)

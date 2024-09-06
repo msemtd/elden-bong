@@ -356,6 +356,44 @@ class CardsDude extends THREE.EventDispatcher {
   }
 
   /**
+   * @returns true if I stole the intersect
+   */
+  stealIntersectForGame (ev, mousePos, raycaster) {
+    // TODO if I hit something and use it then stop the event from getting to the camera-controls!
+    if (!this.active) { return false }
+    const clickable = [] // top (last) cards from active stacks
+    const addStackTopCardObj = (stack, list) => {
+      if (stack.length) {
+        const c = stack[stack.length - 1]
+        const obj = this.playSpace.getObjectByName(this.cardObjName(c))
+        if (obj) {
+          list.push(obj)
+        }
+      }
+    }
+    addStackTopCardObj(this.gameState.stock, clickable)
+    const addStackAllCardObj = (stack, list) => {
+      for (const c of stack) {
+        const obj = this.playSpace.getObjectByName(this.cardObjName(c))
+        if (obj) {
+          list.push(obj)
+        }
+      }
+    }
+    for (const stack of this.gameState.tableau) {
+      addStackAllCardObj(stack, clickable)
+    }
+    // TODO use a tiny radius!
+    const hits = raycaster.intersectObjects(clickable)
+    if (hits.length) {
+      // TODO if I hit something and use it then stop the event from getting to the camera-controls!
+      console.log('hit cards ' + hits.length)
+      return true
+    }
+    return false
+  }
+
+  /**
    * Here we perform all the graphical changes and animations as driven by the
    * GameState events.
    *
@@ -379,7 +417,7 @@ class CardsDude extends THREE.EventDispatcher {
     }
     if (ev.act === 'deal from stock') {
       // console.log(ev.card, ev.row, ev.col)
-      const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
+      const obj = this.playSpace.getObjectByName(this.cardObjName(ev.card))
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
       const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
       const z = ev.row * this.layout.antiFightZ
@@ -389,7 +427,7 @@ class CardsDude extends THREE.EventDispatcher {
     if (ev.act === 'flip top card') {
       // console.log(`${ev.type} ${ev.act}`, ev.card)
       console.assert(ev.card instanceof Card)
-      const obj = this.playSpace.getObjectByName(`card_${ev.card.id}`)
+      const obj = this.playSpace.getObjectByName(this.cardObjName(ev.card))
       console.assert(obj instanceof THREE.Object3D)
       // this position needs to be absolute based on row and what's face up
       // const stack = this.gameState.tableau[ev.row]
@@ -412,8 +450,12 @@ class CardsDude extends THREE.EventDispatcher {
     const frontMaterial = new THREE.MeshPhongMaterial({ map: texture })
     nc.children[1].material = frontMaterial
     nc.userData = { card }
-    nc.name = `card_${card.id}`
+    nc.name = this.cardObjName(card)
     g.add(nc)
+  }
+
+  cardObjName (card) {
+    return `card_${card.id}`
   }
 
   testCardsDude () {

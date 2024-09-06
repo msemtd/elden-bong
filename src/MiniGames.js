@@ -22,8 +22,8 @@ import { Screen } from './Screen'
  * - add your group to the given group
  * - save the redraw request function
  * - hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
- * 
- * 
+ *
+ *
  * = The Games Room =
  * floor, walls, door, windows, furniture, a cafe?
  * Go to the games room - animate camera movement and go in through the door?
@@ -59,6 +59,13 @@ class MiniGames extends THREE.EventDispatcher {
     // visit each game and get it to pause/hide itself
     this.games.cardsDude.deactivate()
     this.redraw()
+  }
+
+  stealIntersectForGame (ev, mousePos, raycaster) {
+    if (this.games.cardsDude.active) {
+      return this.games.cardsDude.stealIntersectForGame(ev, mousePos, raycaster)
+    }
+    return false
   }
 
   // TODO - complete the transplant of Moan Swooper
