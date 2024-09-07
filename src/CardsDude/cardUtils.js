@@ -11,6 +11,7 @@ const theFrenchSuits = 'CLUBS ♣ black, DIAMONDS ♦ red, HEARTS ♥ red, SPADE
 const theRanks = 'ACE A, TWO 2, THREE 3, FOUR 4, FIVE 5, SIX 6, SEVEN 7, EIGHT 8, NINE 9, TEN 10, JACK J, QUEEN Q, KING K'
 const suitInfo = theFrenchSuits.split(', ').map(x => { return x.split(' ') })
 const rankInfo = theRanks.split(', ').map(x => { return x.split(' ') })
+const rankValues = makeRankValues(rankInfo)
 const aDeck = deck()
 const suitColours = mkSuitColours(suitInfo)
 
@@ -61,6 +62,14 @@ function mkSuitColours (aa) {
   return o
 }
 
+function makeRankValues (ri) {
+  const rVal = {}
+  for (let i = 0; i < ri.length; i++) {
+    rVal[ri[i][1]] = i + 1
+  }
+  return rVal
+}
+
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 // https://bost.ocks.org/mike/shuffle/
 function shuffle (array) {
@@ -77,4 +86,4 @@ function shuffle (array) {
   return array
 }
 
-export { getDecks, shuffle, rankInfo, suitInfo, suitColours, cardDimensionsMd, cardDimensionsTab }
+export { getDecks, shuffle, rankInfo, rankValues, suitInfo, suitColours, cardDimensionsMd, cardDimensionsTab }

@@ -200,6 +200,58 @@ class GameState extends THREE.EventDispatcher {
       this.dispatchEvent({ type: 'update', act: 'flip top card', card, row, col })
     }
   }
+
+  tableauFind (cardId) {
+    const tab = this.tableau
+    for (let col = 0; col < tab.length; col++) {
+      const stack = tab[col]
+      const row = stack.findIndex(c => c.id === cardId)
+      if (row !== -1) return [stack[row], row, col]
+    }
+    return [null]
+  }
+
+  /**
+   * Check the sequence of card values in this stack, starting at row, differs by diff each card
+   * @param {Array<Card>} stack array of Card
+   * @param {Number} row start of the sequence
+   * @param {Number} diff difference in rank value - default to -1 for a descending sequence
+   */
+  checkSequence (stack, row, diff = -1) {
+    // This could probably be done as a one-liner with {Array.reduce} but I'm
+    // not smart enough at this time of night!
+    let v1 = cardUtils.rankValues[stack[row].rank]
+    console.assert(isInteger(v1))
+    for (let i = row + 1; i < stack.length; i++) {
+      const v2 = cardUtils.rankValues[stack[i].rank]
+      console.assert(isInteger(v2))
+      if (v2 !== v1 + diff) return false
+      v1 = v2
+    }
+    return true
+  }
+
+  autoMove (cardId) {
+    // find the card being moved - must be face-up in the tableau...
+    const [card, row, col] = this.tableauFind(cardId)
+    console.assert(card && card?.faceUp)
+    if (!card || !card.faceUp) return
+    // can this stack even be moved?
+    // look if this stack is valid starting at row
+    if (!this.checkSequence(this.tableau[col], row)) {
+      console.log('autoMove: this sequence cannot be moved')
+      this.dispatchEvent({ type: 'update', act: 'autoMove failed', card, row, col })
+      return
+    }
+    // now search for somewhere to place it
+    console.log(`autoMove ${cardId} is ${card.rank}${card.suit} at col ${col} row ${row}...`)
+    for (let i = col + 1; i < this.tableau.length; i++) {
+      const s = this.tableau[i]
+      if (!s.length) continue
+      const card = s[s.length - 1]
+      console.assert(card.faceUp)
+    }
+  }
 }
 
 class CardsDude extends THREE.EventDispatcher {
@@ -359,35 +411,101 @@ class CardsDude extends THREE.EventDispatcher {
    * @returns true if I stole the intersect
    */
   stealIntersectForGame (ev, mousePos, raycaster) {
-    // TODO if I hit something and use it then stop the event from getting to the camera-controls!
     if (!this.active) { return false }
-    const clickable = [] // top (last) cards from active stacks
+    // only for left or right click...
+    if (ev.button !== 0 && ev.button !== 2) { return false }
+    // TODO if I hit something and use it then stop the event from getting to the camera-controls!
+    const clickable = [] // active cards: top card of stock or face up on tableau and not blocked!
     const addStackTopCardObj = (stack, list) => {
-      if (stack.length) {
-        const c = stack[stack.length - 1]
-        const obj = this.playSpace.getObjectByName(this.cardObjName(c))
-        if (obj) {
-          list.push(obj)
-        }
-      }
+      if (!stack.length) { return }
+      const c = stack[stack.length - 1]
+      const obj = this.playSpace.getObjectByName(this.cardObjName(c))
+      if (obj) { list.push(obj) }
     }
     addStackTopCardObj(this.gameState.stock, clickable)
-    const addStackAllCardObj = (stack, list) => {
+    const addStackAllFaceUpCardObj = (stack, list) => {
       for (const c of stack) {
+        if (!c.faceUp) continue
         const obj = this.playSpace.getObjectByName(this.cardObjName(c))
-        if (obj) {
-          list.push(obj)
-        }
+        if (obj) { list.push(obj) }
       }
     }
     for (const stack of this.gameState.tableau) {
-      addStackAllCardObj(stack, clickable)
+      addStackAllFaceUpCardObj(stack, clickable)
     }
     // TODO use a tiny radius!
     const hits = raycaster.intersectObjects(clickable)
     if (hits.length) {
       // TODO if I hit something and use it then stop the event from getting to the camera-controls!
       console.log('hit cards ' + hits.length)
+      const m = hits[0].object
+      if (m.isMesh && m.name === 'CardMesh_1') {
+        // hit the face of a card - should be the usual case
+        console.log('card face of ' + m.parent.name)
+        const o = clickable.find(x => x === m.parent)
+        console.assert(o)
+        if (ev.button === 2) {
+          // right clicked - auto move if valid target exists
+          this.gameState.autoMove(this.cardObjNameToId(m.parent.name))
+        } else if (ev.button === 0) {
+          // Start to drag sub stack...
+          // Don't worry about validity of the drag until drop happens!
+          // This allows the user to freely move cards temporarily to look at obscured cards
+          const savedCameraControlsEnabled = this.screen.cameraControls.enabled
+          this.screen.cameraControls.enabled = false
+          const canvas = this.screen.renderer.domElement
+          console.assert(ev.currentTarget === canvas)
+          const dragStartPos2D = mousePos.clone()
+          const dragEndPos2D = mousePos.clone()
+          // TODO use a temporary group object?
+          // get valid targets for this card? Nah, just see what happens!
+          raycaster.setFromCamera(mousePos, this.screen.camera)
+          const tempDragGroup = new THREE.Group()
+          tempDragGroup.name = 'tempDragGroup'
+          // this.playSpace.add(tempDragGroup)
+
+          const mouseMoveListener = (ev) => {
+            const rect = ev.target.getBoundingClientRect()
+            dragEndPos2D.x = (ev.clientX - rect.left) / rect.width * 2 - 1
+            dragEndPos2D.y = -(ev.clientY - rect.top) / rect.height * 2 + 1
+            // TODO move dragging group to plane intersection just above playing group
+          }
+          const dropListener = (ev) => {
+            // TODO should we update the mouse position here?
+            // Is it guaranteed to have been done prior to this call?
+            // We can test it!
+            {
+              const rect = ev.target.getBoundingClientRect()
+              const x = (ev.clientX - rect.left) / rect.width * 2 - 1
+              const y = -(ev.clientY - rect.top) / rect.height * 2 + 1
+              if (x !== dragEndPos2D.x || y !== dragEndPos2D.y) {
+                console.warn('yeah we need to update the mover on drop')
+              }
+            }
+            console.log('drop', dragEndPos2D)
+            this.screen.cameraControls.enabled = savedCameraControlsEnabled
+            canvas.removeEventListener('mousemove', mouseMoveListener, false)
+            canvas.removeEventListener('mouseup', dropListener, false)
+            canvas.removeEventListener('mousedown', dropListener, false)
+            // TODO: assess the drop location!
+            // ray-cast to a potential target pile
+            // if it is a tableau location (including the base of an empty tableau!)
+            // then see if it is valid
+          }
+          canvas.addEventListener('mousemove', mouseMoveListener, false)
+          canvas.addEventListener('mouseup', dropListener, false)
+          canvas.addEventListener('mousedown', dropListener, false)
+        }
+      } else if (m.isMesh && m.name === 'CardMesh') {
+        // hit the back of a card - this should be the stock
+        console.log('card back of ' + m.parent.name)
+        if (m.parent === clickable[0]) {
+          console.log('- stock clicked!')
+        } else {
+          console.log('- not the stock! No drag allowed')
+        }
+      }
+
       return true
     }
     return false
@@ -421,8 +539,8 @@ class CardsDude extends THREE.EventDispatcher {
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
       const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
       const z = ev.row * this.layout.antiFightZ
-      this.timeLine.to(obj.position, { x, y, z, duration: 0.05 })
-      // obj.position.set(x, y, z)
+      // this.timeLine.to(obj.position, { x, y, z, duration: 0.05 })
+      obj.position.set(x, y, z)
     }
     if (ev.act === 'flip top card') {
       // console.log(`${ev.type} ${ev.act}`, ev.card)
@@ -456,6 +574,11 @@ class CardsDude extends THREE.EventDispatcher {
 
   cardObjName (card) {
     return `card_${card.id}`
+  }
+
+  cardObjNameToId (name) {
+    if (!name.startsWith('card_')) return Number.NaN
+    return Number(name.slice(5))
   }
 
   testCardsDude () {
