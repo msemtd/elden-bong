@@ -171,17 +171,26 @@ class GameState extends THREE.EventDispatcher {
     this.dispatchEvent({ type: 'update', act: 'created stock' })
     // deal n cards to cols
     const n = gi.tableau.count
+    this.dealFromStock(n)
+    this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
+    this.dispatchEvent({ type: 'update', act: 'safety redraw' })
+  }
+
+  dealFromStock (n) {
     const cc = this.tableau.length
     for (let i = 0; i < n; i++) {
       const card = this.stock.pop()
-      const row = Math.trunc(i / cc)
+      // TODO: row needs to be based on current content
       const col = i % cc
       this.tableau[col].push(card)
+      const row = this.tableau[col].length
       this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
     }
     this.flipTopCards()
-    this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
-    this.dispatchEvent({ type: 'update', act: 'safety redraw' })
+  }
+
+  useStock () {
+    this.dealFromStock(this.tableau.length)
   }
 
   addHistory (value) {
@@ -274,7 +283,7 @@ class CardsDude extends THREE.EventDispatcher {
       stockPileY: 2.2,
       stockPileZ: -0.15,
       antiFightZ: 0.002,
-      faceUpFudgeZ: 0.01, // TODO: measure this properly
+      faceUpFudgeZ: 0.015, // TODO: measure this properly
     }
     this.timeLine = gsap.timeline({ autoRemoveChildren: true, onComplete: this.onEndTimeLine.bind(this) })
     this.loadModels()
@@ -501,6 +510,7 @@ class CardsDude extends THREE.EventDispatcher {
         console.log('card back of ' + m.parent.name)
         if (m.parent === clickable[0]) {
           console.log('- stock clicked!')
+          setTimeout(() => { this.gameState.useStock() }, 1)
         } else {
           console.log('- not the stock! No drag allowed')
         }
