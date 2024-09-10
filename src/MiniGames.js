@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { CardsDude } from './CardsDude/CardsDude'
 import { MoanSwooper } from './MoanSwooper/MoanSwooper'
+import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
 /**
  * Allow the mini-games wrapper provide a games room
@@ -39,6 +40,7 @@ class MiniGames extends THREE.EventDispatcher {
     this.games = {
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
+      shedBuilder: new ShedBuilder(this),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!

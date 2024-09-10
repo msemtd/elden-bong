@@ -72,6 +72,7 @@ class MoanSwooper extends THREE.EventDispatcher {
     // TODO: have a visual indicator of game state
     this.masterMineObj = this.makeBomb()
     this.masterFlagObj = this.makeFlag()
+    // ------------------------------------------------
     parent.addEventListener('ready', (ev) => {
       console.assert(ev.gui instanceof GUI)
       console.assert(ev.group instanceof THREE.Object3D)
