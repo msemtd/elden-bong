@@ -28,6 +28,11 @@ class ShedBuilder extends THREE.EventDispatcher {
 
   runTest () {
     console.warn('TODO runTest')
+    // parent to set the location
+    // foundations
+    // tables of parts and costs
+    // construct posts and cladding
+    // cutting list
   }
 }
 
