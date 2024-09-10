@@ -37,7 +37,8 @@ class MiniGames extends THREE.EventDispatcher {
     this.group = new THREE.Group()
     this.group.name = 'Mini-Games'
     this.games = {
-      cardsDude: new CardsDude(this)
+      cardsDude: new CardsDude(this),
+      moanSwooper: new MoanSwooper(this),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!

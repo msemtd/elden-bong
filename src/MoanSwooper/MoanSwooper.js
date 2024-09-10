@@ -56,8 +56,15 @@ const deadTileObjName = (x, y) => `deadTile_${x}_${y}`
 const flagObjName = (x, y) => `flag_${x}_${y}}`
 
 class MoanSwooper extends THREE.EventDispatcher {
-  constructor () {
+  constructor (parent) {
     super()
+    console.assert(parent instanceof THREE.EventDispatcher)
+    this.active = false
+    this.gui = null
+    this.group = new THREE.Group()
+    this.group.name = 'MoanSwooper'
+    // -------------------------------------
+
     this.mode = modes.easy
     this.grid = makeGrid(this.mode)
     this.setState('NEW_GAME')
@@ -65,15 +72,19 @@ class MoanSwooper extends THREE.EventDispatcher {
     // TODO: have a visual indicator of game state
     this.masterMineObj = this.makeBomb()
     this.masterFlagObj = this.makeFlag()
-    // this.addTempGui()
-  }
-
-  addTempGui () {
-    this.gui = new GUI({ title: 'Moan Swooper' })
-    const f = this.gui
-    f.add(this, 'restartThisGame')
-    f.add(this, 'debugReveal')
-    f.add(this, 'dump')
+    parent.addEventListener('ready', (ev) => {
+      console.assert(ev.gui instanceof GUI)
+      console.assert(ev.group instanceof THREE.Object3D)
+      console.assert(typeof ev.redrawFunc === 'function')
+      console.assert(ev.screen instanceof Screen)
+      this.redraw = ev.redrawFunc
+      this.screen = ev.screen
+      ev.group.add(this.group)
+      const f = this.gui = ev.gui.addFolder('Moan Swooper!')
+      f.add(this, 'restartThisGame')
+      f.add(this, 'debugReveal')
+      f.add(this, 'dump')
+    })
   }
 
   dump () {
@@ -114,10 +125,6 @@ class MoanSwooper extends THREE.EventDispatcher {
     s = gridToString(grid, mode)
     console.log(s)
     // this.resetThreeGroup()
-  }
-
-  redraw () {
-    this.dispatchEvent({ type: 'redraw' })
   }
 
   runTestBomb () {
