@@ -498,6 +498,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
+"@pnext/three-loader@https://github.com/pnext/three-loader.git":
+  version "0.3.7"
+  resolved "https://github.com/pnext/three-loader.git#7b3ff22c5decaeb2d6da37a3278a0e092ed510c1"
+
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
   resolved "https://registry.npmjs.org/@sindresorhus/is/-/is-4.6.0.tgz"

@@ -310,6 +310,10 @@ Layout based on game (from card game data) and user spacing preferences
 * scripting LUA with Fengari - https://github.com/fengari-lua/fengari
 * Web Assembly background tasks in worker threads
 * Potree data in the three-js scenes
+  - pnext/three-loaded has apparently caught up with Sheng's fork and has potree 2 support!
+  - yarn add https://github.com/pnext/three-loader.git
+  - TODO: add a cloud for testing in user-specified dir
+
 
 # LICENSES AND ATTRIBUTION
 
