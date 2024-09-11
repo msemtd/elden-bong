@@ -11,6 +11,11 @@ import CameraControls from 'camera-controls'
 import { isString, isObject, isInteger } from '../wahWah'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 
+// take items from end of array and move to start
+const rotateArray = (arr, i) => {
+  arr.unshift(...arr.splice(i))
+}
+
 /**
  * Cards Dude mini-game
  *
@@ -122,10 +127,14 @@ class Card {
     this.suit = suit
     this.faceUp = !!faceUp
   }
+
+  rankValue () {
+    return cardUtils.rankValues[this.rank]
+  }
 }
 
 class CardStack extends Array {
-  // Just an array but type
+  // Just an array but typed
 }
 
 /**
@@ -229,10 +238,10 @@ class GameState extends THREE.EventDispatcher {
   checkSequence (stack, row, diff = -1) {
     // This could probably be done as a one-liner with {Array.reduce} but I'm
     // not smart enough at this time of night!
-    let v1 = cardUtils.rankValues[stack[row].rank]
+    let v1 = stack[row].rankValue()
     console.assert(isInteger(v1))
     for (let i = row + 1; i < stack.length; i++) {
-      const v2 = cardUtils.rankValues[stack[i].rank]
+      const v2 = stack[i].rankValue()
       console.assert(isInteger(v2))
       if (v2 !== v1 + diff) return false
       v1 = v2
@@ -254,12 +263,27 @@ class GameState extends THREE.EventDispatcher {
     }
     // now search for somewhere to place it
     console.log(`autoMove ${cardId} is ${card.rank}${card.suit} at col ${col} row ${row}...`)
-    for (let i = col + 1; i < this.tableau.length; i++) {
+    const rv = card.rankValue()
+    // OK, make a list of columns to check...
+    const cols = [...Array(this.tableau.length).keys()]
+    rotateArray(cols, col + 1)
+    console.log('check cols', cols)
+    // find if there's a target
+    const isValidTargetForVal = (i, rv) => {
       const s = this.tableau[i]
-      if (!s.length) continue
-      const card = s[s.length - 1]
-      console.assert(card.faceUp)
+      if (!s.length) return false
+      const tc = s[s.length - 1]
+      console.assert(tc.faceUp)
+      return (tc.rankValue() === rv + 1)
     }
+    const targetCols = cols.filter(i => isValidTargetForVal(i, rv))
+    console.log('target cols', targetCols)
+    if (targetCols.length) {
+      // TODO: actual move stack    
+
+    }
+    const emptyCols = cols.filter(i => (this.tableau[i].length === 0))
+    console.log('emptyCols cols', emptyCols)
   }
 }
 

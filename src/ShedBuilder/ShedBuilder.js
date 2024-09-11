@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { isString, isObject, isInteger } from '../wahWah'
 import { Screen } from '../Screen'
+import { pickFile } from '../HandyApi'
 
 class ShedBuilder extends THREE.EventDispatcher {
   constructor (parent) {
@@ -27,8 +28,10 @@ class ShedBuilder extends THREE.EventDispatcher {
     })
   }
 
-  runTest () {
+  async runTest () {
     console.warn('TODO runTest')
+    const fa = await pickFile()
+    console.log('file info: ', fa)
     // parent to set the location
     // foundations
     // tables of parts and costs
