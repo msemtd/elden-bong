@@ -210,17 +210,17 @@ class Bong extends THREE.EventDispatcher {
       }
       {
         const fld = this.gui.addFolder('Settings').close()
+        fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
         fld.add(this.settings.tools, 'magick')
         fld.add(this.settings.tools, 'sliceCommand')
         fld.add(this.settings, 'autoLoadMap')
-        fld.add(this, 'resetSettings').name('restore defaults')
         const sub = fld.addFolder('onScreen').onFinishChange(() => {
           this.updateOnScreenGubbins()
         })
         sub.add(this.settings.scene.onScreen, 'showTitleText')
         sub.add(this.settings.scene.onScreen, 'showControllerSvg')
         sub.add(this.settings.scene.onScreen, 'showCameraPosition')
-        fld.onFinishChange(() => { saveTheseSettings('eldenBong', this.settings) })
+        fld.add(this, 'resetSettings').name('⚠️ Restore Default Settings! ⚠️')
       }
 
       s.onChange(() => { this.redraw() })

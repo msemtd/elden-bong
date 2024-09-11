@@ -31,8 +31,7 @@ This is a project just for fun - _not a real game!_
 ## Settings
 
 Persistent user settings: -
-* preferably with a schema - although js-schema with ajv under electron-store package has proven difficult!
-* js-yaml fallback - since easily accessed from the renderer process via LocalStorage
+* js-yaml - since easily accessed from the renderer process via LocalStorage
 * map configurations to live here
 
 ## character
@@ -54,7 +53,7 @@ When a game controller is plugged in (and a button pressed - as per Web API for 
 - many controllers required including duplicates of the same model
 - find some unique identifier for a controller
 - save the settings for a controller
-- controller button and axis mappings format in JSON (and therefore YAML) with a schema
+- controller button and axis mappings format in JSON (and therefore YAML)
 - TODO game controller input translation is a bit broken - why are the game controls not just perfect?
 - on-screen display of the controller - SVG controller diagram with buttons is working nicely - need to animate joysticks too
 - deal with noise and the dead zone

@@ -1,8 +1,6 @@
 import debug from 'debug'
 import fs from 'fs-extra'
 import path from 'path'
-import * as Store from 'electron-store'
-import { schema } from './config'
 import { MainMap } from './MainMap'
 import { mineToFilePath, filePathToMine } from './util'
 import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
@@ -17,12 +15,6 @@ if (require('electron-squirrel-startup')) {
 }
 
 const staticDir = path.join(path.resolve(__dirname), '..', 'main', 'static')
-
-const store = new Store({
-  // schema, clearInvalidConfig: true
-})
-function configGet (k) { return store.get(k) }
-function configSet (k, v) { return store.set(k, v) }
 
 const rendererNotify = (topic, msg) => {
   mainWindow.webContents.send('renderer-notify', topic, msg)
@@ -70,8 +62,6 @@ app.whenReady().then(() => {
   ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
   ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
-  ipcMain.handle('configGet', (event, ...args) => { return configGet(...args) })
-  ipcMain.handle('configSet', (event, ...args) => { return configSet(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
