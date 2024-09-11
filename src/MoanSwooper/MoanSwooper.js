@@ -6,6 +6,7 @@ import { Text } from 'troika-three-text'
 import { fyShuffle } from './fyShuffle'
 import { getAdj, gridFromString, gridToString, idxToXy, makeGrid, setGridNumbers, xyToIdx } from './gridUtils'
 import { isString, isObject, isInteger } from '../wahWah'
+import { Screen } from '../Screen'
 
 /**
  * How does an implementation of minesweeper decide how to distribute the bombs

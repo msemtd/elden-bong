@@ -14,7 +14,7 @@ import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile } from './HandyApi'
 import { filePathToMine } from './util'
-import { exampleConfig, loadSettings, saveTheseSettings, distributeSettings } from './config'
+import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
 import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
 import { bongData } from './bongData'
@@ -37,7 +37,7 @@ const regionNames = bongData.regions.map(x => x.name)
 class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
     super()
-    this.settings = loadSettings('eldenBong', exampleConfig)
+    this.settings = loadSettings('eldenBong', defaultSettings)
     distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
     const c = this.screen
@@ -229,7 +229,7 @@ class Bong extends THREE.EventDispatcher {
 
   resetSettings () {
     console.log('reset settings to defaults')
-    this.settings = saveTheseSettings('eldenBong', exampleConfig)
+    this.settings = saveTheseSettings('eldenBong', defaultSettings)
   }
 
   whenReady () {

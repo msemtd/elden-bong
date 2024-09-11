@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { isString, isObject, isInteger } from '../wahWah'
+import { Screen } from '../Screen'
 
 class ShedBuilder extends THREE.EventDispatcher {
   constructor (parent) {

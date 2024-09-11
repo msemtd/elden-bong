@@ -2,7 +2,7 @@ import yaml from 'js-yaml'
 
 // Provides some default settings to be updated from yaml in local storage.
 
-const exampleConfig = {
+const defaultSettings = {
   tools: {
     magick: 'C:\\Program Files\\ImageMagick-7.1.1-Q16-HDRI\\magick',
     sliceCommand: '{{BIG_MAP_FILE}} -verbose -crop {{TILE_SIZE}}x{{TILE_SIZE}} {{PREFIX}}%d.png',
@@ -66,16 +66,16 @@ const exampleConfig = {
   },
 }
 
-function loadSettings (localStorageKey, defaultSettings) {
-  let settings = structuredClone(defaultSettings)
+function loadSettings (localStorageKey, defaults) {
+  let settings = structuredClone(defaults)
   const sy = localStorage.getItem(localStorageKey)
-  if (!sy) { return saveTheseSettings(localStorageKey, defaultSettings) }
+  if (!sy) { return saveTheseSettings(localStorageKey, defaults) }
   try {
     const incomingSettings = yaml.load(sy)
     settings = { ...settings, ...incomingSettings }
   } catch (error) {
     console.error(`failed to load settings key as YAML: ${error}`)
-    return saveTheseSettings(localStorageKey, defaultSettings)
+    return saveTheseSettings(localStorageKey, defaults)
   }
   return settings
 }
@@ -94,4 +94,4 @@ function distributeSettings (settings) {
   window?.settings?.passSettingsToMain?.(settings)
 }
 
-export { exampleConfig, loadSettings, saveTheseSettings, distributeSettings }
+export { defaultSettings, loadSettings, saveTheseSettings, distributeSettings }
