@@ -273,24 +273,29 @@ class GameState extends THREE.EventDispatcher {
     const rv = card.rankValue()
     // OK, make a list of columns to check...
     const cols = [...Array(this.tableau.length).keys()]
+    // starting after the given column and wrapping around...
     rotateArray(cols, col + 1)
-    console.log('check cols', cols)
-    // find if there's a target
+    // find if there's a target to receive our stack...
     const isValidTargetForVal = (i, rv) => {
-      const s = this.tableau[i]
-      if (!s.length) return false
-      const tc = s[s.length - 1]
-      console.assert(tc.faceUp)
-      return (tc.rankValue() === rv + 1)
+      const tc = this.tableau[i].slice(-1)[0]
+      return (tc?.rankValue() === rv + 1)
     }
     const targetCols = cols.filter(i => isValidTargetForVal(i, rv))
-    console.log('target cols', targetCols)
-    if (targetCols.length) {
-      // TODO: actual move stack
-
-    }
+    const betterTargetCols = targetCols.filter(i => {
+      const tc = this.tableau[i].slice(-1)[0]
+      return (tc?.suit === card.suit)
+    })
     const emptyCols = cols.filter(i => (this.tableau[i].length === 0))
+    console.log('target cols', targetCols)
+    console.log('better target cols', betterTargetCols)
     console.log('emptyCols cols', emptyCols)
+    const best = betterTargetCols.length ? betterTargetCols[0] : targetCols.length ? targetCols[0] : emptyCols.length ? emptyCols[0] : null
+    if (best === null) {
+      return
+    }
+    const subStack = this.tableau[col].splice(row)
+    this.tableau[best].push(subStack)
+    this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
   }
 }
 
