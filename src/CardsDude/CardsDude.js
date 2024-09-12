@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
+import seedrandom from 'seedrandom'
 import cardThing from './card-attempt-01.glb'
 import tableThing from './table.glb'
 import { Screen } from '../Screen'
@@ -160,7 +161,12 @@ class GameState extends THREE.EventDispatcher {
     this.history = []
   }
 
-  startNew () {
+  startNew (shuffleNumber = 5) {
+    console.assert(isInteger(shuffleNumber))
+    shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
+    this.shuffleNumber = shuffleNumber
+    const seedStr = 'CardsDude_' + shuffleNumber.toString().padStart(10, '0')
+    const rng = seedrandom(seedStr)
     // TODO: proper reset of all data!
     this.stock.length = 0
     for (let i = 0; i < this.tableau.length; i++) {
@@ -176,7 +182,8 @@ class GameState extends THREE.EventDispatcher {
       this.stock.push(new Card(id, rank, suit))
       id++
     }
-    cardUtils.shuffle(this.stock)
+
+    cardUtils.shuffle(this.stock, rng)
     this.dispatchEvent({ type: 'update', act: 'created stock' })
     // deal n cards to cols
     const n = gi.tableau.count
@@ -279,7 +286,7 @@ class GameState extends THREE.EventDispatcher {
     const targetCols = cols.filter(i => isValidTargetForVal(i, rv))
     console.log('target cols', targetCols)
     if (targetCols.length) {
-      // TODO: actual move stack    
+      // TODO: actual move stack
 
     }
     const emptyCols = cols.filter(i => (this.tableau[i].length === 0))
