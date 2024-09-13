@@ -61,6 +61,8 @@ class MiniGames extends THREE.EventDispatcher {
   deactivateAll () {
     // visit each game and get it to pause/hide itself
     this.games.cardsDude.deactivate()
+    // can be as simple as hiding a group
+    this.games.shedBuilder.group.visible = false
     this.redraw()
   }
 

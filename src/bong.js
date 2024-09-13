@@ -133,7 +133,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this.PROPS.character, 'className', characterClasses)
     }
     {
-      const fld = this.gui.addFolder('Test') // .close()
+      const fld = this.gui.addFolder('Test').close()
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
