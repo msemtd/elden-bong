@@ -294,8 +294,9 @@ class GameState extends THREE.EventDispatcher {
       return
     }
     const subStack = this.tableau[col].splice(row)
-    this.tableau[best].push(subStack)
+    this.tableau[best].push(...subStack)
     this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
+    this.flipTopCards()
   }
 }
 
@@ -578,8 +579,7 @@ class CardsDude extends THREE.EventDispatcher {
         const c = g.children[row]
         c.position.set(this.layout.stockPileX, this.layout.stockPileY, this.layout.stockPileZ + (row * this.layout.antiFightZ))
       }
-    }
-    if (ev.act === 'deal from stock') {
+    } else if (ev.act === 'deal from stock') {
       // console.log(ev.card, ev.row, ev.col)
       const obj = this.playSpace.getObjectByName(this.cardObjName(ev.card))
       const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
@@ -587,8 +587,7 @@ class CardsDude extends THREE.EventDispatcher {
       const z = ev.row * this.layout.antiFightZ
       // this.timeLine.to(obj.position, { x, y, z, duration: 0.05 })
       obj.position.set(x, y, z)
-    }
-    if (ev.act === 'flip top card') {
+    } else if (ev.act === 'flip top card') {
       // console.log(`${ev.type} ${ev.act}`, ev.card)
       console.assert(ev.card instanceof Card)
       const obj = this.playSpace.getObjectByName(this.cardObjName(ev.card))
@@ -599,12 +598,33 @@ class CardsDude extends THREE.EventDispatcher {
       this.timeLine.set(obj.position, { z })
       const x = obj.rotation.x + Math.PI
       this.timeLine.to(obj.rotation, { x, duration: 0.1 })
-    }
-    if (ev.act === 'safety redraw') {
+    } else if (ev.act === 'move stack') {
+      // this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
+      // Because the cards have already been moved in the gameState we can find
+      // them in the target column...
+      const stack = this.gameState.tableau[ev.targetCol]
+      const start = stack.findIndex(x => x === ev.card)
+      console.assert(start > -1)
+      const x = this.layout.tableauStartX + (ev.targetCol * this.layout.horizontalSpacing)
+      let y = this.layout.tableauStartY
+      // TODO get y from stack contents
+      for (let i = 0; i < start; i++) {
+        y -= stack[i].faceUp ? this.layout.verticalSpacingFaceUp : this.layout.verticalSpacingFaceDown
+      }
+      for (let i = start; i < stack.length; i++) {
+        const c = stack[i]
+        const obj = this.playSpace.getObjectByName(this.cardObjName(c))
+        console.assert(obj)
+        const z = (i * this.layout.antiFightZ) + this.layout.faceUpFudgeZ
+        this.timeLine.set(obj.position, { x, y, z })
+        y -= stack[i].faceUp ? this.layout.verticalSpacingFaceUp : this.layout.verticalSpacingFaceDown
+      }
+    } else if (ev.act === 'safety redraw') {
       // TODO - does this work?
       // this.timeLine.set().onComplete(() => { this.redraw() })
+    } else {
+      console.warn(`unhandled action '${ev.act}'`)
     }
-
     this.redraw()
   }
 
