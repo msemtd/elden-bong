@@ -312,7 +312,7 @@ class CardsDude extends THREE.EventDispatcher {
     this.group.name = 'CardsDude'
     this.layout = {
       verticalSpacingFaceUp: 0.2,
-      verticalSpacingFaceDown: 0.1,
+      verticalSpacingFaceDown: 0.08,
       horizontalSpacing: 0.64,
       tableauStartX: -3.9,
       tableauStartY: 1.75,
@@ -339,6 +339,8 @@ class CardsDude extends THREE.EventDispatcher {
       f.add(this, 'lookAtCardTable')
       this.gameState.addEventListener('update', this.handleGameStateUpdate.bind(this))
       this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
+      // TODO auto-start - can't do this at present because models are not yet created!
+      // this.testCardsDude()
     })
   }
 
@@ -435,6 +437,11 @@ class CardsDude extends THREE.EventDispatcher {
     ctx.textAlign = 'center'
     ctx.fillText(rank, 40, 30)
     ctx.fillText(suit, 40, 100)
+    ctx.strokeStyle = 'gray'
+    ctx.lineWidth = 4
+    ctx.roundRect(0, 0, canvas.width, canvas.height, 27)
+    ctx.stroke()
+
     return canvas
   }
 
@@ -607,8 +614,8 @@ class CardsDude extends THREE.EventDispatcher {
       console.assert(start > -1)
       const x = this.layout.tableauStartX + (ev.targetCol * this.layout.horizontalSpacing)
       let y = this.layout.tableauStartY
-      // TODO get y from stack contents
-      for (let i = 0; i < start; i++) {
+      // set y from stack contents
+      for (let i = 1; i < start; i++) {
         y -= stack[i].faceUp ? this.layout.verticalSpacingFaceUp : this.layout.verticalSpacingFaceDown
       }
       for (let i = start; i < stack.length; i++) {
@@ -651,6 +658,7 @@ class CardsDude extends THREE.EventDispatcher {
     console.log('testCardsDude')
     this.activate()
     this.gameState.startNew()
+    this.lookAtCardTable()
   }
 
   activate () {

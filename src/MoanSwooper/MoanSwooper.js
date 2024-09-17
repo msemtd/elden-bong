@@ -82,7 +82,7 @@ class MoanSwooper extends THREE.EventDispatcher {
       this.redraw = ev.redrawFunc
       this.screen = ev.screen
       ev.group.add(this.group)
-      const f = this.gui = ev.gui.addFolder('Moan Swooper!')
+      const f = this.gui = ev.gui.addFolder('Moan Swooper!').close()
       f.add(this, 'restartThisGame')
       f.add(this, 'debugReveal')
       f.add(this, 'dump')
