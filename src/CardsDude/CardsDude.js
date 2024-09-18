@@ -387,6 +387,10 @@ class CardsDude extends THREE.EventDispatcher {
       const masterCard = data.scene.children[0]
       // test our assumption about the model...
       console.assert(masterCard && masterCard.name === 'Card')
+      const cardBack = masterCard.getObjectByName('CardBack')
+      const cardFront = masterCard.getObjectByName('CardFront')
+      console.assert(cardBack && cardBack.isMesh)
+      console.assert(cardFront && cardFront.isMesh)
       masterCard.rotateX(Math.PI / 2)
       this.masterCard = masterCard
     }, progressCb, errCb)
@@ -639,7 +643,8 @@ class CardsDude extends THREE.EventDispatcher {
     const nc = this.masterCard.clone(true)
     const texture = new THREE.CanvasTexture(this.faceCanvases[card.rank + card.suit])
     const frontMaterial = new THREE.MeshPhongMaterial({ map: texture })
-    nc.children[1].material = frontMaterial
+    const cardFront = nc.getObjectByName('CardFront')
+    cardFront.material = frontMaterial
     nc.userData = { card }
     nc.name = this.cardObjName(card)
     g.add(nc)
