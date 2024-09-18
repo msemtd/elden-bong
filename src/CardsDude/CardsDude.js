@@ -22,26 +22,12 @@ const rotateArray = (arr, i) => {
  *
  * My original game seems to be lost! Recreating it from scratch.
  *
- * Card games database - using the terminology and human readable data from xmsol (https://github.com/plastovicka/xmsol)
+ * Card games database - using the terminology and human readable data from xmsol
+ * (https://github.com/plastovicka/xmsol)
  *
- * Card images and models - https://discourse.threejs.org/t/plane-mesh-with-rounded-corners-that-can-have-an-image-texture/46892
- * size and shape of real cards
- * bicycle brand playing cards - https://en.wikipedia.org/wiki/Bicycle_Playing_Cards
- * - poker size (3.5 by 2.5 inches [8.9 cm × 6.4 cm]), bridge size (3.5 by 2.25 inches [8.9 cm × 5.7 cm])
- *
- * - Standard playing card size: 2.5in x 3.5in
- * - Required bleed: 2mm along each edge
- * - Recommended margin: 5mm
- * - Rounded corner size: 3.5mm
- *
- *
- * layout spacing as per user preferences
- * the card table is the group
- * the entire group can be scaled in the parent game
- *
- * Shuffles - we want a simple seeded PRNG to create reusable shuffles from a shuffle number
- * Seeding a PRNG in JS https://github.com/davidbau/seedrandom
- * fisher-yates
+ * Shuffles - a simple seeded PRNG to create reusable fisher-yates shuffles from
+ * a "shuffle number" passed into https://github.com/davidbau/seedrandom
+ * Layout spacing as per user preferences
  */
 const games = {
   // TODO: make a game class - let's formalise this!
@@ -246,8 +232,10 @@ class GameState extends THREE.EventDispatcher {
     // This could probably be done as a one-liner with {Array.reduce} but I'm
     // not smart enough at this time of night!
     let v1 = stack[row].rankValue()
+    const s = stack[row].suit
     console.assert(isInteger(v1))
     for (let i = row + 1; i < stack.length; i++) {
+      if (stack[i].suit !== s) return false
       const v2 = stack[i].rankValue()
       console.assert(isInteger(v2))
       if (v2 !== v1 + diff) return false
@@ -365,21 +353,25 @@ class CardsDude extends THREE.EventDispatcher {
     const tab = this.gameState.tableau
     const lay = this.layout
     for (let col = 0; col < tab.length; col++) {
-      const stack = tab[col]
-      const x = lay.tableauStartX + (col * lay.horizontalSpacing)
-      let y = lay.tableauStartY
-      for (let row = 0; row < stack.length; row++) {
-        const card = stack[row]
-        const obj = this.playSpace.getObjectByName(this.cardObjName(card))
-        console.assert(obj)
-        if (row > 0) {
-          y -= (stack[row - 1].faceUp ? lay.verticalSpacingFaceUp : lay.verticalSpacingFaceDown)
-        }
-        const z = row * lay.antiFightZ
-        obj.position.set(x, y, z)
-      }
+      this.layoutCol(tab, col, lay)
     }
     this.redraw()
+  }
+
+  layoutCol (tab, col, lay, animate = false) {
+    const stack = tab[col]
+    const x = lay.tableauStartX + (col * lay.horizontalSpacing)
+    let y = lay.tableauStartY
+    for (let row = 0; row < stack.length; row++) {
+      const card = stack[row]
+      const obj = this.playSpace.getObjectByName(this.cardObjName(card))
+      console.assert(obj)
+      if (row > 0) {
+        y -= (stack[row - 1].faceUp ? lay.verticalSpacingFaceUp : lay.verticalSpacingFaceDown)
+      }
+      const z = row * lay.antiFightZ
+      obj.position.set(x, y, z)
+    }
   }
 
   loadModels () {
@@ -646,28 +638,14 @@ class CardsDude extends THREE.EventDispatcher {
       const z = (ev.row * this.layout.antiFightZ) + this.layout.faceUpFudgeZ
       this.timeLine.set(obj.position, { z })
       const x = obj.rotation.x + Math.PI
-      this.timeLine.to(obj.rotation, { x, duration: 0.1 })
+      this.timeLine.to(obj.rotation, { x, duration: 0.2 })
     } else if (ev.act === 'move stack') {
-      // this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
       // Because the cards have already been moved in the gameState we can find
       // them in the target column...
       const stack = this.gameState.tableau[ev.targetCol]
       const start = stack.findIndex(x => x === ev.card)
       console.assert(start > -1)
-      const x = this.layout.tableauStartX + (ev.targetCol * this.layout.horizontalSpacing)
-      let y = this.layout.tableauStartY
-      // set y from stack contents
-      for (let i = 1; i < start; i++) {
-        y -= stack[i].faceUp ? this.layout.verticalSpacingFaceUp : this.layout.verticalSpacingFaceDown
-      }
-      for (let i = start; i < stack.length; i++) {
-        const c = stack[i]
-        const obj = this.playSpace.getObjectByName(this.cardObjName(c))
-        console.assert(obj)
-        const z = (i * this.layout.antiFightZ) + this.layout.faceUpFudgeZ
-        this.timeLine.set(obj.position, { x, y, z })
-        y -= stack[i].faceUp ? this.layout.verticalSpacingFaceUp : this.layout.verticalSpacingFaceDown
-      }
+      this.layoutCol(this.gameState.tableau, ev.targetCol, this.layout, true)
     } else if (ev.act === 'safety redraw') {
       // TODO - does this work?
       // this.timeLine.set().onComplete(() => { this.redraw() })

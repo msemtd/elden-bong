@@ -25,6 +25,7 @@ const cardDimensionsMd = `
 | MTG (Magic Gathering)| 2.5in x 3.5in         | 2mm            | 5mm                | 3.5mm               |
 `
 
+//  Size and shape of bicycle brand playing cards - https://en.wikipedia.org/wiki/Bicycle_Playing_Cards
 const cardDimensionsTab =
 [
   ['Type of Playing Card', 'Size (width x Height)', 'Required Bleed', 'Recommended Margin', 'Rounded Corner Size'],
