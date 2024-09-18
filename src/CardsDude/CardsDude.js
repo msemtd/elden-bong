@@ -337,11 +337,39 @@ class CardsDude extends THREE.EventDispatcher {
       f.add(this, 'activate')
       f.add(this, 'deactivate')
       f.add(this, 'lookAtCardTable')
+      f.add(this, 'redoLayout')
+      {
+        const fld = f.addFolder('layout').close()
+        fld.add(this.layout, 'verticalSpacingFaceUp')
+        fld.add(this.layout, 'verticalSpacingFaceDown')
+        fld.add(this.layout, 'horizontalSpacing')
+        fld.add(this.layout, 'tableauStartX')
+        fld.add(this.layout, 'tableauStartY')
+        fld.add(this.layout, 'stockPileX')
+        fld.add(this.layout, 'stockPileY')
+        fld.add(this.layout, 'stockPileZ')
+        fld.add(this.layout, 'antiFightZ')
+        fld.add(this.layout, 'faceUpFudgeZ')
+        fld.onChange(this.redoLayout.bind(this))
+      }
       this.gameState.addEventListener('update', this.handleGameStateUpdate.bind(this))
       this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
       // TODO auto-start - can't do this at present because models are not yet created!
       // this.testCardsDude()
     })
+  }
+
+  redoLayout () {
+    console.log('redoLayout')
+    // TODO: include stock pile too!
+    const tab = this.gameState.tableau
+    for (let col = 0; col < tab.length; col++) {
+      const stack = tab[col]
+      for (let row = 0; row < stack.length; row++) {
+        const card = stack[row]
+        
+      }
+    }
   }
 
   loadModels () {
