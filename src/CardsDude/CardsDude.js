@@ -4,7 +4,7 @@ import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry'
 import seedrandom from 'seedrandom'
-import cardThing from './card-attempt-01.glb'
+import cardThing from './card.glb'
 import tableThing from './table.glb'
 import { Screen } from '../Screen'
 import * as cardUtils from './cardUtils'
@@ -429,7 +429,7 @@ class CardsDude extends THREE.EventDispatcher {
     canvas.width = 500
     canvas.height = canvas.width / p.width * p.length
     const ctx = canvas.getContext('2d')
-    ctx.fillStyle = 'lightyellow'
+    ctx.fillStyle = 'LightYellow'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.font = '75px serif'
     ctx.fillStyle = clr
@@ -492,7 +492,7 @@ class CardsDude extends THREE.EventDispatcher {
       // TODO if I hit something and use it then stop the event from getting to the camera-controls!
       console.log('hit cards ' + hits.length)
       const m = hits[0].object
-      if (m.isMesh && m.name === 'CardMesh_1') {
+      if (m.isMesh && m.name === 'CardFront') {
         // hit the face of a card - should be the usual case
         console.log('card face of ' + m.parent.name)
         const o = clickable.find(x => x === m.parent)
@@ -549,7 +549,7 @@ class CardsDude extends THREE.EventDispatcher {
           canvas.addEventListener('mouseup', dropListener, false)
           canvas.addEventListener('mousedown', dropListener, false)
         }
-      } else if (m.isMesh && m.name === 'CardMesh') {
+      } else if (m.isMesh && m.name === 'CardBack') {
         // hit the back of a card - this should be the stock
         console.log('card back of ' + m.parent.name)
         if (m.parent === clickable[0]) {
