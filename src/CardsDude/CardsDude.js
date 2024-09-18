@@ -363,13 +363,23 @@ class CardsDude extends THREE.EventDispatcher {
     console.log('redoLayout')
     // TODO: include stock pile too!
     const tab = this.gameState.tableau
+    const lay = this.layout
     for (let col = 0; col < tab.length; col++) {
       const stack = tab[col]
+      const x = lay.tableauStartX + (col * lay.horizontalSpacing)
+      let y = lay.tableauStartY
       for (let row = 0; row < stack.length; row++) {
         const card = stack[row]
-        
+        const obj = this.playSpace.getObjectByName(this.cardObjName(card))
+        console.assert(obj)
+        if (row > 0) {
+          y -= (stack[row - 1].faceUp ? lay.verticalSpacingFaceUp : lay.verticalSpacingFaceDown)
+        }
+        const z = row * lay.antiFightZ
+        obj.position.set(x, y, z)
       }
     }
+    this.redraw()
   }
 
   loadModels () {
