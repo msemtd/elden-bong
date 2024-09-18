@@ -3,7 +3,9 @@
         "GLTF",
         "gsap",
         "magick",
+        "Phong",
         "Raycaster",
+        "seedrandom",
         "vars",
         "xmsol"
     ],
