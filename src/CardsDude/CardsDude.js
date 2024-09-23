@@ -621,13 +621,7 @@ class CardsDude extends THREE.EventDispatcher {
         c.position.set(this.layout.stockPileX, this.layout.stockPileY, this.layout.stockPileZ + (row * this.layout.antiFightZ))
       }
     } else if (ev.act === 'deal from stock') {
-      // console.log(ev.card, ev.row, ev.col)
-      const obj = this.playSpace.getObjectByName(this.cardObjName(ev.card))
-      const x = this.layout.tableauStartX + (ev.col * this.layout.horizontalSpacing)
-      const y = this.layout.tableauStartY - (ev.row * this.layout.verticalSpacingFaceDown)
-      const z = ev.row * this.layout.antiFightZ
-      // this.timeLine.to(obj.position, { x, y, z, duration: 0.05 })
-      obj.position.set(x, y, z)
+      this.layoutCol(this.gameState.tableau, ev.col, this.layout, true)
     } else if (ev.act === 'flip top card') {
       // console.log(`${ev.type} ${ev.act}`, ev.card)
       console.assert(ev.card instanceof Card)
