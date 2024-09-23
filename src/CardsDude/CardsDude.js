@@ -145,6 +145,7 @@ class GameState extends THREE.EventDispatcher {
       this.tableau[i] = new CardStack()
     }
     this.history = []
+    this.redoStack = []
   }
 
   startNew (shuffleNumber = 5) {
@@ -198,6 +199,20 @@ class GameState extends THREE.EventDispatcher {
   addHistory (value) {
     this.history.push(value)
     this.dispatchEvent({ type: 'addHistory', value })
+  }
+
+  dumpHistory () {
+    console.dir(this.history)
+    console.dir(this.redoStack)
+  }
+
+  undo () {
+    // get top of history and erm...
+    // I guess move it to the redo pile!
+  }
+
+  redo () {
+    // anything to redo?
   }
 
   flipTopCards () {
@@ -340,6 +355,9 @@ class CardsDude extends THREE.EventDispatcher {
         fld.add(this.layout, 'faceUpFudgeZ')
         fld.onChange(this.redoLayout.bind(this))
       }
+      f.add(this.gameState, 'undo')
+      f.add(this.gameState, 'redo')
+      f.add(this.gameState, 'dumpHistory')
       this.gameState.addEventListener('update', this.handleGameStateUpdate.bind(this))
       this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
       // TODO auto-start - can't do this at present because models are not yet created!
