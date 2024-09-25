@@ -11,95 +11,23 @@ import * as cardUtils from './cardUtils'
 import CameraControls from 'camera-controls'
 import { isString, isObject, isInteger } from '../wahWah'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
-
-// take items from end of array and move to start
-const rotateArray = (arr, i) => {
-  arr.unshift(...arr.splice(i))
-}
+import { games } from './games'
 
 /**
+ *
  * Cards Dude mini-game
  *
  * My original game seems to be lost! Recreating it from scratch.
  *
- * Card games database - using the terminology and human readable data from xmsol
- * (https://github.com/plastovicka/xmsol)
+ * Split into GameState for the logic and CardsDude for the GUI implementation
+ * loosely coupled with simple events.
  *
- * Shuffles - a simple seeded PRNG to create reusable fisher-yates shuffles from
- * a "shuffle number" passed into https://github.com/davidbau/seedrandom
- * Layout spacing as per user preferences
+ * First and maybe last - just support the greatest of all games, Big Spider!
  */
-const games = {
-  // TODO: make a game class - let's formalise this!
-  // Use the terminology and rules from xmsol
-  // Try to interpret correctly!
-  bigSpider: {
-    solType: 'spider',
-    rules: // from xmsol info dialog
-        `
-        Big Spider
-        Decks: 3
 
-        4x  foundation
-        The first card rank:  K
-        Sequence rank:  descending continual
-        Sequence suit:  same
-        Moving group of cards:  all 13 cards
-
-        13x  tableau
-        Sequence rank:  descending
-        Moving group of cards:  yes
-        - Outgoing rules
-        Sequence suit:  same
-
-        1x  stock
-        Deal: 13
-        `,
-    // from xmsol source...
-    xmsolRule: `
-        <game name="Big Spider" decks="3">
-        <foundation repeat="4" x="500">k down all cont</foundation>
-        <tableau y="250" repeat="13" count="78" hide="-1">group<out>suit</out></tableau>
-        <stock deal="13"/>
-        </game>
-        `,
-    // converted to YAML...
-    xmsolYaml: `---
-game:
-  "-name": Big Spider
-  "-decks": 3
-  foundation:
-    "-repeat": 4
-    "-x": 500
-    "#text": k down all cont
-  tableau:
-    "-y": 250
-    "-repeat": 13
-    "-count": 78
-    "-hide": -1
-    "#text": group
-  stock:
-    "-deal": 13
-`,
-    // as actual properties...
-    name: 'Big Spider',
-    decks: 3,
-    foundation: {
-      repeat: 4,
-      x: 500,
-      text: 'k down all cont',
-    },
-    tableau: {
-      y: 250,
-      repeat: 13,
-      count: 78,
-      hide: -1,
-      text: 'group',
-    },
-    stock: {
-      deal: 13,
-    },
-  }
+// take items from end of array and move to start
+const rotateArray = (arr, i) => {
+  arr.unshift(...arr.splice(i))
 }
 
 class Card {
