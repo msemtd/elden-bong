@@ -24,6 +24,7 @@ This is a project just for fun - _not a real game!_
   - try a few then drop back to jBox because it works well
 * map mode, world-building mode, character-game mode
 * the terrain lib three.terrain.js is a bit hard to get working so I will use something else
+  - SimonDev's 3D World Generation tutorial playlist https://www.youtube.com/watch?v=hHGshzIXFWY&list=PLRL3Z3lpLmH3PNGZuDNf2WXnLTHpN9hXy
 * create an actual mesh and use it like https://github.com/yomotsu/meshwalk
 
 
