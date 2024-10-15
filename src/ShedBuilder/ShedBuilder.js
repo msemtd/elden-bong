@@ -69,17 +69,22 @@ class ShedBuilder extends THREE.EventDispatcher {
 
     const lap = this.components.shipLap.clone()
     this.group.add(lap)
-    lap.position.set(5, 5, 5)
-    lap.rotateX(-Math.PI / 2.0)
-    lap.rotateY(Math.PI / 2.0)
+    lap.position.set(0, 1, 1)
     this.redraw()
   }
 
   addComponents () {
+    const b = new THREE.BoxGeometry(0.0145, 0.119, 2.4)
+    const m = new THREE.MeshLambertMaterial({ color: 'brown' })
+    const plank = new THREE.Mesh(b, m)
     const gp = new THREE.BoxGeometry(2.1, 0.075, 0.075)
     const mp = new THREE.MeshLambertMaterial({ color: 'green' })
     const post = new THREE.Mesh(gp, mp)
-    // ship lap could be a profile!
+    post.userData = {
+      pricePerUnit: '£13.00',
+      link: 'https://www.wickes.co.uk/Incised-Timber-Fence-Post---75-x-75-x-2100mm/p/542002'
+    }
+    // ship-lap profile...
     const profile = new THREE.Shape()
     const thickness = 14.5 / 1000
     const tw = thickness / 2.0
@@ -93,16 +98,17 @@ class ShedBuilder extends THREE.EventDispatcher {
     profile.lineTo(tw, height - lap)
     profile.lineTo(0, height - lap)
     profile.lineTo(0, 0)
-
     const geometry = new THREE.ExtrudeGeometry(profile, { depth: 2.4, bevelEnabled: false })
     const material = new THREE.MeshPhongMaterial({ color: 'tan' })
     const shipLap = new THREE.Mesh(geometry, material)
-    const link = 'https://www.wickes.co.uk/Wickes-Treated-Rebated-Shiplap-14-5-x-119-x-2400mm/p/9000281526'
-    shipLap.userData = { link, pricePerUnit: '£9.40', overlap: 0.110 }
+    shipLap.userData = {
+      link: 'https://www.wickes.co.uk/Wickes-Treated-Rebated-Shiplap-14-5-x-119-x-2400mm/p/9000281526',
+      pricePerUnit: '£9.40',
+      overlap: 0.110
+    }
+    shipLap.rotateX(-Math.PI / 2.0)
+    shipLap.rotateY(Math.PI / 2.0)
 
-    const b = new THREE.BoxGeometry(0.0145, 0.119, 2.4)
-    const m = new THREE.MeshLambertMaterial({ color: 'brown' })
-    const plank = new THREE.Mesh(b, m)
     this.components = { post, shipLap, plank }
   }
 }
