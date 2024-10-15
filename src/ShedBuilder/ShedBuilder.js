@@ -67,9 +67,28 @@ class ShedBuilder extends THREE.EventDispatcher {
     mesh.name = shedName
     this.group.add(mesh)
 
-    const lap = this.components.shipLap.clone()
-    this.group.add(lap)
-    lap.position.set(0, 1, 1)
+    const wall = {
+      component: 'shipLap',
+      arraySize: 1,
+      startPos: [0, 0, 0],
+    }
+
+    const c = this.components[wall.component]
+    const n = wall.arraySize
+    console.assert(isObject(c))
+    console.assert(c?.isMesh)
+    const a = wall.startPos
+    const p = new THREE.Vector3(a[0], a[1], a[2])
+    if (c?.isMesh) {
+      for (let i = 0; i < n; i++) {
+        const o = c.clone()
+        if (c.userData.overlap) {
+          p.z = c.userData.overlap * i
+        }
+        o.position.copy(p)
+        this.group.add(o)
+      }
+    }
     this.redraw()
   }
 
@@ -90,24 +109,38 @@ class ShedBuilder extends THREE.EventDispatcher {
     const tw = thickness / 2.0
     const lap = 9 / 1000
     const height = 119 / 1000
-    profile.lineTo(tw, 0)
-    profile.lineTo(tw, lap * 1.3)
-    profile.lineTo(thickness, lap * 3)
-    profile.lineTo(thickness, height)
+    const length = 2.4
+    profile.moveTo(tw, 0)
+    profile.lineTo(thickness, 0)
+    profile.lineTo(thickness, height - (lap * 3))
+    profile.lineTo(tw, height - (lap * 1.3))
     profile.lineTo(tw, height)
-    profile.lineTo(tw, height - lap)
-    profile.lineTo(0, height - lap)
-    profile.lineTo(0, 0)
-    const geometry = new THREE.ExtrudeGeometry(profile, { depth: 2.4, bevelEnabled: false })
+    profile.lineTo(0, height)
+    profile.lineTo(0, lap)
+    profile.lineTo(tw, lap)
+    profile.lineTo(tw, 0)
+
+    // profile.lineTo(tw, 0)
+    // profile.lineTo(tw, lap * 1.3)
+    // profile.lineTo(thickness, lap * 3)
+    // profile.lineTo(thickness, height)
+    // profile.lineTo(tw, height)
+    // profile.lineTo(tw, height - lap)
+    // profile.lineTo(0, height - lap)
+    // profile.lineTo(0, 0)
+    const geometry = new THREE.ExtrudeGeometry(profile, { depth: length, bevelEnabled: false })
     const material = new THREE.MeshPhongMaterial({ color: 'tan' })
     const shipLap = new THREE.Mesh(geometry, material)
     shipLap.userData = {
       link: 'https://www.wickes.co.uk/Wickes-Treated-Rebated-Shiplap-14-5-x-119-x-2400mm/p/9000281526',
       pricePerUnit: '£9.40',
-      overlap: 0.110
+      overlap: 0.112,
+      height,
+      length,
+      thickness,
     }
-    shipLap.rotateX(-Math.PI / 2.0)
-    shipLap.rotateY(Math.PI / 2.0)
+    // shipLap.rotateX(-Math.PI / 2.0)
+    // shipLap.rotateY(Math.PI / 2.0)
 
     this.components = { post, shipLap, plank }
   }
