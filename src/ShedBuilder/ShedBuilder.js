@@ -69,7 +69,7 @@ class ShedBuilder extends THREE.EventDispatcher {
 
     const wall = {
       component: 'shipLap',
-      arraySize: 1,
+      arraySize: 10,
       startPos: [0, 0, 0],
     }
 
@@ -110,6 +110,7 @@ class ShedBuilder extends THREE.EventDispatcher {
     const lap = 9 / 1000
     const height = 119 / 1000
     const length = 2.4
+    // draw the profile from bottom left...
     profile.moveTo(tw, 0)
     profile.lineTo(thickness, 0)
     profile.lineTo(thickness, height - (lap * 3))
@@ -119,16 +120,12 @@ class ShedBuilder extends THREE.EventDispatcher {
     profile.lineTo(0, lap)
     profile.lineTo(tw, lap)
     profile.lineTo(tw, 0)
-
-    // profile.lineTo(tw, 0)
-    // profile.lineTo(tw, lap * 1.3)
-    // profile.lineTo(thickness, lap * 3)
-    // profile.lineTo(thickness, height)
-    // profile.lineTo(tw, height)
-    // profile.lineTo(tw, height - lap)
-    // profile.lineTo(0, height - lap)
-    // profile.lineTo(0, 0)
+    // extrude into 3D geometry and adjust to expected orientation -
+    // a horizontal board with origin at bottom left of back face
     const geometry = new THREE.ExtrudeGeometry(profile, { depth: length, bevelEnabled: false })
+    geometry.rotateZ(-Math.PI / 2)
+    geometry.rotateY(-Math.PI / 2)
+    geometry.translate(length, 0, 0)
     const material = new THREE.MeshPhongMaterial({ color: 'tan' })
     const shipLap = new THREE.Mesh(geometry, material)
     shipLap.userData = {
@@ -139,9 +136,6 @@ class ShedBuilder extends THREE.EventDispatcher {
       length,
       thickness,
     }
-    // shipLap.rotateX(-Math.PI / 2.0)
-    // shipLap.rotateY(Math.PI / 2.0)
-
     this.components = { post, shipLap, plank }
   }
 }
