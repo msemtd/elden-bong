@@ -113,42 +113,53 @@ class ShedBuilder extends THREE.EventDispatcher {
   }
 
   makeShed (shedName) {
-    const width = 4
-    const height = 3
-    const depth = 2
+    const w = 4
+    const h = 3
+    const d = 2
     const widthSegments = 8
     const heightSegments = 8
     const depthSegments = 8
     // NB: remember that geometry is Y-up!
     const geometry = new THREE.BoxGeometry(
-      width, height, depth,
+      w, h, d,
       widthSegments, heightSegments, depthSegments)
     const material = new THREE.MeshPhongMaterial()
     const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(5, 8, depth / 2)
+    mesh.position.set(5, 8, d / 2)
     mesh.name = shedName
     this.group.add(mesh)
 
+    // component based shed from a shed recipe...
+    // or parametric shed carcass from box
     const wall = {
       component: 'shipLap',
       arraySize: 10,
       startPos: [0, 0, 0],
     }
 
-    const c = this.components[wall.component]
-    const n = wall.arraySize
-    console.assert(isObject(c))
-    console.assert(c?.isMesh)
-    const a = wall.startPos
-    const p = new THREE.Vector3(a[0], a[1], a[2])
-    if (c?.isMesh) {
-      for (let i = 0; i < n; i++) {
-        const o = c.clone()
-        if (c.userData.overlap) {
-          p.z = c.userData.overlap * i
+    const g = new THREE.Group()
+    g.name = 'component shed'
+    this.group.add(g)
+    const len = this.components.shipLap.userData.length
+    const height = this.components.post.userData.length
+    wall.arraySize = height / this.components.shipLap.userData.overlap
+    const p = new THREE.Vector3()
+    {
+      const c = this.components[wall.component]
+      const n = wall.arraySize
+      console.assert(isObject(c))
+      console.assert(c?.isMesh)
+      const a = wall.startPos
+      p.set(a[0], a[1], a[2])
+      if (c?.isMesh) {
+        for (let i = 0; i < n; i++) {
+          const o = c.clone()
+          if (c.userData.overlap) {
+            p.z = c.userData.overlap * i
+          }
+          o.position.copy(p)
+          g.add(o)
         }
-        o.position.copy(p)
-        this.group.add(o)
       }
     }
 
@@ -156,14 +167,14 @@ class ShedBuilder extends THREE.EventDispatcher {
       const c = this.components.post
       console.assert(isObject(c))
       console.assert(c?.isMesh)
-      const postPositions = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]
+      const postPositions = [[0, 0, 0], [len, 0, 0], [len, len, 0], [0, len, 0]]
       for (let i = 0; i < postPositions.length; i++) {
         const e = postPositions[i]
         const o = c.clone()
         p.set(e[0], e[1], e[2])
         o.position.copy(p)
         o.rotateZ(i * Math.PI / 2)
-        this.group.add(o)
+        g.add(o)
       }
     }
 
