@@ -51,14 +51,13 @@ class ShedBuilder extends THREE.EventDispatcher {
   }
 
   addComponents () {
-    let post = null
-    let shipLap = null
     let plank = null
     {
       const b = new THREE.BoxGeometry(0.0145, 0.119, 2.4)
       const m = new THREE.MeshLambertMaterial({ color: 'brown' })
       plank = new THREE.Mesh(b, m)
     }
+    let post = null
     {
       const length = 2.1
       const crossSection = 0.075
@@ -74,6 +73,7 @@ class ShedBuilder extends THREE.EventDispatcher {
         link: 'https://www.wickes.co.uk/Incised-Timber-Fence-Post---75-x-75-x-2100mm/p/542002'
       }
     }
+    let shipLap = null
     {
     // ship-lap profile...
       const profile = new THREE.Shape()
@@ -109,7 +109,16 @@ class ShedBuilder extends THREE.EventDispatcher {
         thickness,
       }
     }
-    this.components = { post, shipLap, plank }
+    let door = null
+    {
+      const height = 1.981
+      const width = 0.762
+      const thickness = 30 // unsure
+      const b = new THREE.BoxGeometry(width, thickness, height)
+      const m = new THREE.MeshLambertMaterial({ color: 'brown' })
+      door = new THREE.Mesh(b, m)
+    }
+    this.components = { post, shipLap, plank, door }
   }
 
   makeShed (shedName) {
