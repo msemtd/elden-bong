@@ -10,13 +10,18 @@
  *
  */
 
+import * as THREE from 'three'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { MiniGameBase } from '../MiniGameBase'
+import $ from 'jquery'
+
 const sources = {
   gradedReaders: {
     first: {
       site: 'https://jgrpg-sakura.com/',
       info: 'needs registration and a test',
       me: `kumo no ito was a enlightening - I should go back and read it again
-      Keita to neko ishi part one was also enlightening 
+      Keita to neko ishi part one was also enlightening
       (enlightening as in the exciting light-bulb moment of things coming together)
       `
     }
@@ -63,12 +68,39 @@ There's a fixed order of learning. The learning is by repetition.
   }
 }
 
-class JapaneseStudy {
-  constructor () {
+class JapaneseStudy extends MiniGameBase {
+  constructor (parent) {
+    super(parent, 'Japanese Study')
     this.sources = sources
+    parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
+      console.assert(this.gui instanceof GUI)
+      console.assert(this.group instanceof THREE.Group)
+      this.gui.add(this, 'runTest')
+      this.gui.add(this, 'activate')
+      this.gui.add(this, 'deactivate')
+      this.gui.add(this, 'n5Kanji')
+      // do more!
+    })
   }
+
   //
   //
+  async runTest () {
+    console.warn('TODO runTest')
+  }
+
+  n5Kanji () {
+    const id = 'n5KanjiDiv'
+    // toggle
+    // if div exists
+    const s = $(`#${id}`)
+    if (s.length) {
+      s.toggle()
+      return
+    }
+    $(`<div id="${id}">Hello</div>`).appendTo('body')
+  }
 }
 
 export { JapaneseStudy }

@@ -5,6 +5,7 @@ import { CardsDude } from './CardsDude/CardsDude'
 import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
+import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -24,6 +25,7 @@ import { Screen } from './Screen'
  * - save the redraw request function
  * - hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
  *
+ * ## tempted to have a MiniGame base class
  *
  * = The Games Room =
  * floor, walls, door, windows, furniture, a cafe?
@@ -41,6 +43,7 @@ class MiniGames extends THREE.EventDispatcher {
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),
+      japaneseStudy: new JapaneseStudy(this, 'Japanese Study'),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!

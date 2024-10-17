@@ -115,7 +115,7 @@ class ShedBuilder extends THREE.EventDispatcher {
       const width = 0.762
       const thickness = 30 // unsure
       const b = new THREE.BoxGeometry(width, thickness, height)
-      const m = new THREE.MeshLambertMaterial({ color: 'brown' })
+      const m = new THREE.MeshLambertMaterial({ color: 'peru' })
       door = new THREE.Mesh(b, m)
       door.userData = {
         width, height, thickness,

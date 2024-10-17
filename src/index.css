@@ -110,6 +110,16 @@ div#gamePad svg .btnPushed {
   fill:#ff0011;
 }
 
+div#n5KanjiDiv {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 200px;
+  height: 200px;
+  background-color: rgba(11, 227, 11, 0.657);
+  overflow: auto;
+}
+
 /* Dialog box theme dlgDude */
 
 .jBox-dlgDude {
