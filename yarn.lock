@@ -2051,6 +2051,18 @@ dns-packet@^5.2.2:
   dependencies:
     "@leichtgewicht/ip-codec" "^2.0.1"
 
+dockview-core@^1.17.2:
+  version "1.17.2"
+  resolved "https://registry.yarnpkg.com/dockview-core/-/dockview-core-1.17.2.tgz#91123165c5e8fd757ea2bee49fa91d512419f09d"
+  integrity sha512-eHMVEo4ckOc+ieFm5gSM/vE0niGojNQP/9z6l5JqGNqCcxWWnvu6PRTuTYIg5XCENpk1XIa/El/uIOOtTaafUw==
+
+dockview@^1.17.2:
+  version "1.17.2"
+  resolved "https://registry.yarnpkg.com/dockview/-/dockview-1.17.2.tgz#713c65bd9467324520be05f2174cecd9352daf5b"
+  integrity sha512-/6bezdcRaK7quHRBpuwdjMYSNC0BXbIyCID6jDnfCdr/rFwvDqAvdsDSIQJ3YvWKQlECsM5hIhLKk3ksL6219A==
+  dependencies:
+    dockview-core "^1.17.2"
+
 doctrine@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/doctrine/-/doctrine-2.1.0.tgz"
