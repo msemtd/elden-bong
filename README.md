@@ -27,7 +27,12 @@ This is a project just for fun - _not a real game!_
   - SimonDev's 3D World Generation tutorial playlist https://www.youtube.com/watch?v=hHGshzIXFWY&list=PLRL3Z3lpLmH3PNGZuDNf2WXnLTHpN9hXy
 * create an actual mesh and use it like https://github.com/yomotsu/meshwalk
 
-
+* importing external data for scenes e.g. from Google Maps: https://www.youtube.com/watch?v=dmLXgt0sfq8
+* the loadTokyo method for map load/edit
+* create a map with a unique name
+* import GLTF and give a location in the universe for connectivity
+* create and edit a navmesh - auto create with rolling ball or raycaster?
+* character "sticks" to navmesh unless no-clip & no-gravity
 
 ## Settings
 

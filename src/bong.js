@@ -143,6 +143,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'generateLandscape')
       fld.add(this, 'trySomeSvg')
       fld.add(this, 'testVanStuff')
+      fld.add(this, 'loadTokyo')
       // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
       // TODO -
@@ -277,6 +278,38 @@ class Bong extends THREE.EventDispatcher {
   testVanStuff () {
     const v = new VanStuff()
     v.testModal()
+  }
+
+  // this should be a generic interactive GLTF loading thing (like the character loader below) -
+  // - ask the target group and show a tree of items to load from the GLTF scene
+  // - or as we do here, load everything into a new group
+  // - then allow user to save the params for loading next time
+  // - with a transform etc.
+  async loadTokyo () {
+    const fp = await pick()
+    if (!fp) { return }
+    const u = filePathToMine(fp)
+    console.log(u)
+    const scene = this.screen.scene
+    const e = scene.getObjectByName('tokyo')
+    if (e) {
+      Dlg.errorDialog('tokyo already loaded')
+      return
+    }
+    const manager = new THREE.LoadingManager()
+    const loader = new GLTFLoader(manager)
+    const buffer = await loadBinaryFile(fp)
+    loader.parse(buffer.buffer, '', (gObj) => {
+      const g = new THREE.Group()
+      g.name = 'tokyo'
+      // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
+      // For the ones I have here, the scene is the model
+      g.add(gObj.scene)
+      scene.add(g)
+      this.redraw()
+    }, undefined, function (error) {
+      console.error(error)
+    })
   }
 
   /**
