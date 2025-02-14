@@ -66,40 +66,37 @@ When a game controller is plugged in (and a button pressed - as per Web API for 
 - controls on different platforms - https://vulkk.com/2022/02/26/elden-ring-pc-and-console-controls-guide-and-lists/
 - character-based controls versus free-world controls (like quake no-clip) vs map-based controls
 
-'''HTML
-<table>
-<thead>
-<tr><th>Action</th><th>PC Defaults</th><th>Change to</th></tr></thead>
-<tbody>
-<tr><td>Movement Speed Control</td><td>ALT</td><td>Z</td></tr>
-<tr><td>Move Forwards</td><td>W</td><td></td></tr>
-<tr><td>Move Backwards</td><td>S</td><td></td></tr>
-<tr><td>Move Left</td><td>A</td><td></td></tr>
-<tr><td>Move Right</td><td>D</td><td></td></tr>
-<tr><td>Backstep / Dodge Roll / Dash</td><td>SPACE</td><td>ALT</td></tr>
-<tr><td>Jump</td><td>F</td><td>SPACE</td></tr>
-<tr><td>Crouch / Stand Up</td><td>X</td><td>C</td></tr>
-<tr><td>Move Camera / Change Target (Up)</td><td></td><td>SHIFT+↑</td></tr>
-<tr><td>Move Camera / Change Target (Down)</td><td></td><td>SHIFT+↓</td></tr>
-<tr><td>Move Camera / Change Target (Left)</td><td></td><td>SHIFT+←</td></tr>
-<tr><td>Move Camera / Change Target (Right)</td><td></td><td>SHIIFT+→</td></tr>
-<tr><td>Reset Camera / Lock-On / Remove Target</td><td>Q / MMB</td><td></td></tr>
-<tr><td>Switch Sorcery / Incantation</td><td>↑</td><td>1</td></tr>
-<tr><td>Switch Item</td><td>↓</td><td>2</td></tr>
-<tr><td>Switch Right-Hand Armament</td><td>→ / SHIFT+SCROLL↑</td><td>3</td></tr>
-<tr><td>Switch Left-Hand Armament</td><td>← / SHIFT+SCROLL↓</td><td>4</td></tr>
-<tr><td>Attack (RH &amp; 2H Armament)</td><td>LMB</td><td></td></tr>
-<tr><td>Strong Attack (LH Armament)</td><td>SHIFT+LMB</td><td></td></tr>
-<tr><td>Guard</td><td>RMB</td><td></td></tr>
-<tr><td>Skill</td><td>SHIFT+RMB</td><td></td></tr>
-<tr><td>Use Item</td><td>R</td><td></td></tr>
-<tr><td>Event Action (Talk, Examine, Open etc)</td><td>E</td><td></td></tr>
-<tr><td>Map</td><td>G</td><td></td></tr>
-<tr><td>Switch RH 1H &amp; 2H</td><td>E+LMB</td><td></td></tr>
-<tr><td>Switch LH 1H &amp; 2H</td><td>E+RMB</td><td></td></tr>
-<tr><td>Sprint</td><td>Hold SPACE</td><td></td></tr>
-</tbody></table>
-'''
+
+| Action                                 | PC Defaults       | Change to |
+|----------------------------------------|-------------------|-----------|
+| Movement Speed Control                 | ALT               | Z         |
+| Move Forwards                          | W                 |           |
+| Move Backwards                         | S                 |           |
+| Move Left                              | A                 |           |
+| Move Right                             | D                 |           |
+| Backstep / Dodge Roll / Dash           | SPACE             | ALT       |
+| Jump                                   | F                 | SPACE     |
+| Crouch / Stand Up                      | X                 | C         |
+| Move Camera / Change Target (Up)       |                   | SHIFT+↑   |
+| Move Camera / Change Target (Down)     |                   | SHIFT+↓   |
+| Move Camera / Change Target (Left)     |                   | SHIFT+←   |
+| Move Camera / Change Target (Right)    |                   | SHIIFT+→  |
+| Reset Camera / Lock-On / Remove Target | Q / MMB           |           |
+| Switch Sorcery / Incantation           | ↑                 | 1         |
+| Switch Item                            | ↓                 | 2         |
+| Switch Right-Hand Armament             | → / SHIFT+SCROLL↑ | 3         |
+| Switch Left-Hand Armament              | ← / SHIFT+SCROLL↓ | 4         |
+| Attack (RH &amp; 2H Armament)          | LMB               |           |
+| Strong Attack (LH Armament)            | SHIFT+LMB         |           |
+| Guard                                  | RMB               |           |
+| Skill                                  | SHIFT+RMB         |           |
+| Use Item                               | R                 |           |
+| Event Action (Talk, Examine, Open etc) | E                 |           |
+| Map                                    | G                 |           |
+| Switch RH 1H &amp; 2H                  | E+LMB             |           |
+| Switch LH 1H &amp; 2H                  | E+RMB             |           |
+| Sprint                                 | Hold SPACE        |           |
+
 
 ## Maps
 
@@ -123,6 +120,7 @@ Map imports - technical
 * we can slice them up into manageable tiles using image magick crop:-
   https://imagemagick.org/Usage/crop#crop_tile
 ```
+
 @ECHO OFF
 SET PATH=C:\Program Files\ImageMagick-7.1.1-Q16-HDRI;%PATH%
 REM ~ magick identify *.png
@@ -137,6 +135,7 @@ REM ~ 9216 / 256 = 36
 REM so we have 38 tiles wide and 36 tiles high
 DIR
 ```
+
 * this creates 256 pixel square tiles with names sequentially numbered from top left to bottom right
 * I would prefer these named with the X-Y coordinates - this can be done in a background process
 * scale and position three-js textured cube mesh objects as map tiles

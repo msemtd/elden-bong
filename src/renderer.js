@@ -62,11 +62,11 @@ api.addPanel({
   component: 'bong',
   title: 'bong',
 })
-api.addPanel({
-  id: 'panel_2',
-  component: 'default',
-  position: { referencePanel: 'bong_id', direction: 'left' },
-  title: 'Panel 2',
-  initialWidth: 100,
-  initialHeight: 100
-})
+// api.addPanel({
+//   id: 'panel_2',
+//   component: 'default',
+//   position: { referencePanel: 'bong_id', direction: 'left' },
+//   title: 'Panel 2',
+//   initialWidth: 100,
+//   initialHeight: 100
+// })
