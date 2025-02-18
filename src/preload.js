@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('handy', {
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
   identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
   getSkyBoxMineUrlList: (...args) => ipcRenderer.invoke('getSkyBoxMineUrlList', ...args),
+  readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
 })
 
 contextBridge.exposeInMainWorld('settings', {

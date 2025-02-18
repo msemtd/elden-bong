@@ -9,6 +9,34 @@ const dbg = debug('main')
 debug.enable('main')
 
 dbg('we appear to be alive')
+
+// mad test...
+// const e57 = 'D:/dev/scene2/scenesoftware/ScanSoftware/Testsupport/TestData/OrbisScans/VeryShortScan/Very_short.e57'
+const e57 = ''
+if (e57.length) {
+  readE57(e57).then(() => { app.quit() })
+}
+async function readE57 (fp) {
+  dbg(`main thread async load e57 file from '${fp}'...`)
+  try {
+    const fh = await fs.open(fp, 'r')
+    dbg('file opened OK')
+    // test scan of file for e57 validation
+    // header of 48 bytes
+    let length = 1024
+    let offset = 0
+    const buf = Buffer.alloc(length)
+    const { bytesRead } = await fs.read(fh, buf, offset, length, 0)
+    dbg('file block read OK')
+    dbg(bytesRead)
+  } catch (error) {
+    console.error(error)
+    return `not too happy with the outcome: ${error}`
+  }
+
+  return 'gimme-a-minute'
+}
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit()
@@ -66,6 +94,7 @@ app.whenReady().then(() => {
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
+  ipcMain.handle('readE57', (event, ...args) => { return readE57(...args) })
   createWindow()
 })
 

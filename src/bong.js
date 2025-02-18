@@ -133,7 +133,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this.PROPS.character, 'className', characterClasses)
     }
     {
-      const fld = this.gui.addFolder('Test').close()
+      const fld = this.gui.addFolder('Test') // .close()
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
@@ -144,6 +144,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'trySomeSvg')
       fld.add(this, 'testVanStuff')
       fld.add(this, 'loadTokyo')
+      fld.add(this, 'loadE57')
       // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
       // TODO -
@@ -310,6 +311,14 @@ class Bong extends THREE.EventDispatcher {
     }, undefined, function (error) {
       console.error(error)
     })
+  }
+
+  async loadE57 () {
+    const fp = await pick()
+    if (!fp) { return }
+    console.log(fp)
+    const info = await window.handy.readE57(fp)
+    console.dir(info)
   }
 
   /**
