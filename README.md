@@ -18,10 +18,7 @@ This is a project just for fun - _not a real game!_
 * YOU DIED overlay transparent div - https://rezuaq.be/new-area/image-creator/
 * basic character and animations
 * load and change scenes
-* upon any gui change force a render
-* basic dialog boxes - get hyped about them
-  - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
-  - try a few then drop back to jBox because it works well
+
 * map mode, world-building mode, character-game mode
 * the terrain lib three.terrain.js is a bit hard to get working so I will use something else
   - SimonDev's 3D World Generation tutorial playlist https://www.youtube.com/watch?v=hHGshzIXFWY&list=PLRL3Z3lpLmH3PNGZuDNf2WXnLTHpN9hXy
@@ -39,6 +36,22 @@ This is a project just for fun - _not a real game!_
 Persistent user settings: -
 * js-yaml - since easily accessed from the renderer process via LocalStorage
 * map configurations to live here
+
+## General GUI
+
+Basic layout is a full-screen three canvas with a lil-gui widget but much more can be done
+* upon any lil-gui change force a render - works OK
+* dockview (https://github.com/mathuo/dockview) looks pretty cool and I have it
+  working for the simplest of cases
+  - TODO create minimal JS-only example to share with dockview team in code-pen
+  - width of side bar doesn't seem to work
+* I want to avoid react for no major reason other than the additional transpile
+  step, especially since Van-JS is looking so interesting right now
+* settings going into lil-gui is good
+* basic dialog boxes - get hyped about them
+  - https://npmtrends.com/jbox-vs-sweetalert-vs-sweetalert2-vs-tingle.js-vs-vanilla-modal-vs-vex-js
+  - try a few then drop back to jBox because it works well
+
 
 ## character
 * load a model - have some to choose from
