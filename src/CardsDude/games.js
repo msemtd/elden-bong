@@ -75,3 +75,53 @@ game:
     },
   }
 }
+
+class MoveNode {
+  constructor () {
+    // each move has a set of next options
+    // some may not have been traversed/discovered
+    // when we undo we can discard or keep the old tree
+    this.moves = []
+    // there's the move and that produces a result - do we save a state?
+    // is this just Redux?
+  }
+
+}
+
+export class SpiderAutomation {
+  constructor () {
+    this.situation = 'plan'
+    this.moveTree = {
+      // from initial state a node is made
+      rootNode: new MoveNode()
+    }
+
+
+  }
+
+  // strategy for deciding the next move
+  // - what do we want?
+  // look at the cards just newly dealt
+  // find all possible moves and add a new MoveNode to the current node's moves array
+  // rank moves array based on priorities
+  // priority to competing a full suit King to Ace and removing it
+  // priority to matching suit
+  // priority to reducing tableau size - especially chasing an empty slot
+  // priority to the left
+  // when multiple options
+  // when no options to progress
+  //
+  // Would be awesome to visualise the move tree!
+  // would be awesome to be able to go to anywhere in the move tree
+  // is this just setting state?
+  // probably - this state also has access to the move tree below it
+
+  // OK, let's get all the move options and rank them according to the strategy
+  // object. The strategy object is just an ordered list of match-able move
+  // types surely? These can have human readable names like
+  // - "Prefer move from smaller stack" (a->origin-stack-height < b->origin-stack-height)
+  // - "Prefer higher rank move" (a->rank > b->rank)
+  // - "Prefer same suit move" (a->suit == b->suit)
+  // and we need little sort functions to compare two optional situations
+  // We can have as many strategies as we like to make the decisions. Each branch point created can be revisited
+}

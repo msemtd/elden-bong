@@ -4,6 +4,7 @@ import path from 'path'
 import { MainMap } from './MainMap'
 import { mineToFilePath, filePathToMine } from './util'
 import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
+import { LuaStuff } from './LuaStuff'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -94,6 +95,7 @@ app.whenReady().then(() => {
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
+  ipcMain.handle('luaTest', (event, ...args) => { return luaTest(...args) })
   ipcMain.handle('readE57', (event, ...args) => { return readE57(...args) })
   createWindow()
 })
@@ -168,6 +170,11 @@ async function getSkyBoxMineUrlList (n) {
   const d = path.resolve(path.join(staticDir, 'skyBoxes', n))
   const ua = skyBoxFileNames(n).map(x => filePathToMine(path.join(d, x)))
   return ua
+}
+
+async function luaTest () {
+  const t = new LuaStuff()
+  dbg(`This is a test - is it ${t !== null}`)
 }
 
 async function pickDir () {
