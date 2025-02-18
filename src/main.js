@@ -4,7 +4,7 @@ import path from 'path'
 import { MainMap } from './MainMap'
 import { mineToFilePath, filePathToMine } from './util'
 import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
-import { LuaStuff } from './LuaStuff'
+import { LuaFengari } from './LuaFengari'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -173,7 +173,7 @@ async function getSkyBoxMineUrlList (n) {
 }
 
 async function luaTest () {
-  const t = new LuaStuff()
+  const t = new LuaFengari()
   dbg(`This is a test - is it ${t !== null}`)
 }
 
