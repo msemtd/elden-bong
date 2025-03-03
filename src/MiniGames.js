@@ -6,6 +6,7 @@ import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
+import { NekoHerder } from './NekoHerder'
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -44,6 +45,7 @@ class MiniGames extends THREE.EventDispatcher {
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),
       japaneseStudy: new JapaneseStudy(this, 'Japanese Study'),
+      nekoHerder: new NekoHerder(this),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!
