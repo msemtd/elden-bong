@@ -50,15 +50,17 @@ class NekoHerder extends MiniGameBase {
     const material = new THREE.MeshPhongMaterial({ color: 'green' })
     const sx = 11
     const sy = 11
-    const xOff = 2
-    const yOff = 2
+    const spacing = 0.98
+    const xOff = 2 * Math.sin(Math.PI / 3) * spacing
+    const yOff = 2 * spacing
 
-    for (let i = 0; i < sx; i++) {
-      for (let j = 0; j < sy; j++) {
+    for (let j = 0; j < sy; j++) {
+      for (let i = 0; i < sx; i++) {
         const h = new THREE.Mesh(this.hexBlockGeometry, material)
         h.rotateZ(Math.PI / 2)
+        const adj = (i % 2) / 2
         const x = i * xOff
-        const y = j + ((i % 1) / 2) * yOff
+        const y = (j + adj) * yOff
         h.position.set(x, y, 0)
         this.group.add(h)
       }
