@@ -20,6 +20,7 @@ class MiniGameBase extends THREE.EventDispatcher {
       this.screen = ev.screen
       ev.group.add(this.group)
       this.gui = ev.gui.addFolder(name)
+      this.gui.close()
     }
   }
 

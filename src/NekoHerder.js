@@ -1,6 +1,7 @@
 import { MiniGameBase } from './MiniGameBase'
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import ntc from '@yatiac/name-that-color'
 
 class NekoHerder extends MiniGameBase {
   constructor (parent) {
@@ -18,6 +19,12 @@ class NekoHerder extends MiniGameBase {
       this.gui.add(this, 'deactivate')
       this.hexBlockGeometry = NekoHerder.hexBlock()
     })
+    // TODO: ntc is not as awesome as it could be - we cannot do lookups by name - maybe fork it
+    this.blockColours = ['Racing Green', 'Japanese Laurel']
+    for (const c of this.blockColours) {
+      const r = ntc(c)
+      console.dir(r)
+    }
   }
 
   static hexBlock () {

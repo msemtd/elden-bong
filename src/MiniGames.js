@@ -7,6 +7,7 @@ import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 import { NekoHerder } from './NekoHerder'
+import { MiniGameBase } from './MiniGameBase'
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -27,6 +28,8 @@ import { NekoHerder } from './NekoHerder'
  * - hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
  *
  * ## tempted to have a MiniGame base class
+ * actually done but more TODO
+ * add settings per game and a notifications events system for when they change *
  *
  * = The Games Room =
  * floor, walls, door, windows, furniture, a cafe?
@@ -65,6 +68,12 @@ class MiniGames extends THREE.EventDispatcher {
 
   deactivateAll () {
     // visit each game and get it to pause/hide itself
+    for (const [k, v] of Object.entries(this.games)) {
+      if (v instanceof MiniGameBase) {
+        console.log('deactivate ' + k)
+        v.deactivate()
+      }
+    }
     this.games.cardsDude.deactivate()
     // can be as simple as hiding a group
     this.games.shedBuilder.group.visible = false

@@ -4,6 +4,7 @@ import { isString, isObject, isInteger } from '../wahWah'
 import { Screen } from '../Screen'
 import { pickFile } from '../HandyApi'
 
+// TODO be MiniGameBase
 class ShedBuilder extends THREE.EventDispatcher {
   constructor (parent) {
     super()
@@ -25,6 +26,7 @@ class ShedBuilder extends THREE.EventDispatcher {
       this.screen = ev.screen
       ev.group.add(this.group)
       const f = this.gui = ev.gui.addFolder('Shed Builder')
+      f.close()
       f.add(this, 'runTest')
     })
   }

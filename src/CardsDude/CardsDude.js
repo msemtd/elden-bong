@@ -264,6 +264,7 @@ class CardsDude extends THREE.EventDispatcher {
       this.screen = ev.screen
       ev.group.add(this.group)
       const f = this.gui = ev.gui.addFolder('Cards Dude!')
+      f.close()
       f.add(this, 'testCardsDude')
       f.add(this, 'activate')
       f.add(this, 'deactivate')
