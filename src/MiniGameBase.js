@@ -2,6 +2,9 @@ import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Screen } from './Screen'
 
+/**
+ * Base class for a mini-game in the Elden Bong frame-wonk
+ */
 class MiniGameBase extends THREE.EventDispatcher {
   constructor (parent, name) {
     super()

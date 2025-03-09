@@ -1,39 +1,18 @@
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { isString, isObject, isInteger } from '../wahWah'
-import { Screen } from '../Screen'
-import { pickFile } from '../HandyApi'
+import { MiniGameBase } from '../MiniGameBase'
+import { isObject } from '../wahWah'
 
-// TODO be MiniGameBase
-class ShedBuilder extends THREE.EventDispatcher {
+class ShedBuilder extends MiniGameBase {
   constructor (parent) {
-    super()
-    console.assert(parent instanceof THREE.EventDispatcher)
-    this.active = false
-    this.gui = null
-    this.group = new THREE.Group()
-    this.group.name = 'ShedBuilder'
+    super(parent, 'ShedBuilder')
     this.addComponents()
-    // -------------------------------------
-
-    // ------------------------------------------------
     parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
       console.assert(ev.gui instanceof GUI)
       console.assert(ev.group instanceof THREE.Object3D)
-      console.assert(typeof ev.redrawFunc === 'function')
-      console.assert(ev.screen instanceof Screen)
-      this.redraw = ev.redrawFunc
-      this.screen = ev.screen
-      ev.group.add(this.group)
-      const f = this.gui = ev.gui.addFolder('Shed Builder')
-      f.close()
-      f.add(this, 'runTest')
+      this.gui.add(this, 'runTest')
     })
-  }
-
-  activate () {
-    this.group.visible = true
-    this.redraw()
   }
 
   async runTest () {
