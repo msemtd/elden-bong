@@ -47,7 +47,7 @@ class MiniGames extends THREE.EventDispatcher {
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),
-      japaneseStudy: new JapaneseStudy(this, 'Japanese Study'),
+      japaneseStudy: new JapaneseStudy(this),
       nekoHerder: new NekoHerder(this),
     }
     parent.addEventListener('ready', (ev) => {

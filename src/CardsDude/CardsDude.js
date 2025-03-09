@@ -12,6 +12,7 @@ import CameraControls from 'camera-controls'
 import { isString, isObject, isInteger } from '../wahWah'
 import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
 import { games } from './games'
+import { MiniGameBase } from '../MiniGameBase'
 
 /**
  *
@@ -231,16 +232,10 @@ class GameState extends THREE.EventDispatcher {
   }
 }
 
-class CardsDude extends THREE.EventDispatcher {
+class CardsDude extends MiniGameBase {
   constructor (parent, game = games.bigSpider) {
-    super()
-    console.assert(parent instanceof THREE.EventDispatcher)
-    // active functionality could be common to all mini-games
-    this.active = false
+    super(parent, 'CardsDude')
     this.gameState = new GameState(game)
-    this.gui = null // populate when parent is ready!
-    this.group = new THREE.Group()
-    this.group.name = 'CardsDude'
     this.layout = {
       verticalSpacingFaceUp: 0.2,
       verticalSpacingFaceDown: 0.08,
@@ -256,15 +251,12 @@ class CardsDude extends THREE.EventDispatcher {
     this.timeLine = gsap.timeline({ autoRemoveChildren: true, onComplete: this.onEndTimeLine.bind(this) })
     this.loadModels()
     parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
       console.assert(ev.gui instanceof GUI)
       console.assert(ev.group instanceof THREE.Object3D)
       console.assert(typeof ev.redrawFunc === 'function')
       console.assert(ev.screen instanceof Screen)
-      this.redraw = ev.redrawFunc
-      this.screen = ev.screen
-      ev.group.add(this.group)
-      const f = this.gui = ev.gui.addFolder('Cards Dude!')
-      f.close()
+      const f = this.gui
       f.add(this, 'testCardsDude')
       f.add(this, 'activate')
       f.add(this, 'deactivate')
@@ -621,24 +613,6 @@ class CardsDude extends THREE.EventDispatcher {
     this.activate()
     this.gameState.startNew()
     this.lookAtCardTable()
-  }
-
-  activate () {
-    this.group.visible = true
-    this.active = true
-    // a little sample showing activity
-    // this.screen.addMixer('testCardsDude', (_delta) => {
-    //   this.masterCard.rotation.z += 0.01
-    //   return true
-    // })
-    this.redraw()
-  }
-
-  deactivate () {
-    this.group.visible = false
-    this.active = false
-    // this.screen.removeMixer('testCardsDude')
-    this.redraw()
   }
 
   lookAtCardTable () {
