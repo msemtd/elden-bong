@@ -40,6 +40,9 @@ class E57 {
     dbg(`main thread async load e57 file from '${fp}'...`)
     console.log(`main thread async load e57 file from '${fp}'...`)
     try {
+      const stats = await fs.stat(fp, { bigint: true })
+      console.dir(stats)
+
       const fh = await fs.open(fp, 'r')
       dbg('file opened OK')
       console.log('file opened OK')
@@ -124,6 +127,10 @@ class E57 {
       xPos += ncb
       const crcGiven = page.readUint32LE(1020)
       console.log(`   +crc ${crcGiven}`)
+      if (b === 0) {
+        const tempXml = page.toString('utf8', 0, ncb)
+        console.log(tempXml)
+      }
       // TODO perform CRC check when we know where the hell the last CRC might be!
       totalBytesRead += bytesRead
     }
