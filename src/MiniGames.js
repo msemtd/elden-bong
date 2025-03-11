@@ -7,6 +7,7 @@ import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 import { NekoHerder } from './NekoHerder'
+import { PiTrain } from './PiTrain'
 import { MiniGameBase } from './MiniGameBase'
 /**
  * Allow the mini-games wrapper provide a games room
@@ -49,6 +50,7 @@ class MiniGames extends THREE.EventDispatcher {
       shedBuilder: new ShedBuilder(this),
       japaneseStudy: new JapaneseStudy(this),
       nekoHerder: new NekoHerder(this),
+      piTrain: new PiTrain(this),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!
