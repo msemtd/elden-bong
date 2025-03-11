@@ -127,6 +127,10 @@ class E57 {
       xPos += ncb
       const crcGiven = page.readUint32LE(1020)
       console.log(`   +crc ${crcGiven}`)
+      // TODO temp dump of first page bytes to string and try to work out why CRC appears in wrong place!
+      // OK, I think I got it - the page boundaries are in fixed positions and the XML
+      // starts wherever (but on a 4 byte boundary)
+      // I need to read up to the first page boundary then all pages until after the XML (or EOF)
       if (b === 0) {
         const tempXml = page.toString('utf8', 0, ncb)
         console.log(tempXml)
