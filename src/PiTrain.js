@@ -5,8 +5,7 @@ class PiTrain extends MiniGameBase {
     super(parent, 'PiTrain')
     super.addEventListener('ready', (ev) => {
       super.onReady()
-      
-    }
+    })
   }
 }
 

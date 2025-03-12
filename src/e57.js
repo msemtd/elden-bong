@@ -42,7 +42,11 @@ class E57 {
     try {
       const stats = await fs.stat(fp, { bigint: true })
       console.dir(stats)
-
+      if (stats.size > Number.MAX_SAFE_INTEGER) {
+        throw Error(`vast file size not supported: ${stats.size}`)
+      }
+      // make a checking pass through entire file
+      await E57.checkingPass(fp, Number(stats.size))
       const fh = await fs.open(fp, 'r')
       dbg('file opened OK')
       console.log('file opened OK')
@@ -55,6 +59,30 @@ class E57 {
     }
 
     return 'gimme-a-minute'
+  }
+
+  static async checkingPass (fp, size) {
+    const fh = await fs.open(fp, 'r')
+    const ps = 1024
+    const np = size / ps
+    console.log(np)
+    const pc = Math.ceil(np)
+    if (pc !== np) {
+      console.warn(`page count is not whole ${np} !== ${pc}`)
+    }
+    console.log(`reading ${pc} pages`)
+    const buf = Buffer.alloc(ps)
+    const t1 = Date.now()
+    for (let index = 0; index < pc; index++) {
+      const pos = index * ps
+      const { bytesRead } = await fs.read(fh, buf, 0, ps, pos)
+      if (bytesRead !== ps) {
+        console.warn(`page ${index} bytesRead: ${bytesRead} <> ${ps}`)
+      }
+    }
+    const t2 = Date.now()
+    const ms = t2 - t1
+    console.log(`seconds elapsed = ${Math.floor(ms / 1000)}`);
   }
 
   static async readHeader (fh) {
@@ -108,6 +136,10 @@ class E57 {
     if (xmlLogicalLength >= Number.MAX_SAFE_INTEGER) {
       throw Error('massive logical section length is not supported here')
     }
+    console.log(~(1024 - 1))
+    const pageStart = offset & ~(1024 - 1)
+    console.log(`offset is ${offset} and page starts at ${pageStart}`)
+
     const logicalBytes = Number(xmlLogicalLength)
     const physicalPages = Math.ceil(logicalBytes / 1020)
     const physicalBytes = physicalPages * 1024
