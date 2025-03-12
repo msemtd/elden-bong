@@ -52,7 +52,13 @@ class E57 {
       console.log('file opened OK')
       const h = await E57.readHeader(fh)
       console.dir(h)
-      const x = await E57.readXmlSection(fh, h.xmlPhysicalOffset, h.xmlLogicalLength)
+      const xml = await E57.readXmlSection(fh, h.xmlPhysicalOffset, h.xmlLogicalLength)
+      console.log(`XML of length ${xml.length}`)
+      const lines = xml.split('\n')
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        console.log(line)
+      }
     } catch (error) {
       console.error(error)
       return `not too happy with the outcome: ${error}`
@@ -82,7 +88,7 @@ class E57 {
     }
     const t2 = Date.now()
     const ms = t2 - t1
-    console.log(`seconds elapsed = ${Math.floor(ms / 1000)}`);
+    console.log(`seconds elapsed = ${Math.floor(ms / 1000)}`)
   }
 
   static async readHeader (fh) {
@@ -132,52 +138,59 @@ class E57 {
     // 9000 terabytes. That is undeniably unreasonable!
     const offset = Number(xmlPhysicalOffset)
     // attempt to slurp enough physical pages that would contain the logical size
-    // TODO deal with section padding, CRC etc.
     if (xmlLogicalLength >= Number.MAX_SAFE_INTEGER) {
       throw Error('massive logical section length is not supported here')
     }
-    console.log(~(1024 - 1))
+    const logicalBytes = Number(xmlLogicalLength)
+
     const pageStart = offset & ~(1024 - 1)
     console.log(`offset is ${offset} and page starts at ${pageStart}`)
-
-    const logicalBytes = Number(xmlLogicalLength)
-    const physicalPages = Math.ceil(logicalBytes / 1020)
-    const physicalBytes = physicalPages * 1024
     // read page by page and append content to big XML buffer...
     const page = Buffer.alloc(1024)
-    const xBuf = Buffer.alloc(physicalBytes)
+    const xBuf = Buffer.alloc(logicalBytes)
+    // Here the number of physical pages could be over by one - just make that ok later
+    const physicalPages = Math.ceil(logicalBytes / 1020) + 1
     let totalBytesRead = 0
     let xPos = 0
     for (let b = 0; b < physicalPages; b++) {
-      const p = offset + (b * 1024)
-      console.log(` - reading page ${b} from offset ${offset}...`)
-      const { bytesRead } = await fs.read(fh, page, 0, 1024, p)
+      const pPos = pageStart + (b * 1024)
+      console.log(` - reading page ${b} from page offset at ${pPos}...`)
+      const { bytesRead } = await fs.read(fh, page, 0, 1024, pPos)
+      totalBytesRead += bytesRead
       console.log(`   +got ${bytesRead} bytes`)
-      // padded blocks? Only padding to 4 byte boundary?
-      // copy block bytes into big buffer
-      const ncb = page.copy(xBuf, xPos, 0, 1020)
-      xPos += ncb
       const crcGiven = page.readUint32LE(1020)
       console.log(`   +crc ${crcGiven}`)
-      // TODO temp dump of first page bytes to string and try to work out why CRC appears in wrong place!
-      // OK, I think I got it - the page boundaries are in fixed positions and the XML
-      // starts wherever (but on a 4 byte boundary)
-      // I need to read up to the first page boundary then all pages until after the XML (or EOF)
-      if (b === 0) {
-        const tempXml = page.toString('utf8', 0, ncb)
-        console.log(tempXml)
+      // TODO calc and compare CRC32C, see https://github.com/SheetJS/js-crc32
+      // what byte range of the page do we need to copy?
+      let p1 = 0
+      let len = 1020
+      // first page may start before data...
+      if (b === 0 && pPos < offset) {
+        const c = offset - pPos
+        p1 = c
+        len = 1020 - c
+        console.log(`first page read from ${p1} for ${len} bytes`)
       }
-      // TODO perform CRC check when we know where the hell the last CRC might be!
-      totalBytesRead += bytesRead
+      // TODO last page? well, I'll sort that out later!
+      if (xPos + 1020 > logicalBytes) {
+        console.log(`last page read from ${p1} for ${len} bytes`)
+      }
+      // padded blocks? Only padding to 4 byte boundary?
+      // copy block bytes into big buffer
+      const ncb = page.copy(xBuf, xPos, p1, len)
+      xPos += ncb
+      if (xPos >= logicalBytes) {
+        console.warn(`I think we are finished at xPos ${xPos}`)
+      }
+      // TODO temp dump of first page bytes to string and try to work out why CRC appears in wrong place!
+      if (b < 2) {
+        const tempXml = xBuf.toString('utf8', 0, xPos)
+        console.warn(tempXml)
+      }
     }
     console.log(`Total: ${totalBytesRead} bytes in the pages`)
     const xml = xBuf.toString('utf8', 0, logicalBytes)
-    console.log(`XML of length ${xml.length}`)
-    const lines = xml.split('\n')
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      console.log(line)
-    }
+    return xml
   }
 }
 
