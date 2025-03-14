@@ -177,7 +177,7 @@ class E57 {
       }
       // padded blocks? Only padding to 4 byte boundary?
       // copy block bytes into big buffer
-      const ncb = page.copy(xBuf, xPos, p1, len)
+      const ncb = page.copy(xBuf, xPos, p1, p1 + len)
       xPos += ncb
       if (xPos >= logicalBytes) {
         console.warn(`I think we are finished at xPos ${xPos}`)
