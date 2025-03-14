@@ -25,213 +25,6 @@ import { MiniGameBase } from '../MiniGameBase'
  *
  * First and maybe last - just support the greatest of all games, Big Spider!
  */
-
-// take items from end of array and move to start
-const rotateArray = (arr, i) => {
-  arr.unshift(...arr.splice(i))
-}
-
-class Card {
-  constructor (id, rank, suit, faceUp = false) {
-    console.assert(isInteger(id))
-    console.assert(isString(rank))
-    console.assert(isString(suit))
-    console.assert(rank.length <= 2)
-    console.assert(suit.length === 1)
-    this.id = id
-    this.rank = rank
-    this.suit = suit
-    this.faceUp = !!faceUp
-  }
-
-  rankValue () {
-    return cardUtils.rankValues[this.rank]
-  }
-}
-
-class CardStack extends Array {
-  // Just an array but typed
-}
-
-/**
- * events raised:
- * - update = you need to animate something
- * - addHistory = this just went on the undo stack
- */
-class GameState extends THREE.EventDispatcher {
-  constructor (game) {
-    super()
-    console.assert(isObject(game))
-    console.assert(isString(game.name))
-    console.assert(isInteger(game.tableau?.repeat))
-    console.assert(isInteger(game.tableau?.count))
-    this.gameInfo = Object.create(game)
-    const tn = game.tableau.repeat
-    // NB: constructor doesn't deal right now because we'd like to animate it
-    this.stock = new CardStack()
-    this.tableau = new Array(tn)
-    for (let i = 0; i < this.tableau.length; i++) {
-      this.tableau[i] = new CardStack()
-    }
-    this.history = []
-    this.redoStack = []
-  }
-
-  startNew (shuffleNumber = 5) {
-    console.assert(isInteger(shuffleNumber))
-    shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
-    this.shuffleNumber = shuffleNumber
-    const seedStr = 'CardsDude_' + shuffleNumber.toString().padStart(10, '0')
-    const rng = seedrandom(seedStr)
-    // TODO: proper reset of all data!
-    this.stock.length = 0
-    for (let i = 0; i < this.tableau.length; i++) {
-      this.tableau[i].length = 0
-    }
-    const gi = this.gameInfo
-    const ca = cardUtils.getDecks(gi.decks)
-    let id = 0
-    for (const c of ca) {
-      const chars = c.split('')
-      const suit = chars.pop()
-      const rank = chars.join('')
-      this.stock.push(new Card(id, rank, suit))
-      id++
-    }
-
-    cardUtils.shuffle(this.stock, rng)
-    this.dispatchEvent({ type: 'update', act: 'created stock' })
-    // deal n cards to cols
-    const n = gi.tableau.count
-    this.dealFromStock(n)
-    this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
-    this.dispatchEvent({ type: 'update', act: 'safety redraw' })
-  }
-
-  dealFromStock (n) {
-    const cc = this.tableau.length
-    for (let i = 0; i < n; i++) {
-      const card = this.stock.pop()
-      // TODO: row needs to be based on current content
-      const col = i % cc
-      this.tableau[col].push(card)
-      const row = this.tableau[col].length
-      this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
-    }
-    this.flipTopCards()
-  }
-
-  useStock () {
-    this.dealFromStock(this.tableau.length)
-  }
-
-  addHistory (value) {
-    this.history.push(value)
-    this.dispatchEvent({ type: 'addHistory', value })
-  }
-
-  dumpHistory () {
-    console.dir(this.history)
-    console.dir(this.redoStack)
-  }
-
-  undo () {
-    // get top of history and erm...
-    // I guess move it to the redo pile!
-  }
-
-  redo () {
-    // anything to redo?
-  }
-
-  flipTopCards () {
-    for (let col = 0; col < this.tableau.length; col++) {
-      const stack = this.tableau[col]
-      if (!stack.length) continue
-      const row = stack.length - 1
-      const card = stack[row]
-      if (card.faceUp) continue
-      card.faceUp = true
-      this.dispatchEvent({ type: 'update', act: 'flip top card', card, row, col })
-    }
-  }
-
-  tableauFind (cardId) {
-    const tab = this.tableau
-    for (let col = 0; col < tab.length; col++) {
-      const stack = tab[col]
-      const row = stack.findIndex(c => c.id === cardId)
-      if (row !== -1) return [stack[row], row, col]
-    }
-    return [null]
-  }
-
-  /**
-   * Check the sequence of card values in this stack, starting at row, differs by diff each card
-   * @param {Array<Card>} stack array of Card
-   * @param {Number} row start of the sequence
-   * @param {Number} diff difference in rank value - default to -1 for a descending sequence
-   */
-  checkSequence (stack, row, diff = -1) {
-    // This could probably be done as a one-liner with {Array.reduce} but I'm
-    // not smart enough at this time of night!
-    let v1 = stack[row].rankValue()
-    const s = stack[row].suit
-    console.assert(isInteger(v1))
-    for (let i = row + 1; i < stack.length; i++) {
-      if (stack[i].suit !== s) return false
-      const v2 = stack[i].rankValue()
-      console.assert(isInteger(v2))
-      if (v2 !== v1 + diff) return false
-      v1 = v2
-    }
-    return true
-  }
-
-  autoMove (cardId) {
-    // find the card being moved - must be face-up in the tableau...
-    const [card, row, col] = this.tableauFind(cardId)
-    console.assert(card && card?.faceUp)
-    if (!card || !card.faceUp) return
-    // can this stack even be moved?
-    // look if this stack is valid starting at row
-    if (!this.checkSequence(this.tableau[col], row)) {
-      console.log('autoMove: this sequence cannot be moved')
-      this.dispatchEvent({ type: 'update', act: 'autoMove failed', card, row, col })
-      return
-    }
-    // now search for somewhere to place it
-    console.log(`autoMove ${cardId} is ${card.rank}${card.suit} at col ${col} row ${row}...`)
-    const rv = card.rankValue()
-    // OK, make a list of columns to check...
-    const cols = [...Array(this.tableau.length).keys()]
-    // starting after the given column and wrapping around...
-    rotateArray(cols, col + 1)
-    // find if there's a target to receive our stack...
-    const isValidTargetForVal = (i, rv) => {
-      const tc = this.tableau[i].slice(-1)[0]
-      return (tc?.rankValue() === rv + 1)
-    }
-    const targetCols = cols.filter(i => isValidTargetForVal(i, rv))
-    const betterTargetCols = targetCols.filter(i => {
-      const tc = this.tableau[i].slice(-1)[0]
-      return (tc?.suit === card.suit)
-    })
-    const emptyCols = cols.filter(i => (this.tableau[i].length === 0))
-    console.log('target cols', targetCols)
-    console.log('better target cols', betterTargetCols)
-    console.log('emptyCols cols', emptyCols)
-    const best = betterTargetCols.length ? betterTargetCols[0] : targetCols.length ? targetCols[0] : emptyCols.length ? emptyCols[0] : null
-    if (best === null) {
-      return
-    }
-    const subStack = this.tableau[col].splice(row)
-    this.tableau[best].push(...subStack)
-    this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
-    this.flipTopCards()
-  }
-}
-
 class CardsDude extends MiniGameBase {
   constructor (parent, game = games.bigSpider) {
     super(parent, 'CardsDude')
@@ -623,6 +416,213 @@ class CardsDude extends MiniGameBase {
     // cc.moveTo( x, y, z, enableTransition )
     cc.setLookAt(-0.21, -2.49, 3.32, 0.16, -0.26, -0.16, true)
     // cc.fitToSphere(this.group, true)
+  }
+}
+
+
+// take items from end of array and move to start
+const rotateArray = (arr, i) => {
+  arr.unshift(...arr.splice(i))
+}
+
+class Card {
+  constructor (id, rank, suit, faceUp = false) {
+    console.assert(isInteger(id))
+    console.assert(isString(rank))
+    console.assert(isString(suit))
+    console.assert(rank.length <= 2)
+    console.assert(suit.length === 1)
+    this.id = id
+    this.rank = rank
+    this.suit = suit
+    this.faceUp = !!faceUp
+  }
+
+  rankValue () {
+    return cardUtils.rankValues[this.rank]
+  }
+}
+
+class CardStack extends Array {
+  // Just an array but typed
+}
+
+/**
+ * events raised:
+ * - update = you need to animate something
+ * - addHistory = this just went on the undo stack
+ */
+class GameState extends THREE.EventDispatcher {
+  constructor (game) {
+    super()
+    console.assert(isObject(game))
+    console.assert(isString(game.name))
+    console.assert(isInteger(game.tableau?.repeat))
+    console.assert(isInteger(game.tableau?.count))
+    this.gameInfo = Object.create(game)
+    const tn = game.tableau.repeat
+    // NB: constructor doesn't deal right now because we'd like to animate it
+    this.stock = new CardStack()
+    this.tableau = new Array(tn)
+    for (let i = 0; i < this.tableau.length; i++) {
+      this.tableau[i] = new CardStack()
+    }
+    this.history = []
+    this.redoStack = []
+  }
+
+  startNew (shuffleNumber = 5) {
+    console.assert(isInteger(shuffleNumber))
+    shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
+    this.shuffleNumber = shuffleNumber
+    const seedStr = 'CardsDude_' + shuffleNumber.toString().padStart(10, '0')
+    const rng = seedrandom(seedStr)
+    // TODO: proper reset of all data!
+    this.stock.length = 0
+    for (let i = 0; i < this.tableau.length; i++) {
+      this.tableau[i].length = 0
+    }
+    const gi = this.gameInfo
+    const ca = cardUtils.getDecks(gi.decks)
+    let id = 0
+    for (const c of ca) {
+      const chars = c.split('')
+      const suit = chars.pop()
+      const rank = chars.join('')
+      this.stock.push(new Card(id, rank, suit))
+      id++
+    }
+
+    cardUtils.shuffle(this.stock, rng)
+    this.dispatchEvent({ type: 'update', act: 'created stock' })
+    // deal n cards to cols
+    const n = gi.tableau.count
+    this.dealFromStock(n)
+    this.addHistory(`shuffled ${gi.decks} decks and dealt a new game of ${gi.name}`)
+    this.dispatchEvent({ type: 'update', act: 'safety redraw' })
+  }
+
+  dealFromStock (n) {
+    const cc = this.tableau.length
+    for (let i = 0; i < n; i++) {
+      const card = this.stock.pop()
+      // TODO: row needs to be based on current content
+      const col = i % cc
+      this.tableau[col].push(card)
+      const row = this.tableau[col].length
+      this.dispatchEvent({ type: 'update', act: 'deal from stock', card, row, col })
+    }
+    this.flipTopCards()
+  }
+
+  useStock () {
+    this.dealFromStock(this.tableau.length)
+  }
+
+  addHistory (value) {
+    this.history.push(value)
+    this.dispatchEvent({ type: 'addHistory', value })
+  }
+
+  dumpHistory () {
+    console.dir(this.history)
+    console.dir(this.redoStack)
+  }
+
+  undo () {
+    // get top of history and erm...
+    // I guess move it to the redo pile!
+  }
+
+  redo () {
+    // anything to redo?
+  }
+
+  flipTopCards () {
+    for (let col = 0; col < this.tableau.length; col++) {
+      const stack = this.tableau[col]
+      if (!stack.length) continue
+      const row = stack.length - 1
+      const card = stack[row]
+      if (card.faceUp) continue
+      card.faceUp = true
+      this.dispatchEvent({ type: 'update', act: 'flip top card', card, row, col })
+    }
+  }
+
+  tableauFind (cardId) {
+    const tab = this.tableau
+    for (let col = 0; col < tab.length; col++) {
+      const stack = tab[col]
+      const row = stack.findIndex(c => c.id === cardId)
+      if (row !== -1) return [stack[row], row, col]
+    }
+    return [null]
+  }
+
+  /**
+   * Check the sequence of card values in this stack, starting at row, differs by diff each card
+   * @param {Array<Card>} stack array of Card
+   * @param {Number} row start of the sequence
+   * @param {Number} diff difference in rank value - default to -1 for a descending sequence
+   */
+  checkSequence (stack, row, diff = -1) {
+    // This could probably be done as a one-liner with {Array.reduce} but I'm
+    // not smart enough at this time of night!
+    let v1 = stack[row].rankValue()
+    const s = stack[row].suit
+    console.assert(isInteger(v1))
+    for (let i = row + 1; i < stack.length; i++) {
+      if (stack[i].suit !== s) return false
+      const v2 = stack[i].rankValue()
+      console.assert(isInteger(v2))
+      if (v2 !== v1 + diff) return false
+      v1 = v2
+    }
+    return true
+  }
+
+  autoMove (cardId) {
+    // find the card being moved - must be face-up in the tableau...
+    const [card, row, col] = this.tableauFind(cardId)
+    console.assert(card && card?.faceUp)
+    if (!card || !card.faceUp) return
+    // can this stack even be moved?
+    // look if this stack is valid starting at row
+    if (!this.checkSequence(this.tableau[col], row)) {
+      console.log('autoMove: this sequence cannot be moved')
+      this.dispatchEvent({ type: 'update', act: 'autoMove failed', card, row, col })
+      return
+    }
+    // now search for somewhere to place it
+    console.log(`autoMove ${cardId} is ${card.rank}${card.suit} at col ${col} row ${row}...`)
+    const rv = card.rankValue()
+    // OK, make a list of columns to check...
+    const cols = [...Array(this.tableau.length).keys()]
+    // starting after the given column and wrapping around...
+    rotateArray(cols, col + 1)
+    // find if there's a target to receive our stack...
+    const isValidTargetForVal = (i, rv) => {
+      const tc = this.tableau[i].slice(-1)[0]
+      return (tc?.rankValue() === rv + 1)
+    }
+    const targetCols = cols.filter(i => isValidTargetForVal(i, rv))
+    const betterTargetCols = targetCols.filter(i => {
+      const tc = this.tableau[i].slice(-1)[0]
+      return (tc?.suit === card.suit)
+    })
+    const emptyCols = cols.filter(i => (this.tableau[i].length === 0))
+    console.log('target cols', targetCols)
+    console.log('better target cols', betterTargetCols)
+    console.log('emptyCols cols', emptyCols)
+    const best = betterTargetCols.length ? betterTargetCols[0] : targetCols.length ? targetCols[0] : emptyCols.length ? emptyCols[0] : null
+    if (best === null) {
+      return
+    }
+    const subStack = this.tableau[col].splice(row)
+    this.tableau[best].push(...subStack)
+    this.dispatchEvent({ type: 'update', act: 'move stack', card, row, col, targetCol: best })
+    this.flipTopCards()
   }
 }
 

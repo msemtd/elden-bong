@@ -65,6 +65,7 @@ class MiniGames extends THREE.EventDispatcher {
       f.add(this, 'deactivateAll')
       // this.addMoanSwooper(c)
       this.dispatchEvent({ type: 'ready', gui: this.gui, group: this.group, redrawFunc: this.redraw, screen: this.screen })
+      this.deactivateAll()
     })
   }
 
@@ -76,9 +77,6 @@ class MiniGames extends THREE.EventDispatcher {
         v.deactivate()
       }
     }
-    // can be as simple as hiding a group
-    this.games.cardsDude.deactivate()
-    this.redraw()
   }
 
   stealIntersectForGame (ev, mousePos, raycaster) {

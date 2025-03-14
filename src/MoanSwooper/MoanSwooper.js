@@ -56,6 +56,7 @@ const tileObjName = (x, y) => `tile_${x}_${y}`
 const deadTileObjName = (x, y) => `deadTile_${x}_${y}`
 const flagObjName = (x, y) => `flag_${x}_${y}}`
 
+// TODO make into MiniGameBase
 class MoanSwooper extends THREE.EventDispatcher {
   constructor (parent) {
     super()
