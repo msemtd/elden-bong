@@ -3,8 +3,8 @@ import { MiniGameBase } from './MiniGameBase'
 class PiTrain extends MiniGameBase {
   constructor (parent) {
     super(parent, 'PiTrain')
-    super.addEventListener('ready', (ev) => {
-      super.onReady()
+    parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
     })
   }
 }

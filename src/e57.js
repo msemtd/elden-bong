@@ -159,7 +159,7 @@ class E57 {
       totalBytesRead += bytesRead
       console.log(`   +got ${bytesRead} bytes`)
       const crcGiven = page.readUint32LE(1020)
-      console.log(`   +crc ${crcGiven}`)
+      console.log(`   +crc ${crcGiven.toString(16)}`)
       // TODO calc and compare CRC32C, see https://github.com/SheetJS/js-crc32
       // what byte range of the page do we need to copy?
       let p1 = 0
