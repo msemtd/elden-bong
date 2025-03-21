@@ -31,10 +31,9 @@ export function depthFirstReverseTraverse (p, o, cb) {
   cb(p, o)
 }
 
-
 export function addGrid (scene) {
   const width = 100
-  const gridPos = new THREE.Vector3(0, 0, 0)
+  const gridPos = new THREE.Vector3(0, 0, -0.01)
   const gridVisible = true
 
   const grid = new THREE.GridHelper(width, width)
