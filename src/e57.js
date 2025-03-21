@@ -1,6 +1,8 @@
 import debug from 'debug'
 import fs from 'fs-extra'
 
+import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser'
+
 const dbg = debug('main')
 
 // 6. General File Structure
@@ -59,6 +61,10 @@ class E57 {
         const line = lines[i]
         console.log(line)
       }
+      const parser = new XMLParser()
+      const jObj = parser.parse(xml)
+      // TODO now slurp out some important info
+      console.dir(jObj)
     } catch (error) {
       console.error(error)
       return `not too happy with the outcome: ${error}`
@@ -182,14 +188,10 @@ class E57 {
       if (xPos >= logicalBytes) {
         console.warn(`I think we are finished at xPos ${xPos}`)
       }
-      // TODO temp dump of first page bytes to string and try to work out why CRC appears in wrong place!
-      if (b < 2) {
-        const tempXml = xBuf.toString('utf8', 0, xPos)
-        console.warn(tempXml)
-      }
     }
     console.log(`Total: ${totalBytesRead} bytes in the pages`)
     const xml = xBuf.toString('utf8', 0, logicalBytes)
+    console.assert(xmlLogicalLength === totalBytesRead)
     return xml
   }
 }
