@@ -1486,6 +1486,11 @@ builtins@^5.0.1:
   dependencies:
     semver "^7.0.0"
 
+bulk-replace@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/bulk-replace/-/bulk-replace-0.0.1.tgz#f095682a896abd4b3d9e08de409cc222e213f9dd"
+  integrity sha512-IxLEnfsCYLjlpf6mG7SWpWgA4A8IAT5dAX3FxXHFn+6FTLf3ums771elQ74sj1BCOVanBf6esu0rEC6zgwfmIg==
+
 bytes@3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/bytes/-/bytes-3.0.0.tgz"
@@ -3343,6 +3348,13 @@ he@^1.2.0:
 "heisig-rtk-index@https://github.com/cyphar/heisig-rtk-index.git":
   version "0.0.0"
   resolved "https://github.com/cyphar/heisig-rtk-index.git#4c3edac4a313acd353b99a9eb62ce5044ccd483d"
+
+hepburn@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/hepburn/-/hepburn-1.2.1.tgz#d429f7c90e59357af9e66e8ae71d665eb8714fdc"
+  integrity sha512-v/VUHmiHhNbjDBGxYkwDXzYvfOTIKFquAn0KrPtH1D3Zv539VBPEOGYoWpLnb/FBT9vAx9anQef3noJZ2fPIBw==
+  dependencies:
+    bulk-replace "0.0.1"
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"
