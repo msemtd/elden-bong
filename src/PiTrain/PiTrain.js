@@ -1,4 +1,4 @@
-import { MiniGameBase } from './MiniGameBase'
+import { MiniGameBase } from '../MiniGameBase'
 
 class PiTrain extends MiniGameBase {
   constructor (parent) {

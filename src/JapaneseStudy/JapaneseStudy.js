@@ -15,6 +15,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MiniGameBase } from '../MiniGameBase'
 import { getN5KanjiTab, getN5VocabTab } from './jlptN5Help'
 import $ from 'jquery'
+import { shellOpenExternal } from '../HandyApi'
 
 const sources = {
   gradedReaders: {
@@ -46,10 +47,13 @@ const sources = {
           Next I'd search for it in Jisho to see the get newspaper usage stats
           and the RTK dictionary index.
           This mismatch in the RTK order vs newspaper frequency is one of the annoyances with RTK!
-          Wanikani search is next - the usage examples are good and the reading
+          Wanikani search is sometimes next - the usage examples are good and the reading
           mnemonics are cool if they don't conflict too much with RTK.
+          The Anki deck is pretty good too.
           Getting the radicals.
           School order is also important.
+
+          Launching URL using electron shell to open the browser.
 
           `
         ,
@@ -101,6 +105,11 @@ class JapaneseStudy extends MiniGameBase {
       this.gui.add(this, 'activate')
       this.gui.add(this, 'deactivate')
       this.gui.add(this, 'n5Kanji')
+      const links = {
+        wpKyouikuKanji: () => { shellOpenExternal('https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji') },
+      }
+      this.gui.add(links, 'wpKyouikuKanji')
+
       // do more!
     })
   }

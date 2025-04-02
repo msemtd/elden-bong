@@ -61,6 +61,7 @@ app.whenReady().then(() => {
   ipcMain.handle('pickDir', pickDir)
   ipcMain.handle('slurp', async (event, ...args) => { return await slurp(...args) })
   ipcMain.handle('shellOpenPath', async (event, ...args) => { return await shellOpenPath(...args) })
+  ipcMain.handle('shellOpenExternal', async (event, ...args) => { return await shellOpenExternal(...args) })
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
   ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
@@ -202,4 +203,8 @@ async function outputFile (...args) {
 
 async function shellOpenPath (path) {
   return await shell.openPath(path)
+}
+
+async function shellOpenExternal (url) {
+  return await shell.openExternal(url)
 }

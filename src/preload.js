@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld('handy', {
   identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
   getSkyBoxMineUrlList: (...args) => ipcRenderer.invoke('getSkyBoxMineUrlList', ...args),
   readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
+  shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
+  shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
 })
 
 contextBridge.exposeInMainWorld('settings', {

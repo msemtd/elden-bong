@@ -12,7 +12,7 @@ import ntc from '@yatiac/name-that-color'
 import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile } from './HandyApi'
+import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile, shellOpenExternal } from './HandyApi'
 import { filePathToMine } from './util'
 import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
 import { Dlg } from './dlg'
@@ -145,6 +145,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'testVanStuff')
       fld.add(this, 'loadTokyo')
       fld.add(this, 'loadE57')
+
       // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
       // TODO -
@@ -319,6 +320,10 @@ class Bong extends THREE.EventDispatcher {
     console.log(fp)
     const info = await window.handy.readE57(fp)
     console.dir(info)
+  }
+
+  static openExternal (url) {
+    shellOpenExternal(url)
   }
 
   /**
