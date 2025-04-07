@@ -7,15 +7,22 @@
  *
  * kanjivg and heisig-rtk-index
  *
+ * I want a learning space in the world where I can "go" and access the resources.
+ * - Warp to the classroom and pick resources
+ * - simple HTML popup will be OK for now - links to open things in system browser
+ * - 3D things might be fun too
  *
  */
 
 import * as THREE from 'three'
+import { generalObj3dClean } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MiniGameBase } from '../MiniGameBase'
 import { getN5KanjiTab, getN5VocabTab } from './jlptN5Help'
 import $ from 'jquery'
 import { shellOpenExternal } from '../HandyApi'
+import { Screen } from '../Screen'
+import CameraControls from 'camera-controls'
 
 const sources = {
   gradedReaders: {
@@ -119,12 +126,59 @@ class JapaneseStudy extends MiniGameBase {
   async runTest () {
     console.warn('TODO runTest')
     const k = this.kanaGenerate()
-    console.dir(k)
+    // console.dir(k)
+    // create the classroom "over there" and enter learning mode!
+    // - disable camera user input and animate move the camera to there
+    // - escape to stop! maybe
+    // mini-games can have their own "modes" that are exited by deactivate?
+    // sounds like a percy
+    // Can enter a mode with activate - as well as just showing the group
+    // maybe deactivate others? well, we shall see!
+    //
+    // labelled blocks in the field of view - user can click any of them
+    // When in learning mode.
+    // we can leave learning mode
+
+    // make/load a classroom and place it "somewhere"
+    // "drive" the camera there!
+    // to test reset the camera first
+
+    this.buildClassroom()
+    this.activate()
+    console.assert(this.screen instanceof Screen)
+    console.assert(this.screen.cameraControls instanceof CameraControls)
+    const classroom = this.group.getObjectByName('classroom')
+    await this.screen.cameraControls.fitToSphere(classroom, true)
+    await this.screen.cameraControls.rotatePolarTo(Math.PI / 2, true)
+    await this.screen.cameraControls.dollyTo(0.5, true)
+    await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
 
     const t1 = getN5KanjiTab()
     const t2 = getN5VocabTab()
   }
 
+  buildClassroom () {
+    {
+      const o = this.group.getObjectByName('classroom')
+      if (o) {
+        o.removeFromParent()
+        generalObj3dClean(o)
+      }
+    }
+
+    const g = new THREE.BoxGeometry(5, 4, 3)
+    const m = new THREE.MeshLambertMaterial({ color: 'tan', side: THREE.DoubleSide })
+    const o = new THREE.Mesh(g, m)
+    o.name = 'classroom'
+    o.position.set(5, 15, 1.5)
+    this.group.add(o)
+  }
+
+  /**
+   *
+   * @returns this little routine creates an elementary 5 x 10 grid for the kana
+   * of the Japanese language - incorrect of course but mathematical!
+   */
   kanaGenerate () {
     const out = []
     const col = ' kstnhmyrw'.split('')
