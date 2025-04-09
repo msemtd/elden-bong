@@ -29,7 +29,7 @@ const defaultSettings = {
       x11Colour: 'black',
       skyBox: '...none',
       skyBoxList: ['...none'],
-      rotateX: 0,
+      rotateX: Math.PI / 2.0,
       rotateY: 0,
       rotateZ: 0,
     },

@@ -235,13 +235,18 @@ load the items list scrape into an array of strings
 
 <img src="/file/Elden-Ring/map-50be4728-3907-4f33-8857-7f063e0d24eb/maps-icons/grace.png" class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" title="Stormhill Shack" alt="527-Stormhill Shack" tabindex="0" style="margin-left: 0px; margin-top: 0px; width: 40px; height: 40px; transform: translate3d(768px, 1319px, 0px); z-index: 1319;">
 
+## Edit Mode
+We need different GUI modes for the mini-games and a general "edit mode" for
+just trying things out with full control over the camera etc.
 
+We can add general scene object editing with load and save similar to ThreeJS
+editor (https://threejs.org/editor/).
 
+Primitive object creation and property hacking is handy and creating objects
+located relative to the camera is super cool.
+e.g. a controllable depth into the 3D scene gives us more control.
 
-
-
-
-
+Add a sound board for webpack resource and on-disk files - see what the limits are.
 
 ## Development
 

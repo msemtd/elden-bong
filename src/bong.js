@@ -138,7 +138,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this.PROPS.character, 'className', characterClasses)
     }
     {
-      const fld = this.gui.addFolder('Test') // .close()
+      const fld = this.gui.addFolder('Test').close()
       fld.add(this, 'youDiedWithSound')
       fld.add(this, 'youDiedFadeIn')
       fld.add(this, 'testDialog')
@@ -460,7 +460,8 @@ class Bong extends THREE.EventDispatcher {
     console.log(urls)
     new THREE.CubeTextureLoader().load(urls, (textureCube) => {
       scene.background = textureCube
-      scene.backgroundRotation?.set(0, Math.PI / 2, 0)
+      // set the default skybox rotation here...
+      scene.backgroundRotation?.set(Math.PI / 2, 0, 0)
       this.redraw()
     })
   }
