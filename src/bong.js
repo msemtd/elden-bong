@@ -24,6 +24,7 @@ import { MiniGames } from './MiniGames'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
 import deathSound from '../sounds/Humanoid Fall.mp3'
 import { isString, isObject, isInteger } from './wahWah'
+import { FileDrop } from './FileDrop'
 
 async function pick () {
   const info = await pickFile()
@@ -94,6 +95,10 @@ class Bong extends THREE.EventDispatcher {
     }
     this.addStats(c)
     this.addCamInfo(c)
+    this.fileDrop = new FileDrop()
+    this.fileDrop.init(c.container, (filePaths) => {
+      console.log('file drop: ', filePaths)
+    })
     // this.addDemoCube(c)
     this.miniGames = null
     this.makeGui()
