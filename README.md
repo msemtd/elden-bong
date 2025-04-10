@@ -247,6 +247,7 @@ located relative to the camera is super cool.
 e.g. a controllable depth into the 3D scene gives us more control.
 
 Add a sound board for webpack resource and on-disk files - see what the limits are.
+https://gist.github.com/PtrMan/b3ff012785ad9e93f7db1a0f031fc2b2
 
 ## Development
 
@@ -255,9 +256,15 @@ From scratch (Friday November 04 2022)...
 ```BASH
 yarn create electron-app elden-bong --template=webpack
 cd elden-bong
+# adding webpack explicitly here even though already installed implicitly above
 yarn add -D webpack copy-webpack-plugin
+
 # add eslint - I want a configurable lint based on Standard JS (as recommended by eslint-config-standard)
-yarn add -D eslint eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
+yarn add -D eslint@8 eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
+# OR migrate to neostandard to move forward
+yarn add -D neostandard eslint
+
+# add the rest - latest versions...
 yarn add three camera-controls jquery js-yaml jbox fs-extra path-browserify debug
 
 ```
@@ -265,7 +272,9 @@ The above can also be used to upgrade the app platform: create a new empty app a
 * upgraded electron-forge and electron, started using preload, context isolation, sandboxing, etc. properly.
 * worked out how to load files with a custom URL protocol (what a drag that was!)
   Still not worked out how to get the data into three-js loaders - for now reading
-  file data into buffers in the main thread and passing through the preload API 
+  file data into buffers in the main thread and passing through the preload API
+
+NB: Should probably use volta (https://volta.sh/) to pin the tool versions.
 
 ## Electron
 

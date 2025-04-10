@@ -440,7 +440,11 @@ class Bong extends THREE.EventDispatcher {
       return
     }
     if (topic === 'skyBoxList') {
-      return this.setSkyBoxList(msg)
+      this.setSkyBoxList(msg)
+      // TODO if settings have a sky-box then set it
+
+      console.dir(this.settings.scene)
+      return
     }
     console.log('main process says: ', topic, msg)
   }
