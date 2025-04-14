@@ -10,6 +10,10 @@
  * To make this work
  * - get a header reader that slurps the entire header
  * - use readline, use streams?
+ * - I want to read block by block from massive steams
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
+ * - read with node file system APIs and pass blocks of memory to renderer process
+ * - allow the renderer to control the rate of data transfer?
  */
 
 const td1 = {
@@ -39,11 +43,16 @@ end_header
 4 3 7 4 0
 `
 }
-const frm = ['ascii', 'binary_little_endian', 'binary_big_endian']
+
+const possibleFormats = ['ascii', 'binary_little_endian', 'binary_big_endian']
 
 export class Ply {
   // use a readable stream?
   constructor () {
+    this.possibleFormats = possibleFormats
+  }
 
+  example () {
+    this.header = td1.header
   }
 }
