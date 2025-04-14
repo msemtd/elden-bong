@@ -419,7 +419,6 @@ class CardsDude extends MiniGameBase {
   }
 }
 
-
 // take items from end of array and move to start
 const rotateArray = (arr, i) => {
   arr.unshift(...arr.splice(i))

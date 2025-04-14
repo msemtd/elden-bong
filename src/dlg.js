@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import jBox from 'jbox'
 import 'jbox/dist/jBox.all.css'
 
@@ -8,7 +9,7 @@ export const errMsg = (e) => e instanceof Error && e.message ? e.message : `${e}
 export class Dlg {
   static errorDialog (error) {
     console.error(error)
-    // eslint-disable-next-line new-cap
+
     new jBox('Modal', {
       title: 'Error',
       content: errMsg(error),
@@ -77,7 +78,7 @@ export class Dlg {
       onCloseComplete: function () { this.destroy() },
       ...options,
     }
-    // eslint-disable-next-line new-cap
+
     const jb = new jBox('Modal', opts)
     jb.open()
     return jb

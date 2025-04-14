@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { CardsDude } from './CardsDude/CardsDude'

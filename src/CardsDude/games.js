@@ -85,7 +85,6 @@ class MoveNode {
     // there's the move and that produces a result - do we save a state?
     // is this just Redux?
   }
-
 }
 
 export class SpiderAutomation {
@@ -95,8 +94,6 @@ export class SpiderAutomation {
       // from initial state a node is made
       rootNode: new MoveNode()
     }
-
-
   }
 
   // strategy for deciding the next move

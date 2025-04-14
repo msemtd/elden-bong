@@ -133,7 +133,7 @@ class GamepadManager {
       }
     }, 400)
     $('<div id="gamePad"/>').appendTo('body')
-    // eslint-disable-next-line new-cap
+
     const draw = SVG().addTo('#gamePad').size(240, 150)
     draw.svg(ps5svg).scale(1.5).translate(80, 15)
     this.draw = draw

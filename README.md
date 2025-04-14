@@ -262,6 +262,8 @@ yarn add -D webpack copy-webpack-plugin
 # add eslint - I want a configurable lint based on Standard JS (as recommended by eslint-config-standard)
 yarn add -D eslint@8 eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
 # OR migrate to neostandard to move forward
+yarn remove eslint eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
+
 yarn add -D neostandard eslint
 
 # add the rest - latest versions...

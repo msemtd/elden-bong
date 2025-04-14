@@ -42,7 +42,7 @@ end_header
 const frm = ['ascii', 'binary_little_endian', 'binary_big_endian']
 
 export class Ply {
-  // use a readble 
+  // use a readable stream?
   constructor () {
 
   }
