@@ -5,7 +5,7 @@
  * format binary_big_endian 1.0
  * have a "general" PLY reader - we are just reading tables of numbers
  * (into buffers or streams) and saving small amounts of metadata into objects
- * These could be small tables too!
+ * These could be small tables too! Just shared buffers like in WebGL.
  *
  * To make this work
  * - get a header reader that slurps the entire header
@@ -14,6 +14,9 @@
  * https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
  * - read with node file system APIs and pass blocks of memory to renderer process
  * - allow the renderer to control the rate of data transfer?
+ *
+ * - configurations for properties with well-known-text names, x, y, z, r, g, b, etc.
+ * - mappings for other properties, e.g. normals
  */
 
 const td1 = {
