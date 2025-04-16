@@ -48,7 +48,7 @@ class E57 {
         throw Error(`vast file size not supported: ${stats.size}`)
       }
       // make a checking pass through entire file
-      await E57.checkingPass(fp, Number(stats.size))
+      // await E57.checkingPass(fp, Number(stats.size))
       const fh = await fs.open(fp, 'r')
       dbg('file opened OK')
       console.log('file opened OK')
@@ -64,7 +64,26 @@ class E57 {
       const parser = new XMLParser()
       const jObj = parser.parse(xml)
       // TODO now slurp out some important info
+      // Pose and bounds
+      // this shows the need to map empty string numerical entries to the default 0 where appropriate
+      // we also enforce the e57 standard here and throw errors as appropriate
+
       console.dir(jObj)
+      // TODO func to validate header
+      if (!jObj.e57Root) {
+        throw Error('e57Root not found in XML')
+      }
+      // version
+      if (jObj.e57Root.versionMajor === undefined || jObj.e57Root.versionMinor === undefined) {
+        throw Error('e57Root version not found in XML')
+      }
+      const major = jObj.e57Root.versionMajor || 0
+      const minor = jObj.e57Root.versionMinor || 0
+      // TODO does it work?
+      const ver = `${major}.${minor}`
+      if (ver !== '1.0') {
+        throw Error(`e57Root version not 1.0: ${ver}`)
+      }
     } catch (error) {
       console.error(error)
       return `not too happy with the outcome: ${error}`

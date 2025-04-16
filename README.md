@@ -347,6 +347,8 @@ Layout based on game (from card game data) and user spacing preferences
   - yarn add https://github.com/pnext/three-loader.git
   - TODO: add a cloud for testing in user-specified dir
 
+* Data dir: fetch 3rd-party stuff from URLs to add local content - package ideas
+* Test data for LAS/e57/potree/COPC (https://validate.copc.io/)
 
 # LICENSES AND ATTRIBUTION
 
