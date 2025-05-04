@@ -47,6 +47,46 @@ end_header
 `
 }
 
+const testTrj = {
+  header: `ply
+format ascii 1.0
+comment this file is a trajectory with a transform
+element world_transform 1
+property float t
+property float x
+property float y
+property float z
+property float qw
+property float qx
+property float qy
+property float qz
+element pose_event 8
+property float t
+property float x
+property float y
+property float z
+property float qw
+property float qx
+property float qy
+property float qz
+end_header
+0 0 0
+0 0 1
+0 1 1
+0 1 0
+1 0 0
+1 0 1
+1 1 1
+1 1 0
+4 0 1 2 3
+4 7 6 5 4
+4 0 4 5 1
+4 1 5 6 2
+4 2 6 7 3
+4 3 7 4 0
+`
+}
+
 const possibleFormats = ['ascii', 'binary_little_endian', 'binary_big_endian']
 
 export class Ply {
