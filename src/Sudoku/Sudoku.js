@@ -34,6 +34,8 @@ export class Sudoku extends MiniGameBase {
   }
 
   runTest () {
+    // TODO: laern as much as possible from...
+    // http://davidbau.com/archives/2006/09/04/sudoku_generator.html
     const brd = `
     9-- --- 687
     72- 58- ---
