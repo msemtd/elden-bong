@@ -52,10 +52,16 @@ export class Sudoku extends MiniGameBase {
     console.dir(puzzle)
 
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+    this.activate()
     // let's make a board
-    const grp = this.group
-    const g = new THREE.BoxGeometry(10, 10, 1, 9, 9, 1)
-    const e = new THREE.EdgesGeometry(g)
+    const grp = new THREE.Group()
+    grp.name = 'board'
+    this.group.add(grp)
+    grp.position.set(2, 2, 2)
+    grp.rotateX(Math.PI / 6)
+
+    const boardGeom = new THREE.BoxGeometry(10, 10, 0.4)
+    const e = new THREE.EdgesGeometry(boardGeom)
     const m = new THREE.MeshLambertMaterial({
       color: 'gainsboro',
       polygonOffset: true,
@@ -63,19 +69,21 @@ export class Sudoku extends MiniGameBase {
       polygonOffsetUnits: 1
     })
     const em = new THREE.LineBasicMaterial({ color: 'black' })
-    const o = new THREE.Mesh(g, m)
+    const o = new THREE.Mesh(boardGeom, m)
     const objectEdges = new THREE.LineSegments(e, em)
     o.add(objectEdges)
-    o.position.set(4, 4, -0.6)
+    o.position.set(4, 4, -0.2)
     grp.add(o)
     // board parts...
     const squareGeometry = new THREE.BoxGeometry(1, 1, 0.05)
     const squareMaterial = new THREE.MeshLambertMaterial({ color: 'pink' })
-    const barGeometry = new THREE.BoxGeometry(0.05, 0.05, 9)
+    const barGeometry = new THREE.BoxGeometry(0.06, 0.06, 9)
     const barMaterial = new THREE.MeshLambertMaterial({ color: 'brown' })
+    const barMaterial2 = new THREE.MeshLambertMaterial({ color: 'yellow' })
     for (let c = 0; c <= 9; c++) {
-      const vBar = new THREE.Mesh(barGeometry, barMaterial)
-      vBar.position.set(c - 0.5, 4, 0.03)
+      const bMat = c % 3 ? barMaterial : barMaterial2
+      const vBar = new THREE.Mesh(barGeometry, bMat)
+      vBar.position.set(c - 0.5, 4, c % 3 ? 0.03 : 0.04)
       vBar.rotateX(Math.PI / 2)
       grp.add(vBar)
       for (let r = 0; r <= 9; r++) {
@@ -86,15 +94,23 @@ export class Sudoku extends MiniGameBase {
           grp.add(square)
         }
         if (c === 0) {
-          const hBar = new THREE.Mesh(barGeometry, barMaterial)
-          hBar.position.set(4, r - 0.5, 0.03)
+          const bMat = r % 3 ? barMaterial : barMaterial2
+          const hBar = new THREE.Mesh(barGeometry, bMat)
+          hBar.position.set(4, r - 0.5, r % 3 ? 0.03 : 0.04)
           hBar.rotateY(Math.PI / 2)
           grp.add(hBar)
         }
       }
     }
-
-    this.activate()
+    // let's look at our good work...
+    (async () => {
+      this.redraw()
+      const o = this.group.getObjectByName('board')
+      await this.screen.cameraControls.fitToSphere(o, true)
+      await this.screen.cameraControls.rotatePolarTo(Math.PI / 4, true)
+      // await this.screen.cameraControls.dollyTo(0.5, true)
+      // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
+    })()
   }
 
   parseBoard (brd) {
