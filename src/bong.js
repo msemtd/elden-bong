@@ -761,6 +761,11 @@ class Bong extends THREE.EventDispatcher {
   }
 
   doubleClick (ev, mousePos) {
+    // offer up double click for use by mini games
+    this.raycaster.setFromCamera(mousePos, this.screen.camera)
+    if (this.miniGames.offerDoubleClick(ev, mousePos, this.raycaster)) {
+      return
+    }
     console.log(mousePos)
   }
 

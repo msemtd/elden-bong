@@ -84,6 +84,16 @@ class MiniGames extends THREE.EventDispatcher {
     if (this.games.cardsDude.active) {
       return this.games.cardsDude.stealIntersectForGame(ev, mousePos, raycaster)
     }
+    if (this.games.sudoku.active) {
+      return this.games.sudoku.stealIntersectForGame(ev, mousePos, raycaster)
+    }
+    return false
+  }
+
+  offerDoubleClick (ev, mousePos, raycaster) {
+    if (this.games.sudoku.active) {
+      return this.games.sudoku.offerDoubleClick(ev, mousePos, raycaster)
+    }
     return false
   }
 

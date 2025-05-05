@@ -28,11 +28,13 @@ class MiniGameBase extends THREE.EventDispatcher {
   }
 
   activate () {
+    this.active = true
     this.group.visible = true
     this.redraw()
   }
 
   deactivate () {
+    this.active = false
     this.group.visible = false
     this.redraw()
   }

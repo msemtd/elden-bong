@@ -82,6 +82,10 @@ export class Sudoku extends MiniGameBase {
     const barGeometry = new THREE.BoxGeometry(0.06, 0.06, 9)
     const barMaterial = new THREE.MeshLambertMaterial({ color: 'brown' })
     const barMaterial2 = new THREE.MeshLambertMaterial({ color: 'yellow' })
+    // group for the squares and their children
+    const squares = new THREE.Group()
+    squares.name = 'squares'
+    grp.add(squares)
     for (let c = 0; c <= 9; c++) {
       const bMat = c % 3 ? barMaterial : barMaterial2
       const vBar = new THREE.Mesh(barGeometry, bMat)
@@ -92,8 +96,8 @@ export class Sudoku extends MiniGameBase {
         if (r < 9 && c < 9) {
           const square = new THREE.Mesh(squareGeometry, squareMaterial)
           square.name = `square_${r}_${c}`
-          square.position.set(c, r, 0.01)
-          grp.add(square)
+          square.position.set(c, 8 - r, 0.01)
+          squares.add(square)
         }
         if (c === 0) {
           const bMat = r % 3 ? barMaterial : barMaterial2
@@ -132,15 +136,6 @@ export class Sudoku extends MiniGameBase {
       // await this.screen.cameraControls.dollyTo(0.5, true)
       // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
     })()
-
-    // TODO: add a capture mouse mode
-    // upon click on face of board,
-    // go into sudoku game playing mode,
-    // disabling mouse (and keys) input for camera controls
-    // until escape is hit,
-    // put a notice on the screen telling user we are in this mode
-    // probably need a cursor
-    // probably need user instructions on screen too
   }
 
   // This format is quite strict!
@@ -176,5 +171,46 @@ export class Sudoku extends MiniGameBase {
     // Update the rendering:
     obj.sync(() => { this.redraw() })
     return obj
+  }
+
+  /**
+   * @returns true if I stole the intersect
+   */
+  stealIntersectForGame (ev, mousePos, raycaster) {
+    if (!this.active) { return false }
+    // only for left or right click...
+    if (ev.button !== 0 && ev.button !== 2) { return false }
+    // TODO: if I hit something and use it then stop the event from getting to the camera-controls!
+    const clickable = []
+    // make squares clickable to enter playing mode
+
+    // TODO: add a capture mouse mode
+    // upon click on face of board,
+    // go into sudoku game playing mode,
+    // disabling mouse (and keys) input for camera controls
+    // until escape is hit,
+    // put a notice on the screen telling user we are in this mode
+    // probably need a cursor
+    // probably need user instructions on screen too
+
+    return false
+  }
+
+  offerDoubleClick (ev, mousePos, raycaster) {
+    if (!this.active) { return false }
+    if (ev.button !== 0) { return false }
+    const squares = this.group.getObjectByName('squares')
+    const hits = raycaster.intersectObject(squares)
+    if (hits.length) {
+      console.dir(hits)
+      const h = hits[0]
+      console.dir(h)
+      if (h.object?.name) {
+        console.log(h.object?.name)
+        // Dlg.popup(h.object.name)
+      }
+    }
+
+    return false
   }
 }
