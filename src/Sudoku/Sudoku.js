@@ -5,6 +5,9 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import * as sudoku from 'sudoku'
+import { isString } from '../wahWah.js'
+import { Text } from 'troika-three-text'
+import { idxToXy } from '../MoanSwooper/gridUtils.js'
 
 /*
   https://en.wikipedia.org/wiki/Sudoku
@@ -34,7 +37,7 @@ export class Sudoku extends MiniGameBase {
   }
 
   runTest () {
-    // TODO: laern as much as possible from...
+    // TODO: learn as much as possible from...
     // http://davidbau.com/archives/2006/09/04/sudoku_generator.html
     const brd = `
     9-- --- 687
@@ -49,9 +52,6 @@ export class Sudoku extends MiniGameBase {
     `
     const dat = this.parseBoard(brd)
     console.dir(dat)
-
-    const puzzle = sudoku.makepuzzle()
-    console.dir(puzzle)
 
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.activate()
@@ -104,6 +104,25 @@ export class Sudoku extends MiniGameBase {
         }
       }
     }
+
+    // add puzzle text items
+    {
+      const puzzle = sudoku.makepuzzle()
+      console.dir(puzzle)
+      const grp = this.group.getObjectByName('board')
+      const clrFixed = 0xff2222
+      const z = 0.07
+      for (let i = 0; i < puzzle.length; i++) {
+        const n = puzzle[i]
+        if (n === null) { continue }
+        const [x, y] = idxToXy(i, 9)
+        // flip Y for coordinates
+        const obj = this.addTextObj(grp, `${n}`, x, (8 - y), z, clrFixed)
+        obj.name = 'test text' // numObjName(x, y)
+        obj.userData = { n }
+      }
+    }
+
     // let's look at our good work...
     (async () => {
       this.redraw()
@@ -113,8 +132,20 @@ export class Sudoku extends MiniGameBase {
       // await this.screen.cameraControls.dollyTo(0.5, true)
       // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
     })()
+
+    // TODO: add a capture mouse mode
+    // upon click on face of board,
+    // go into sudoku game playing mode,
+    // disabling mouse (and keys) input for camera controls
+    // until escape is hit,
+    // put a notice on the screen telling user we are in this mode
+    // probably need a cursor
+    // probably need user instructions on screen too
   }
 
+  // This format is quite strict!
+  // We could just paste all rows together, dropping whitespace, and asser that
+  // there are 81 valid chars
   parseBoard (brd) {
     const rows = brd.split('\n').map(x => x.trim()).filter(x => x.length)
     console.assert(rows.length === 9, 'Sudoku board should have 9 rows')
@@ -129,5 +160,21 @@ export class Sudoku extends MiniGameBase {
     }
     console.log(board)
     return board
+  }
+
+  addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF) {
+    console.assert(isString(s))
+    const obj = new Text()
+    grp.add(obj)
+    // Set properties to configure:
+    obj.text = s
+    obj.fontSize = 0.8
+    obj.position.set(x, y, z)
+    obj.color = c
+    obj.anchorX = 'center'
+    obj.anchorY = 'middle'
+    // Update the rendering:
+    obj.sync(() => { this.redraw() })
+    return obj
   }
 }
