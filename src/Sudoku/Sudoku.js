@@ -233,21 +233,24 @@ export class Sudoku extends MiniGameBase {
     return false
   }
 
+  /**
+   * @returns true if I accept the intersect offer
+   */
   offerDoubleClick (ev, mousePos, raycaster) {
     if (!this.active) { return false }
     if (ev.button !== 0) { return false }
     const squares = this.group.getObjectByName('squares')
     const hits = raycaster.intersectObject(squares)
-    if (hits.length) {
-      console.dir(hits)
-      const h = hits[0]
-      console.dir(h)
-      if (h.object?.name) {
-        console.log(h.object?.name)
-        // Dlg.popup(h.object.name)
-      }
+    if (!hits.length) {
+      return false
     }
-
-    return false
+    console.dir(hits)
+    const h = hits[0]
+    console.dir(h)
+    if (h.object?.name) {
+      console.log(h.object?.name)
+      // Dlg.popup(h.object.name)
+    }
+    return true
   }
 }
