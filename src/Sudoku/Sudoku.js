@@ -114,6 +114,7 @@ export class Sudoku extends MiniGameBase {
       const puzzle = sudoku.makepuzzle()
       console.dir(puzzle)
       const grp = this.group.getObjectByName('board')
+      grp.userData = { puzzle }
       const clrFixed = 0xff2222
       const z = 0.07
       for (let i = 0; i < puzzle.length; i++) {
@@ -124,6 +125,14 @@ export class Sudoku extends MiniGameBase {
         const obj = this.addTextObj(grp, `${n}`, x, (8 - y), z, clrFixed)
         obj.name = 'test text' // numObjName(x, y)
         obj.userData = { n }
+      }
+      // add small number markers on first non-null square
+      for (let i = 0; i < puzzle.length; i++) {
+        const n = puzzle[i]
+        if (n === null) {
+          this.addSmallDigits(i)
+          break
+        }
       }
     }
 
@@ -136,6 +145,34 @@ export class Sudoku extends MiniGameBase {
       // await this.screen.cameraControls.dollyTo(0.5, true)
       // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
     })()
+  }
+
+  addSmallDigits (idx) {
+    const clrFixed = 0xffff22
+    const z = 0.07
+
+    const [sx, sy] = idxToXy(idx, 9)
+    const sqs = this.group.getObjectByName('squares')
+    const squareName = `square_${sy}_${sx}`
+    // TODO maybe squares should just have the index - so much easier
+    const sq = sqs.getObjectByName(squareName)
+    // TODO delete all small digits!
+    for (let i = 1; i <= 9; i++) {
+      // TODO delete small digit
+      // add small digit
+      let [px, py] = idxToXy(i - 1, 3)
+      py = 2 - py // flip y
+      // offset
+      px -= 1
+      py -= 1
+      // scale
+      px /= 3
+      py /= 3
+
+      const obj = this.addTextObj(sq, `${i}`, px, py, z, clrFixed)
+      obj.fontSize = 0.17
+      sq.add(obj)
+    }
   }
 
   // This format is quite strict!
