@@ -13,7 +13,7 @@ import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile, shellOpenExternal } from './HandyApi'
-import { filePathToMine } from './util'
+import { filePathToMine, isInputEvent } from './util'
 import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
 import { Dlg } from './dlg'
 import { Mouse } from './Mouse'
@@ -51,6 +51,18 @@ class Bong extends THREE.EventDispatcher {
     // Right now I want to see if I can define my whole GUI in just lil-gui and
     // a few dialog boxes
     this.gui = new GUI({ width: 310 })
+    // Now then, do we grab key events from the main window or just the canvas?
+    // And how does the lil-gui respect this?
+    // https://github.com/georgealways/lil-gui/pull/138#issuecomment-2381385272
+    document.addEventListener('keydown', (e) => {
+      console.log('e.key: ', e.key)
+      if (isInputEvent(e)) {
+        console.log('apparently an input event')
+      }
+      if (e.key === 'Escape') {
+        this.onEscape()
+      }
+    })
     //  * Some things in the GUI need to be persisted in config.
     //  * Some things are temporary.
     //  * Some things drive THREE objects.
@@ -106,6 +118,12 @@ class Bong extends THREE.EventDispatcher {
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     setTimeout(this.whenReady.bind(this), 30)
+  }
+
+  onEscape () {
+    // mode changes etc. drop to default mode?
+    // ask minigames to escape (whatever that means)
+    this.miniGames?.escape()
   }
 
   makeGui () {

@@ -253,4 +253,8 @@ export class Sudoku extends MiniGameBase {
     }
     return true
   }
+
+  escape () {
+    console.log('escape sudoku')
+  }
 }

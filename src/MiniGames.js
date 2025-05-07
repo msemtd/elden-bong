@@ -70,6 +70,10 @@ class MiniGames extends THREE.EventDispatcher {
     })
   }
 
+  escape () {
+    this.games.sudoku.escape()
+  }
+
   deactivateAll () {
     // visit each game and get it to pause/hide itself
     for (const [k, v] of Object.entries(this.games)) {
