@@ -35,7 +35,10 @@ import { MiniGameBase } from './MiniGameBase'
  * = The Games Room =
  * floor, walls, door, windows, furniture, a cafe?
  * Go to the games room - animate camera movement and go in through the door?
- * Just move camera
+ * Just move camera?
+ *
+ * TODO: the management of who gets key and cursor events could be dealt with in MiniGames
+ * as modes of operation
  */
 class MiniGames extends THREE.EventDispatcher {
   constructor (parent) {
@@ -89,7 +92,8 @@ class MiniGames extends THREE.EventDispatcher {
       return this.games.cardsDude.stealIntersectForGame(ev, mousePos, raycaster)
     }
     if (this.games.sudoku.active) {
-      return this.games.sudoku.stealIntersectForGame(ev, mousePos, raycaster)
+      // sudoku doesn't need single click yet
+      // return this.games.sudoku.stealIntersectForGame(ev, mousePos, raycaster)
     }
     return false
   }

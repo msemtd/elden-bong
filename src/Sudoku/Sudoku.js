@@ -5,9 +5,9 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import * as sudoku from 'sudoku'
-import { isString } from '../wahWah.js'
+import { isInteger, isString } from '../wahWah.js'
 import { Text } from 'troika-three-text'
-import { idxToXy } from '../MoanSwooper/gridUtils.js'
+import { idxToXy, xyToIdx } from '../MoanSwooper/gridUtils.js'
 
 /*
   https://en.wikipedia.org/wiki/Sudoku
@@ -44,6 +44,10 @@ export class Sudoku extends MiniGameBase {
       numberSmall: 'blue',
       numberFixed: 'red',
     }
+    this.puzzle = null
+    this.squares = null
+    this.squareMaterial = null
+    this.squareMaterial2 = null
   }
 
   remakeBoard () {
@@ -71,6 +75,8 @@ export class Sudoku extends MiniGameBase {
     // board parts...
     const squareGeometry = new THREE.BoxGeometry(1, 1, 0.05)
     const squareMaterial = new THREE.MeshLambertMaterial({ color: this.colours.square })
+    const squareMaterial2 = squareMaterial.clone()
+    squareMaterial2.color.set(this.colours.squaresSelected)
     const barGeometry = new THREE.BoxGeometry(0.06, 0.06, 9)
     const barMaterial = new THREE.MeshLambertMaterial({ color: this.colours.barMinor })
     const barMaterial2 = new THREE.MeshLambertMaterial({ color: this.colours.barMajor })
@@ -87,7 +93,8 @@ export class Sudoku extends MiniGameBase {
       for (let r = 0; r <= 9; r++) {
         if (r < 9 && c < 9) {
           const square = new THREE.Mesh(squareGeometry, squareMaterial)
-          square.name = `square_${r}_${c}`
+          const i = xyToIdx(c, r, 9)
+          square.name = `square_${i}`
           square.position.set(c, 8 - r, 0.01)
           squares.add(square)
         }
@@ -100,23 +107,26 @@ export class Sudoku extends MiniGameBase {
         }
       }
     }
+    // save some objects for during game play - they get disposed of when the
+    // board is cleaned up and setting them here makes sense...
+    this.squareMaterial = squareMaterial
+    this.squareMaterial2 = squareMaterial2
+    this.squares = squares
   }
 
   addPuzzleText () {
     const puzzle = sudoku.makepuzzle()
     console.dir(puzzle)
-    const grp = this.group.getObjectByName('board')
-    grp.userData = { puzzle }
+    this.puzzle = puzzle
     const clr = this.colours.numberFixed
     const z = 0.07
     for (let i = 0; i < puzzle.length; i++) {
       const n = puzzle[i]
       if (n === null) { continue }
-      const [x, y] = idxToXy(i, 9)
-      // flip Y for coordinates
-      const obj = this.addTextObj(grp, `${n}`, x, (8 - y), z, clr)
-      obj.name = 'test text' // numObjName(x, y)
-      obj.userData = { n }
+      console.assert(isInteger(n), 'sudoku number should be an integer')
+      const sq = this.squares.children[i]
+      console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
+      this.addTextObj(sq, `${n}`, 0, 0, z, clr)
     }
     // add small number markers on first non-null square
     for (let i = 0; i < puzzle.length; i++) {
@@ -131,13 +141,13 @@ export class Sudoku extends MiniGameBase {
   addSmallDigits (idx) {
     const clr = this.colours.numberSmall
     const z = 0.07
-
-    const [sx, sy] = idxToXy(idx, 9)
-    const sqs = this.group.getObjectByName('squares')
-    const squareName = `square_${sy}_${sx}`
-    // TODO maybe squares should just have the index - so much easier
-    const sq = sqs.getObjectByName(squareName)
-    // TODO delete all small digits!
+    const sq = this.squares.children[idx]
+    console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
+    // sq.children.forEach((c) => {
+    //   if (c instanceof Text) {
+    //     c.removeFromParent()
+    //   }
+    // })
     for (let i = 1; i <= 9; i++) {
       // TODO delete small digit
       // add small digit
@@ -222,27 +232,27 @@ export class Sudoku extends MiniGameBase {
     return obj
   }
 
-  /**
-   * @returns true if I stole the intersect
-   */
-  stealIntersectForGame (ev, mousePos, raycaster) {
-    if (!this.active) { return false }
-    // only for left or right click...
-    if (ev.button !== 0 && ev.button !== 2) { return false }
-    // TODO: if I hit something and use it then stop the event from getting to the camera-controls!
-    const clickable = []
-    // make squares clickable to enter playing mode
+  // ---------------------------------------------------------------------------
+  // Game mode stuff
+  // ---------------------------------------------------------------------------
 
-    // TODO: add a capture mouse mode
-    // upon click on face of board,
-    // go into sudoku game playing mode,
-    // disabling mouse (and keys) input for camera controls
-    // until escape is hit,
-    // put a notice on the screen telling user we are in this mode
-    // probably need a cursor
-    // probably need user instructions on screen too
+  enterPlayingMode (square) {
+    console.log('enterPlayingMode sudoku')
+    // TODO: this is likely to be incorrect unless tracked properly
+    this.screen.cameraControls.enabled = false
+    // highlight square...
+    square.parent.children.forEach((s) => { s.material = this.squareMaterial })
+    square.material = this.squareMaterial2
+    // TODO: might want to highlight the row/column/box too!
+    this.redraw()
+    // TODO enable keyboard input for numbers 1-9, cursors, enter, backspace, delete, hint, undo, redo, etc.
+  }
 
-    return false
+  escape () {
+    console.log('escape sudoku')
+    // TODO: this is likely to be incorrect unless tracked properly
+    this.screen.cameraControls.enabled = true
+    // TODO deselect any selected square
   }
 
   /**
@@ -257,21 +267,5 @@ export class Sudoku extends MiniGameBase {
     }
     this.enterPlayingMode(hits[0].object)
     return true
-  }
-
-  enterPlayingMode (square) {
-    console.log('enterPlayingMode sudoku')
-    // TODO: this is likely to be incorrect unless tracked properly
-    this.screen.cameraControls.enabled = false
-    // TODO: cache materials and colours for anything we want to change and use
-    // square.color = this.colours.squaresSelected
-    // TODO enable keyboard input for numbers 1-9, enter, backspace, delete, hint, undo, redo, etc.
-  }
-
-  escape () {
-    console.log('escape sudoku')
-    // TODO: this is likely to be incorrect unless tracked properly
-    this.screen.cameraControls.enabled = true
-    // TODO deselect any selected square
   }
 }
