@@ -19,6 +19,15 @@ import { idxToXy, xyToIdx } from '../MoanSwooper/gridUtils.js'
 
   solving room? - just first-person view looking at a pad of paper with a pencil and eraser
 
+  look at various sudoku libs - try to understand how they work
+  https://www.npmjs.com/search?q=keywords:sudoku
+  Fork the sudoku library to add a pluggable seeded random number generator
+  https://github.com/dachev/sudoku
+  ...based on...
+  http://davidbau.com/archives/2006/09/04/sudoku_generator.html
+  The digits in the puzzle are zero based!
+  That's fine if we only care about generating puzzles with the library (just add one!)
+  Further work to do if we want to work with the puzzle data and the other library capabilities.
 */
 
 export class Sudoku extends MiniGameBase {
@@ -126,7 +135,7 @@ export class Sudoku extends MiniGameBase {
       console.assert(isInteger(n), 'sudoku number should be an integer')
       const sq = this.squares.children[i]
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
-      this.addTextObj(sq, `${n}`, 0, 0, z, clr)
+      this.addTextObj(sq, `${n + 1}`, 0, 0, z, clr)
     }
     // add small number markers on first non-null square
     for (let i = 0; i < puzzle.length; i++) {
@@ -166,8 +175,6 @@ export class Sudoku extends MiniGameBase {
   }
 
   runTest () {
-    // TODO: learn as much as possible from...
-    // http://davidbau.com/archives/2006/09/04/sudoku_generator.html
     const brd = `
     9-- --- 687
     72- 58- ---
