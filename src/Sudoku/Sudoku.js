@@ -93,24 +93,24 @@ export class Sudoku extends MiniGameBase {
     const squares = new THREE.Group()
     squares.name = 'squares'
     grp.add(squares)
-    for (let c = 0; c <= 9; c++) {
-      const bMat = c % 3 ? barMaterial : barMaterial2
+    for (let y = 0; y <= 9; y++) {
+      const bMat = y % 3 ? barMaterial : barMaterial2
       const vBar = new THREE.Mesh(barGeometry, bMat)
-      vBar.position.set(c - 0.5, 4, c % 3 ? 0.03 : 0.04)
+      vBar.position.set(y - 0.5, 4, y % 3 ? 0.03 : 0.04)
       vBar.rotateX(Math.PI / 2)
       grp.add(vBar)
-      for (let r = 0; r <= 9; r++) {
-        if (r < 9 && c < 9) {
+      for (let x = 0; x <= 9; x++) {
+        if (x < 9 && y < 9) {
           const square = new THREE.Mesh(squareGeometry, squareMaterial)
-          const i = xyToIdx(c, r, 9)
+          const i = xyToIdx(x, y, 9)
           square.name = `square_${i}`
-          square.position.set(c, 8 - r, 0.01)
+          square.position.set(x, 8 - y, 0.01)
           squares.add(square)
         }
-        if (c === 0) {
-          const bMat = r % 3 ? barMaterial : barMaterial2
+        if (y === 0) {
+          const bMat = x % 3 ? barMaterial : barMaterial2
           const hBar = new THREE.Mesh(barGeometry, bMat)
-          hBar.position.set(4, r - 0.5, r % 3 ? 0.03 : 0.04)
+          hBar.position.set(4, x - 0.5, x % 3 ? 0.03 : 0.04)
           hBar.rotateY(Math.PI / 2)
           grp.add(hBar)
         }
