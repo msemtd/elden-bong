@@ -54,15 +54,8 @@ class Bong extends THREE.EventDispatcher {
     // Now then, do we grab key events from the main window or just the canvas?
     // And how does the lil-gui respect this?
     // https://github.com/georgealways/lil-gui/pull/138#issuecomment-2381385272
-    document.addEventListener('keydown', (e) => {
-      console.log('e.key: ', e.key)
-      if (isInputEvent(e)) {
-        console.log('apparently an input event')
-      }
-      if (e.key === 'Escape') {
-        this.onEscape()
-      }
-    })
+    // currently, a button pressed in lil-gui will keep focus even when the canvas is explicitly given focus after click events somehow!
+    document.addEventListener('keydown', (e) => { this.onKeyDown(e) })
     //  * Some things in the GUI need to be persisted in config.
     //  * Some things are temporary.
     //  * Some things drive THREE objects.
@@ -120,10 +113,19 @@ class Bong extends THREE.EventDispatcher {
     setTimeout(this.whenReady.bind(this), 30)
   }
 
-  onEscape () {
-    // mode changes etc. drop to default mode?
-    // ask minigames to escape (whatever that means)
-    this.miniGames?.escape()
+  onKeyDown (ev) {
+    if (isInputEvent(ev)) {
+      console.log('apparently an input event')
+    }
+    // give mini-games the first refusal...
+    if (this.miniGames?.onKeyDown(ev)) {
+      return true
+    }
+    console.log('bong ev.key: <' + ev.key + '>')
+    if (ev.key === 'Escape') {
+      // TODO special mode changes etc. drop to default mode?
+    }
+    return false
   }
 
   makeGui () {

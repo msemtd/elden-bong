@@ -55,7 +55,7 @@ class Mouse {
       this.singleClickHandler?.(ev, this.screenPosition)
     }
     this.screen.forceRedraw = true
-    ev.preventDefault()
+    // ev.preventDefault()
   }
 }
 

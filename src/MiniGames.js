@@ -73,8 +73,11 @@ class MiniGames extends THREE.EventDispatcher {
     })
   }
 
-  escape () {
-    this.games.sudoku.escape()
+  onKeyDown (ev) {
+    if (this.games.sudoku.onKeyDown(ev)) {
+      return true
+    }
+    return false
   }
 
   deactivateAll () {

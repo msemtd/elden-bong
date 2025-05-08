@@ -104,6 +104,7 @@ export class Sudoku extends MiniGameBase {
           const square = new THREE.Mesh(squareGeometry, squareMaterial)
           const i = xyToIdx(x, y, 9)
           square.name = `square_${i}`
+          square.userData.sqIdx = i
           square.position.set(x, 8 - y, 0.01)
           squares.add(square)
         }
@@ -245,6 +246,7 @@ export class Sudoku extends MiniGameBase {
 
   enterPlayingMode (square) {
     console.log('enterPlayingMode sudoku')
+    this.playingMode = square
     // TODO: this is likely to be incorrect unless tracked properly
     this.screen.cameraControls.enabled = false
     // highlight square...
@@ -255,11 +257,44 @@ export class Sudoku extends MiniGameBase {
     // TODO enable keyboard input for numbers 1-9, cursors, enter, backspace, delete, hint, undo, redo, etc.
   }
 
-  escape () {
-    console.log('escape sudoku')
+  exitPlayingMode () {
     // TODO: this is likely to be incorrect unless tracked properly
     this.screen.cameraControls.enabled = true
-    // TODO deselect any selected square
+    // deselect any selected square
+    this.squares.children.forEach((s) => { s.material = this.squareMaterial })
+    this.redraw()
+    this.playingMode = false
+  }
+
+  onKeyDown (ev) {
+    if (!this.active || !this.playingMode) {
+      return false
+    }
+    console.log('sudoku ev.key: <' + ev.key + '>')
+    if (ev.key === 'Escape') {
+      this.exitPlayingMode()
+      return true
+    }
+    if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown' || ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+      const sq = this.playingMode
+      console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
+      // get adjacent square
+      console.assert(typeof sq.userData.sqIdx === 'number', 'squares should have sqIdx userData number')
+      const offsets = {
+        ArrowUp: -9,
+        ArrowDown: 9,
+        ArrowLeft: -1,
+        ArrowRight: 1,
+      }
+      const idx = (sq.userData.sqIdx + offsets[ev.key] + 81) % 81
+      const sqNew = this.squares.children[idx]
+      sq.material = this.squareMaterial
+      sqNew.material = this.squareMaterial2
+      this.playingMode = sqNew
+      this.redraw()
+      return true
+    }
+    return false
   }
 
   /**
