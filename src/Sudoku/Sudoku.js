@@ -34,28 +34,20 @@ export class Sudoku extends MiniGameBase {
         this.runTest()
       }, 600)
     })
+    this.colours = {
+      board: 'gainsboro',
+      boardEdges: 'black',
+      square: 'orange',
+      squaresSelected: 0x00ff00,
+      barMajor: 'purple',
+      barMinor: 'green',
+      numberSmall: 'blue',
+      numberFixed: 'red',
+    }
   }
 
-  runTest () {
-    // TODO: learn as much as possible from...
-    // http://davidbau.com/archives/2006/09/04/sudoku_generator.html
-    const brd = `
-    9-- --- 687
-    72- 58- ---
-    --- --- ---
-    --- --- 89-
-    67- -5- -13
-    -58 --- ---
-    --- --- ---
-    --- -97 -62
-    387 --- --4
-    `
-    const dat = this.parseBoard(brd)
-    console.dir(dat)
-
+  remakeBoard () {
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-    this.activate()
-    // let's make a board
     const grp = new THREE.Group()
     grp.name = 'board'
     this.group.add(grp)
@@ -65,12 +57,12 @@ export class Sudoku extends MiniGameBase {
     const boardGeom = new THREE.BoxGeometry(10, 10, 0.4)
     const e = new THREE.EdgesGeometry(boardGeom)
     const m = new THREE.MeshLambertMaterial({
-      color: 'gainsboro',
+      color: this.colours.board,
       polygonOffset: true,
       polygonOffsetFactor: 1,
       polygonOffsetUnits: 1
     })
-    const em = new THREE.LineBasicMaterial({ color: 'black' })
+    const em = new THREE.LineBasicMaterial({ color: this.colours.boardEdges })
     const o = new THREE.Mesh(boardGeom, m)
     const objectEdges = new THREE.LineSegments(e, em)
     o.add(objectEdges)
@@ -78,10 +70,10 @@ export class Sudoku extends MiniGameBase {
     grp.add(o)
     // board parts...
     const squareGeometry = new THREE.BoxGeometry(1, 1, 0.05)
-    const squareMaterial = new THREE.MeshLambertMaterial({ color: 'pink' })
+    const squareMaterial = new THREE.MeshLambertMaterial({ color: this.colours.square })
     const barGeometry = new THREE.BoxGeometry(0.06, 0.06, 9)
-    const barMaterial = new THREE.MeshLambertMaterial({ color: 'brown' })
-    const barMaterial2 = new THREE.MeshLambertMaterial({ color: 'yellow' })
+    const barMaterial = new THREE.MeshLambertMaterial({ color: this.colours.barMinor })
+    const barMaterial2 = new THREE.MeshLambertMaterial({ color: this.colours.barMajor })
     // group for the squares and their children
     const squares = new THREE.Group()
     squares.name = 'squares'
@@ -108,47 +100,36 @@ export class Sudoku extends MiniGameBase {
         }
       }
     }
+  }
 
-    // add puzzle text items
-    {
-      const puzzle = sudoku.makepuzzle()
-      console.dir(puzzle)
-      const grp = this.group.getObjectByName('board')
-      grp.userData = { puzzle }
-      const clrFixed = 0xff2222
-      const z = 0.07
-      for (let i = 0; i < puzzle.length; i++) {
-        const n = puzzle[i]
-        if (n === null) { continue }
-        const [x, y] = idxToXy(i, 9)
-        // flip Y for coordinates
-        const obj = this.addTextObj(grp, `${n}`, x, (8 - y), z, clrFixed)
-        obj.name = 'test text' // numObjName(x, y)
-        obj.userData = { n }
-      }
-      // add small number markers on first non-null square
-      for (let i = 0; i < puzzle.length; i++) {
-        const n = puzzle[i]
-        if (n === null) {
-          this.addSmallDigits(i)
-          break
-        }
+  addPuzzleText () {
+    const puzzle = sudoku.makepuzzle()
+    console.dir(puzzle)
+    const grp = this.group.getObjectByName('board')
+    grp.userData = { puzzle }
+    const clr = this.colours.numberFixed
+    const z = 0.07
+    for (let i = 0; i < puzzle.length; i++) {
+      const n = puzzle[i]
+      if (n === null) { continue }
+      const [x, y] = idxToXy(i, 9)
+      // flip Y for coordinates
+      const obj = this.addTextObj(grp, `${n}`, x, (8 - y), z, clr)
+      obj.name = 'test text' // numObjName(x, y)
+      obj.userData = { n }
+    }
+    // add small number markers on first non-null square
+    for (let i = 0; i < puzzle.length; i++) {
+      const n = puzzle[i]
+      if (n === null) {
+        this.addSmallDigits(i)
+        break
       }
     }
-
-    // let's look at our good work...
-    (async () => {
-      this.redraw()
-      const o = this.group.getObjectByName('board')
-      await this.screen.cameraControls.fitToSphere(o, true)
-      await this.screen.cameraControls.rotatePolarTo(Math.PI / 4, true)
-      // await this.screen.cameraControls.dollyTo(0.5, true)
-      // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
-    })()
   }
 
   addSmallDigits (idx) {
-    const clrFixed = 0xffff22
+    const clr = this.colours.numberSmall
     const z = 0.07
 
     const [sx, sy] = idxToXy(idx, 9)
@@ -169,10 +150,41 @@ export class Sudoku extends MiniGameBase {
       px /= 3
       py /= 3
 
-      const obj = this.addTextObj(sq, `${i}`, px, py, z, clrFixed)
-      obj.fontSize = 0.17
+      const obj = this.addTextObj(sq, `${i}`, px, py, z, clr, 0.2)
       sq.add(obj)
     }
+  }
+
+  runTest () {
+    // TODO: learn as much as possible from...
+    // http://davidbau.com/archives/2006/09/04/sudoku_generator.html
+    const brd = `
+    9-- --- 687
+    72- 58- ---
+    --- --- ---
+    --- --- 89-
+    67- -5- -13
+    -58 --- ---
+    --- --- ---
+    --- -97 -62
+    387 --- --4
+    `
+    const dat = this.parseBoard(brd)
+    console.dir(dat)
+
+    this.remakeBoard()
+    this.activate()
+    this.addPuzzleText()
+
+    // let's look at our good work...
+    ;(async () => {
+      this.redraw()
+      const o = this.group.getObjectByName('board')
+      await this.screen.cameraControls.fitToSphere(o, true)
+      await this.screen.cameraControls.rotatePolarTo(Math.PI / 4, true)
+      // await this.screen.cameraControls.dollyTo(0.5, true)
+      // await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
+    })()
   }
 
   // This format is quite strict!
@@ -194,19 +206,19 @@ export class Sudoku extends MiniGameBase {
     return board
   }
 
-  addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF) {
+  addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF, fontSize = 0.8) {
     console.assert(isString(s))
     const obj = new Text()
-    grp.add(obj)
     // Set properties to configure:
     obj.text = s
-    obj.fontSize = 0.8
-    obj.position.set(x, y, z)
+    obj.fontSize = fontSize
     obj.color = c
     obj.anchorX = 'center'
     obj.anchorY = 'middle'
+    obj.position.set(x, y, z)
     // Update the rendering:
     obj.sync(() => { this.redraw() })
+    grp.add(obj)
     return obj
   }
 
@@ -237,24 +249,29 @@ export class Sudoku extends MiniGameBase {
    * @returns true if I accept the intersect offer
    */
   offerDoubleClick (ev, mousePos, raycaster) {
-    if (!this.active) { return false }
-    if (ev.button !== 0) { return false }
+    if (!this.active || ev.button !== 0) { return false }
     const squares = this.group.getObjectByName('squares')
-    const hits = raycaster.intersectObject(squares)
+    const hits = raycaster.intersectObjects(squares.children, false)
     if (!hits.length) {
       return false
     }
-    console.dir(hits)
-    const h = hits[0]
-    console.dir(h)
-    if (h.object?.name) {
-      console.log(h.object?.name)
-      // Dlg.popup(h.object.name)
-    }
+    this.enterPlayingMode(hits[0].object)
     return true
+  }
+
+  enterPlayingMode (square) {
+    console.log('enterPlayingMode sudoku')
+    // TODO: this is likely to be incorrect unless tracked properly
+    this.screen.cameraControls.enabled = false
+    // TODO: cache materials and colours for anything we want to change and use
+    // square.color = this.colours.squaresSelected
+    // TODO enable keyboard input for numbers 1-9, enter, backspace, delete, hint, undo, redo, etc.
   }
 
   escape () {
     console.log('escape sudoku')
+    // TODO: this is likely to be incorrect unless tracked properly
+    this.screen.cameraControls.enabled = true
+    // TODO deselect any selected square
   }
 }
