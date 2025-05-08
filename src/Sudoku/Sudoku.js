@@ -294,6 +294,12 @@ export class Sudoku extends MiniGameBase {
       this.redraw()
       return true
     }
+    const numKeys = '0123456789'.split('')
+    if (numKeys.includes(ev.key)) {
+      const val = numKeys.indexOf(ev.key)
+      console.log('number key ' + val)
+    }
+
     return false
   }
 
