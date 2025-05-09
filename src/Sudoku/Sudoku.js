@@ -30,6 +30,14 @@ import { idxToXy, xyToIdx } from '../MoanSwooper/gridUtils.js'
   Further work to do if we want to work with the puzzle data and the other library capabilities.
 */
 
+const keysNumeric = '0123456789'.split('')
+const keysArrow = {
+  ArrowUp: -9,
+  ArrowDown: 9,
+  ArrowLeft: -1,
+  ArrowRight: 1,
+}
+
 export class Sudoku extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Sudoku')
@@ -53,6 +61,7 @@ export class Sudoku extends MiniGameBase {
       numberSmall: 'blue',
       numberFixed: 'red',
     }
+    this.digitZ = 0.07
     this.puzzle = null
     this.squares = null
     this.squareMaterial = null
@@ -124,58 +133,58 @@ export class Sudoku extends MiniGameBase {
     this.squares = squares
   }
 
-  addPuzzleText () {
+  addAllPuzzleText () {
     const puzzle = sudoku.makepuzzle()
     console.dir(puzzle)
     this.puzzle = puzzle
-    const clr = this.colours.numberFixed
-    const z = 0.07
     for (let i = 0; i < puzzle.length; i++) {
       const n = puzzle[i]
       if (n === null) { continue }
       console.assert(isInteger(n), 'sudoku number should be an integer')
       const sq = this.squares.children[i]
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
-      this.addTextObj(sq, `${n + 1}`, 0, 0, z, clr)
+      this.addTextObj(sq, `${n + 1}`, 0, 0, this.digitZ, this.colours.numberFixed)
     }
-    // add small number markers on first non-null square
+    // add small number markers on first non-null square - just for testing
     for (let i = 0; i < puzzle.length; i++) {
       const n = puzzle[i]
       if (n === null) {
-        this.addSmallDigits(i)
+        this.addAllSmallDigits(i)
         break
       }
     }
   }
 
-  addSmallDigits (idx) {
-    const clr = this.colours.numberSmall
-    const z = 0.07
+  addAllSmallDigits (idx) {
     const sq = this.squares.children[idx]
     console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
-    // sq.children.forEach((c) => {
-    //   if (c instanceof Text) {
-    //     c.removeFromParent()
-    //   }
-    // })
-    for (let i = 1; i <= 9; i++) {
-      // TODO delete small digit
-      // add small digit
-      let [px, py] = idxToXy(i - 1, 3)
-      py = 2 - py // flip y
-      // offset
-      px -= 1
-      py -= 1
-      // scale
-      px /= 3
-      py /= 3
-
-      const obj = this.addTextObj(sq, `${i}`, px, py, z, clr, 0.2)
-      sq.add(obj)
+    for (let n = 1; n <= 9; n++) {
+      // get small digit position relative to centre of parent square
+      this.addSmallDigit(n, sq, idx)
     }
   }
 
+  addSmallDigit (n, sq, idx) {
+    let [px, py] = idxToXy(n - 1, 3)
+    py = 2 - py // flip y
+    // offset
+    px -= 1
+    py -= 1
+    // scale
+    px /= 3
+    py /= 3
+    const obj = this.addTextObj(sq, `${n}`, px, py, this.digitZ, this.colours.numberSmall, 0.2)
+    obj.userData.sqIdx = idx
+    obj.userData.hint = n
+    obj.userData.small = true
+    sq.add(obj)
+  }
+
   runTest () {
+    // let's have a simple text representation of a sudoku puzzle
+    // 0 or dash for empty squares, 1-9 for fixed numbers
+    // whitespace is ignored
+    // there must be 81 positions in total
     const brd = `
     9-- --- 687
     72- 58- ---
@@ -187,12 +196,12 @@ export class Sudoku extends MiniGameBase {
     --- -97 -62
     387 --- --4
     `
-    const dat = this.parseBoard(brd)
+    const dat = this.parseBoard2(brd)
     console.dir(dat)
 
     this.remakeBoard()
     this.activate()
-    this.addPuzzleText()
+    this.addAllPuzzleText()
 
     // let's look at our good work...
     ;(async () => {
@@ -206,8 +215,6 @@ export class Sudoku extends MiniGameBase {
   }
 
   // This format is quite strict!
-  // We could just paste all rows together, dropping whitespace, and asser that
-  // there are 81 valid chars
   parseBoard (brd) {
     const rows = brd.split('\n').map(x => x.trim()).filter(x => x.length)
     console.assert(rows.length === 9, 'Sudoku board should have 9 rows')
@@ -222,6 +229,32 @@ export class Sudoku extends MiniGameBase {
     }
     console.log(board)
     return board
+  }
+
+  // simpler format for parsing - no whitespace, no rows, just 81 digits
+  // 0 or dash for empty squares, 1-9 for fixed numbers
+  // We have the option to output a second puzzle style where values are zero to 8 and null for empty squares
+  parseBoard2 (brd, puzzleStyle2 = false) {
+    const rows = brd.split('\n').map(x => x.trim()).filter(x => x.length)
+    const puzzle = rows.join('').split('').filter((c) => c !== ' ')
+    if (puzzle.length !== 81) {
+      throw Error('Sudoku board should have 81 squares')
+    }
+    for (let i = 0; i < puzzle.length; i++) {
+      if (puzzle[i] === '-') {
+        puzzle[i] = '0'
+      }
+      const parsed = Number.parseInt(puzzle[i], 10)
+      if (Number.isNaN(parsed) || parsed < 0 || parsed > 9) {
+        throw Error('Sudoku values must be decimal digits: error at index ' + i)
+      }
+      puzzle[i] = parsed
+    }
+    if (!puzzleStyle2) {
+      return puzzle
+    }
+    const puzzle2 = puzzle.map((x) => x === 0 ? null : x - 1)
+    return puzzle2
   }
 
   addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF, fontSize = 0.8) {
@@ -280,13 +313,7 @@ export class Sudoku extends MiniGameBase {
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
       // get adjacent square
       console.assert(typeof sq.userData.sqIdx === 'number', 'squares should have sqIdx userData number')
-      const offsets = {
-        ArrowUp: -9,
-        ArrowDown: 9,
-        ArrowLeft: -1,
-        ArrowRight: 1,
-      }
-      const idx = (sq.userData.sqIdx + offsets[ev.key] + 81) % 81
+      const idx = (sq.userData.sqIdx + keysArrow[ev.key] + 81) % 81
       const sqNew = this.squares.children[idx]
       sq.material = this.squareMaterial
       sqNew.material = this.squareMaterial2
@@ -294,10 +321,26 @@ export class Sudoku extends MiniGameBase {
       this.redraw()
       return true
     }
-    const numKeys = '0123456789'.split('')
-    if (numKeys.includes(ev.key)) {
-      const val = numKeys.indexOf(ev.key)
+    if (keysNumeric.includes(ev.key)) {
+      const val = keysNumeric.indexOf(ev.key)
       console.log('number key ' + val)
+      // unless a fixed number in the puzzle, toggle the small digit
+      // when only one digit is present, make it big
+      // we will do the checks later
+      const sq = this.playingMode
+      console.assert(typeof sq.userData.sqIdx === 'number', 'squares should have sqIdx userData number')
+      const idx = sq.userData.sqIdx
+      if (this.puzzle[idx] !== null) {
+        console.warn('Cannot change fixed number')
+        return true
+      }
+      // how do we manage the small digits and guesses?
+      // we could do everything in userData but that is no good for non-3D gameplay
+      // the squares should be components that represent game state
+      // we could derive game state from userData initially and decide how to make changes to represent it
+      const objDig = sq.children.filter((c) => c instanceof Text)
+      console.dir(objDig)
+      return true
     }
 
     return false
