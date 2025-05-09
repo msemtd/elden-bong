@@ -8,6 +8,7 @@ import * as sudoku from 'sudoku'
 import { isInteger, isString } from '../wahWah.js'
 import { Text } from 'troika-three-text'
 import { idxToXy, xyToIdx } from '../MoanSwooper/gridUtils.js'
+import { Colours } from '../Colours.js'
 
 /*
   https://en.wikipedia.org/wiki/Sudoku
@@ -51,15 +52,17 @@ export class Sudoku extends MiniGameBase {
         this.runTest()
       }, 600)
     })
+    const colours = new Colours()
+
     this.colours = {
-      board: 'gainsboro',
-      boardEdges: 'black',
-      square: 'orange',
-      squaresSelected: 0x00ff00,
-      barMajor: 'purple',
-      barMinor: 'green',
-      numberSmall: 'blue',
-      numberFixed: 'red',
+      board: colours.gimme('gainsboro'),
+      boardEdges: colours.gimme('dark navy'),
+      square: colours.gimme('light pastel green'),
+      squaresSelected: colours.gimme('pumpkin orange'),
+      barMajor: colours.gimme('aubergine'),
+      barMinor: colours.gimme('dusty teal'),
+      numberSmall: colours.gimme('butter yellow'),
+      numberFixed: colours.gimme('blue with a hint of purple'),
     }
     this.digitZ = 0.07
     this.puzzle = null
@@ -133,9 +136,7 @@ export class Sudoku extends MiniGameBase {
     this.squares = squares
   }
 
-  addAllPuzzleText () {
-    const puzzle = sudoku.makepuzzle()
-    console.dir(puzzle)
+  setPuzzle (puzzle) {
     this.puzzle = puzzle
     for (let i = 0; i < puzzle.length; i++) {
       const n = puzzle[i]
@@ -196,12 +197,13 @@ export class Sudoku extends MiniGameBase {
     --- -97 -62
     387 --- --4
     `
-    const dat = this.parseBoard2(brd)
-    console.dir(dat)
 
     this.remakeBoard()
     this.activate()
-    this.addAllPuzzleText()
+
+    const puzzle = this.parseBoard2(brd, true)
+    // const puzzle = sudoku.makepuzzle()
+    this.setPuzzle(puzzle)
 
     // let's look at our good work...
     ;(async () => {
@@ -342,7 +344,7 @@ export class Sudoku extends MiniGameBase {
       console.dir(objDig)
       return true
     }
-
+    // unhandled key
     return false
   }
 
