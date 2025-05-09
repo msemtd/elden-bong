@@ -79,7 +79,7 @@ class Bong extends THREE.EventDispatcher {
     this.slicerDialog = null
     // Lighting
     {
-      const intensity = 0.05
+      const intensity = 1.0
       const dl = new THREE.DirectionalLight(0xffffff, 5)
       dl.position.set(50, 100, 75)
       c.scene.add(dl)
@@ -461,8 +461,9 @@ class Bong extends THREE.EventDispatcher {
     }
     if (topic === 'skyBoxList') {
       this.setSkyBoxList(msg)
-      // TODO if settings have a sky-box then set it
-
+      if (this.settings.scene.background?.skyBox) {
+        this.setSkyBox(this.settings.scene.background.skyBox)
+      }
       console.dir(this.settings.scene)
       return
     }
