@@ -146,26 +146,26 @@ export class Sudoku extends MiniGameBase {
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
       this.addTextObj(sq, `${n + 1}`, 0, 0, this.digitZ, this.colours.numberFixed)
     }
-    // add small number markers on first non-null square - just for testing
-    for (let i = 0; i < puzzle.length; i++) {
-      const n = puzzle[i]
-      if (n === null) {
-        this.addAllSmallDigits(i)
-        break
-      }
-    }
   }
 
-  addAllSmallDigits (idx) {
-    const sq = this.squares.children[idx]
+  removeAllSmallDigits (sq) {
+    console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
+    // clear the square - not necessary to recover textures because they're shared
+    // TODO should do geometries I guess but the text object caches them
+    sq.clear()
+    this.redraw()
+    return true
+  }
+
+  addAllSmallDigits (sq) {
     console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
     for (let n = 1; n <= 9; n++) {
       // get small digit position relative to centre of parent square
-      this.addSmallDigit(n, sq, idx)
+      this.addSmallDigit(n, sq)
     }
   }
 
-  addSmallDigit (n, sq, idx) {
+  addSmallDigit (n, sq) {
     let [px, py] = idxToXy(n - 1, 3)
     py = 2 - py // flip y
     // offset
@@ -175,7 +175,6 @@ export class Sudoku extends MiniGameBase {
     px /= 3
     py /= 3
     const obj = this.addTextObj(sq, `${n}`, px, py, this.digitZ, this.colours.numberSmall, 0.2)
-    obj.userData.sqIdx = idx
     obj.userData.hint = n
     obj.userData.small = true
     sq.add(obj)
@@ -310,7 +309,7 @@ export class Sudoku extends MiniGameBase {
       this.exitPlayingMode()
       return true
     }
-    if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown' || ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+    if (ev.key in keysArrow) {
       const sq = this.playingMode
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
       // get adjacent square
@@ -324,28 +323,54 @@ export class Sudoku extends MiniGameBase {
       return true
     }
     if (keysNumeric.includes(ev.key)) {
-      const val = keysNumeric.indexOf(ev.key)
-      console.log('number key ' + val)
-      // unless a fixed number in the puzzle, toggle the small digit
-      // when only one digit is present, make it big
-      // we will do the checks later
+      return this.onNumericKey(keysNumeric.indexOf(ev.key))
+    }
+    if (ev.key === 'a' || ev.key === 'A') {
+      // add all small digits to the current square
       const sq = this.playingMode
+      console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
       console.assert(typeof sq.userData.sqIdx === 'number', 'squares should have sqIdx userData number')
-      const idx = sq.userData.sqIdx
-      if (this.puzzle[idx] !== null) {
-        console.warn('Cannot change fixed number')
-        return true
-      }
-      // how do we manage the small digits and guesses?
-      // we could do everything in userData but that is no good for non-3D gameplay
-      // the squares should be components that represent game state
-      // we could derive game state from userData initially and decide how to make changes to represent it
-      const objDig = sq.children.filter((c) => c instanceof Text)
-      console.dir(objDig)
+      this.removeAllSmallDigits(sq)
+      this.addAllSmallDigits(sq)
+      this.redraw()
       return true
     }
     // unhandled key
     return false
+  }
+
+  onNumericKey (val) {
+    console.log('onNumericKey ' + val)
+    // unless a fixed number in the puzzle, toggle the small digit
+    // when only one digit is present, make it big
+    // we will do the checks later
+    const sq = this.playingMode
+    console.assert(typeof sq.userData.sqIdx === 'number', 'squares should have sqIdx userData number')
+    const idx = sq.userData.sqIdx
+    if (this.puzzle[idx] !== null) {
+      console.warn('Cannot change fixed number')
+      return true
+    }
+    // how do we manage the small digits and guesses?
+    // we could do everything in userData but that is no good for non-3D gameplay
+    // the squares should be components that represent game state
+    // we could derive game state from userData initially and decide how to make changes to represent it
+
+    if (val === 0) {
+      return this.removeAllSmallDigits(sq)
+    }
+    const objDig = sq.children.filter((c) => c instanceof Text && c.userData.hint === val)
+    console.dir(objDig)
+    if (objDig.length) {
+      // remove the small digit
+      const obj = objDig[0]
+      depthFirstReverseTraverse(sq, obj, generalObj3dClean)
+    } else {
+      // add the small digit
+      this.addSmallDigit(val, sq, idx)
+    }
+    this.redraw()
+    return true
   }
 
   /**
