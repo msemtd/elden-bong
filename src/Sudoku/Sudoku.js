@@ -2,8 +2,6 @@ import { MiniGameBase } from '../MiniGameBase.js'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { Screen } from '../Screen'
-import CameraControls from 'camera-controls'
 import * as sudoku from 'sudoku'
 import { isInteger, isString } from '../wahWah.js'
 import { Text } from 'troika-three-text'
@@ -17,18 +15,34 @@ import { Colours } from '../Colours.js'
   put hints
   undo-redo branching tree
   rudimentary interactive solving help
-
+  Use the right terminology: https://en.wikipedia.org/wiki/Glossary_of_Sudoku
+  - try to use "cell" rather than "square"!
+  - row, column, box
+  - "single"
+  - hint or small number is a "pencil mark"
+  - using techniques from Cracking The Cryptic https://www.youtube.com/watch?v=9aPWpWEQg9Q
   solving room? - just first-person view looking at a pad of paper with a pencil and eraser
 
   look at various sudoku libs - try to understand how they work
   https://www.npmjs.com/search?q=keywords:sudoku
-  Fork the sudoku library to add a pluggable seeded random number generator
+
+  TODO: Fork the sudoku library to add a pluggable seeded random number generator
   https://github.com/dachev/sudoku
   ...based on...
   http://davidbau.com/archives/2006/09/04/sudoku_generator.html
   The digits in the puzzle are zero based!
   That's fine if we only care about generating puzzles with the library (just add one!)
   Further work to do if we want to work with the puzzle data and the other library capabilities.
+
+  TODO:
+  - F key for full set of initial hints
+    - same as A key on all empty squares then R key
+  - R key to remove solved row/column/square values from the hints
+  - Detect complete solved puzzle
+  - Highlight mistakes
+  - Promote single small hints to a big number on display
+    - if hint count in square is one then promote
+    - if hint count > 1 then demote
 */
 
 const keysNumeric = '0123456789'.split('')
@@ -64,11 +78,13 @@ export class Sudoku extends MiniGameBase {
       numberSmall: colours.gimme('butter yellow'),
       numberFixed: colours.gimme('blue with a hint of purple'),
     }
-    this.digitZ = 0.07
     this.puzzle = null
     this.squares = null
     this.squareMaterial = null
     this.squareMaterial2 = null
+    this.fontSizeSmall = 0.2
+    this.fontSizeBig = 0.8
+    this.digitZ = 0.07
   }
 
   remakeBoard () {
@@ -144,7 +160,7 @@ export class Sudoku extends MiniGameBase {
       console.assert(isInteger(n), 'sudoku number should be an integer')
       const sq = this.squares.children[i]
       console.assert(sq instanceof THREE.Mesh, 'squares should be meshes')
-      this.addTextObj(sq, `${n + 1}`, 0, 0, this.digitZ, this.colours.numberFixed)
+      this.addTextObj(sq, `${n + 1}`, 0, 0, this.digitZ, this.colours.numberFixed, this.fontSizeBig)
     }
   }
 
@@ -165,7 +181,7 @@ export class Sudoku extends MiniGameBase {
     }
   }
 
-  addSmallDigit (n, sq) {
+  smallDigitPos (n) {
     let [px, py] = idxToXy(n - 1, 3)
     py = 2 - py // flip y
     // offset
@@ -174,7 +190,12 @@ export class Sudoku extends MiniGameBase {
     // scale
     px /= 3
     py /= 3
-    const obj = this.addTextObj(sq, `${n}`, px, py, this.digitZ, this.colours.numberSmall, 0.2)
+    return [px, py]
+  }
+
+  addSmallDigit (n, sq) {
+    const [px, py] = this.smallDigitPos(n)
+    const obj = this.addTextObj(sq, `${n}`, px, py, this.digitZ, this.colours.numberSmall, this.fontSizeSmall)
     obj.userData.hint = n
     obj.userData.small = true
     sq.add(obj)
@@ -200,8 +221,8 @@ export class Sudoku extends MiniGameBase {
     this.remakeBoard()
     this.activate()
 
-    const puzzle = this.parseBoard2(brd, true)
-    // const puzzle = sudoku.makepuzzle()
+    // const puzzle = this.parseBoard2(brd, true)
+    const puzzle = sudoku.makepuzzle()
     this.setPuzzle(puzzle)
 
     // let's look at our good work...
@@ -258,7 +279,7 @@ export class Sudoku extends MiniGameBase {
     return puzzle2
   }
 
-  addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF, fontSize = 0.8) {
+  addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF, fontSize = this.fontSizeBig) {
     console.assert(isString(s))
     const obj = new Text()
     // Set properties to configure:
@@ -335,6 +356,14 @@ export class Sudoku extends MiniGameBase {
       this.redraw()
       return true
     }
+    if (ev.key === 'b' || ev.key === 'B') {
+      // Big!
+      const sq = this.playingMode
+      this.promoteOrDemoteHint(sq)
+      this.redraw()
+      return true
+    }
+
     // unhandled key
     return false
   }
@@ -367,10 +396,22 @@ export class Sudoku extends MiniGameBase {
       depthFirstReverseTraverse(sq, obj, generalObj3dClean)
     } else {
       // add the small digit
-      this.addSmallDigit(val, sq, idx)
+      this.addSmallDigit(val, sq)
     }
     this.redraw()
     return true
+  }
+
+  promoteOrDemoteHint (sq) {
+    const a = sq.children.filter((c) => c instanceof Text)
+    const goBig = (a.length === 1)
+    for (let i = 0; i < a.length; i++) {
+      const t = a[i]
+      t.fontSize = goBig ? this.fontSizeBig : this.fontSizeSmall
+      const [px, py] = goBig ? [0, 0] : this.smallDigitPos(t.userData.hint)
+      t.position.set(px, py, this.digitZ)
+      t.userData.small = !goBig
+    }
   }
 
   /**
