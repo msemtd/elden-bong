@@ -2,7 +2,7 @@ import { MiniGameBase } from '../MiniGameBase.js'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import * as sudoku from 'sudoku'
+import * as sudoku from './imported'
 import { isInteger, isString } from '../wahWah.js'
 import { Text } from 'troika-three-text'
 import { idxToXy, xyToIdx } from '../MoanSwooper/gridUtils.js'
@@ -222,7 +222,7 @@ export class Sudoku extends MiniGameBase {
     this.activate()
 
     // const puzzle = this.parseBoard2(brd, true)
-    const puzzle = sudoku.makepuzzle()
+    const puzzle = sudoku.makePuzzle()
     this.setPuzzle(puzzle)
 
     // let's look at our good work...
