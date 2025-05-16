@@ -8,6 +8,7 @@ import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 import { NekoHerder } from './NekoHerder'
 import { PiTrain } from './PiTrain/PiTrain'
 import { Sudoku } from './Sudoku/Sudoku'
+import { SumoDoyoh } from './SumoDoyoh/SumoDoyoh'
 import { MiniGameBase } from './MiniGameBase'
 /**
  * Allow the mini-games wrapper provide a games room
@@ -55,6 +56,7 @@ class MiniGames extends THREE.EventDispatcher {
       nekoHerder: new NekoHerder(this),
       piTrain: new PiTrain(this),
       sudoku: new Sudoku(this),
+      sumoDoyoh: new SumoDoyoh(this),
     }
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!
