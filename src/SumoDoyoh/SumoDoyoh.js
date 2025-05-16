@@ -6,6 +6,8 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 
 // cSpell:ignore doyoh dohyō
 const doyohHeight = 0.66 // height of the clay platform
+const ringRadius = 4.55 / 2 // radius of the tawara ring
+const tawaraThickRadius = 0.05 // exposed tawara bale height (or radius)
 
 export class SumoDoyoh extends MiniGameBase {
   constructor (parent) {
@@ -48,7 +50,7 @@ export class SumoDoyoh extends MiniGameBase {
 
     // A typical dohyō is a circle made of partially buried rice-straw bales 4.55 meters in diameter
     {
-      const g = new THREE.CylinderGeometry(4.55 / 2, 4.55 / 2, 0.05, 32)
+      const g = new THREE.CylinderGeometry(ringRadius, ringRadius, 0.05, 32)
       const mesh = new THREE.Mesh(g, sandMaterial)
       mesh.rotateX(Math.PI / 2)
       doyoh.add(mesh)
@@ -96,14 +98,18 @@ export class SumoDoyoh extends MiniGameBase {
       mesh.rotateX(Math.PI / 2)
       doyoh.add(mesh)
     }
-    // try a simple torus geometry for the tawara
+    // try a simple torus geometry for the tawara and tokudawara
     {
-      const g = new THREE.TorusGeometry(4.55 / 2, 0.05, 8, 32, 3 * Math.PI / 8)
+      const g = new THREE.TorusGeometry(ringRadius, tawaraThickRadius, 8, 32, 3 * Math.PI / 8)
+      const tokudawara = new THREE.TorusGeometry(ringRadius + (tawaraThickRadius * 3), tawaraThickRadius, 8, 4, Math.PI / 8)
       const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), /* wireframe: true */ })
       for (let i = 0; i < 4; i++) {
         const mesh = new THREE.Mesh(g, material)
-        mesh.rotateZ(Math.PI / 2 * i + Math.PI / 16)
+        mesh.rotateZ((i * Math.PI / 2) + Math.PI / 16)
         doyoh.add(mesh)
+        const mesh2 = new THREE.Mesh(tokudawara, material)
+        mesh2.rotateZ((i * Math.PI / 2) - Math.PI / 16)
+        doyoh.add(mesh2)
       }
     }
   }
