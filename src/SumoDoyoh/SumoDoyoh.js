@@ -100,16 +100,30 @@ export class SumoDoyoh extends MiniGameBase {
     }
     // try a simple torus geometry for the tawara and tokudawara
     {
-      const g = new THREE.TorusGeometry(ringRadius, tawaraThickRadius, 8, 32, 3 * Math.PI / 8)
-      const tokudawara = new THREE.TorusGeometry(ringRadius + (tawaraThickRadius * 3), tawaraThickRadius, 8, 4, Math.PI / 8)
-      const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), /* wireframe: true */ })
+      const tokudawaraSegment = Math.PI / 8
+      const tawara = new THREE.TorusGeometry(ringRadius, tawaraThickRadius, 8, 16, (Math.PI / 2) - tokudawaraSegment)
+      const tokudawara = new THREE.TorusGeometry(ringRadius + (tawaraThickRadius * 3), tawaraThickRadius, 8, 4, tokudawaraSegment)
+      const tawaraBorder = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 5, 8, 8, false)
+      const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), wireframe: true })
       for (let i = 0; i < 4; i++) {
-        const mesh = new THREE.Mesh(g, material)
-        mesh.rotateZ((i * Math.PI / 2) + Math.PI / 16)
+        const mesh = new THREE.Mesh(tawara, material)
+        mesh.rotateZ((i * Math.PI / 2) + (tokudawaraSegment / 2))
         doyoh.add(mesh)
         const mesh2 = new THREE.Mesh(tokudawara, material)
-        mesh2.rotateZ((i * Math.PI / 2) - Math.PI / 16)
+        mesh2.rotateZ((i * Math.PI / 2) - (tokudawaraSegment / 2))
         doyoh.add(mesh2)
+        // border
+        {
+          const tawaraBorderOffset = 3.1
+          const mesh3 = new THREE.Mesh(tawaraBorder, material)
+          const mul = Math.floor(i / 2) ? 1 : -1
+          const x = (i % 2) ? 0 : mul * tawaraBorderOffset
+          const y = (i % 2) ? mul * tawaraBorderOffset : 0
+          mesh3.position.setX(x)
+          mesh3.position.setY(y)
+          mesh3.rotateZ(i * Math.PI / 2)
+          doyoh.add(mesh3)
+        }
       }
     }
   }
