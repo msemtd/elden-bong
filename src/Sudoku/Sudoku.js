@@ -495,4 +495,15 @@ function makeDoyoh (group) {
     mesh.rotateX(Math.PI / 2)
     doyoh.add(mesh)
   }
+  // try a simple torus geometry for the tawara
+  {
+    const g = new THREE.TorusGeometry(4.55 / 2, 0.05, 8, 32, 3 * Math.PI / 8)
+    const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), /* wireframe: true */ })
+    for (let i = 0; i < 4; i++) {
+      const mesh = new THREE.Mesh(g, material)
+      mesh.position.set(4, 4, -0.2)
+      mesh.rotateZ(Math.PI / 2 * i + Math.PI / 16)
+      doyoh.add(mesh)
+    }
+  }
 }
