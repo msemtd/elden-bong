@@ -61,10 +61,10 @@ export class Sudoku extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      // this.gui.open()
-      // setTimeout(() => {
-      //   this.runTest()
-      // }, 600)
+      this.gui.open()
+      setTimeout(() => {
+        this.runTest()
+      }, 600)
     })
     const colours = new Colours()
 
@@ -224,7 +224,7 @@ export class Sudoku extends MiniGameBase {
     // const puzzle = this.parseBoard2(brd, true)
     const puzzle = sudoku.makePuzzle()
     this.setPuzzle(puzzle)
-
+    console.dir(this.dumpBoard(puzzle))
     // let's look at our good work...
     ;(async () => {
       this.redraw()
@@ -277,6 +277,46 @@ export class Sudoku extends MiniGameBase {
     }
     const puzzle2 = puzzle.map((x) => x === 0 ? null : x - 1)
     return puzzle2
+  }
+
+  dumpBoard (puzzle) {
+    const a = puzzle.map((x) => x === null ? '-' : x + 1)
+    let s = ''
+    for (let i = 0; i < a.length; i++) {
+      if (i % 9 === 0) s += '\n'
+      if (i % 3 === 0) s += ' '
+      s += a[i]
+    }
+    s += '\n'
+    return s
+  }
+
+  dumpState () {
+    // attempt to find the right terms in https://en.wikipedia.org/wiki/Glossary_of_Sudoku
+    // Our state is not in some nice structure - some is in the graphical objects
+    const pencilMarks = []
+    const answers = []
+    const aa = this.puzzle
+    for (let i = 0; i < aa.length; i++) {
+      if (aa[i] !== null) {
+        pencilMarks.push('C')
+        answers.push('C')
+      }
+      const sq = this.squares?.children[i]
+      const ta = sq?.children.filter((c) => c instanceof Text)
+      const ba = ta.filter(x => x.userData.hint && !x.userData.small).map(x => x.userData.hint)
+      const sa = ta.filter(x => x.userData.hint && x.userData.small === true).map(x => x.userData.hint)
+      pencilMarks.push(sa)
+      answers.push(ba)
+    }
+    const clueString = this.dumpBoard(this.puzzle)
+    const state = {
+      clueString,
+      clues: this.puzzle,
+      answers,
+      pencilMarks,
+    }
+    console.log(JSON.stringify(state, null, 2))
   }
 
   addTextObj (grp, s, x = 0, y = 0, z = 0, c = 0x9966FF, fontSize = this.fontSizeBig) {
@@ -356,14 +396,26 @@ export class Sudoku extends MiniGameBase {
       this.redraw()
       return true
     }
-    if (ev.key === 'b' || ev.key === 'B') {
+    if (ev.key === 'b' || ev.key === 'B' || ev.key === ' ') {
       // Big!
       const sq = this.playingMode
       this.promoteOrDemoteHint(sq)
+      setTimeout(() => { this.redraw() }, 100)
       this.redraw()
       return true
     }
+    if (ev.key === 'c' || ev.key === 'C') {
+      const sq = this.playingMode
+      const idx = sq.userData.sqIdx
 
+      // check for problems or completion?
+      return true
+    }
+    if (ev.key === 'd' || ev.key === 'D') {
+      // Dump state to console
+      this.dumpState()
+      return true
+    }
     // unhandled key
     return false
   }
@@ -426,5 +478,19 @@ export class Sudoku extends MiniGameBase {
     }
     this.enterPlayingMode(hits[0].object)
     return true
+  }
+
+  /**
+   * Just like double click but only when already in playing mode
+   * @param {*} ev mouse event
+   * @param {*} mousePos mouse position
+   * @param {*} raycaster raycaster for this mouse position for the current camera
+   * @returns true if we used the single click
+   */
+  offerSingleClick (ev, mousePos, raycaster) {
+    if (!this.playingMode) {
+      return false
+    }
+    return this.offerDoubleClick(ev, mousePos, raycaster)
   }
 }

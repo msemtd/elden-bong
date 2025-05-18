@@ -97,8 +97,7 @@ class MiniGames extends THREE.EventDispatcher {
       return this.games.cardsDude.stealIntersectForGame(ev, mousePos, raycaster)
     }
     if (this.games.sudoku.active) {
-      // sudoku doesn't need single click yet
-      // return this.games.sudoku.stealIntersectForGame(ev, mousePos, raycaster)
+      return this.games.sudoku.offerSingleClick(ev, mousePos, raycaster)
     }
     return false
   }

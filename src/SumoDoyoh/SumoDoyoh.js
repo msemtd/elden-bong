@@ -17,10 +17,10 @@ export class SumoDoyoh extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.open()
-      setTimeout(() => {
-        this.runTest()
-      }, 600)
+      // this.gui.open()
+      // setTimeout(() => {
+      //   this.runTest()
+      // }, 600)
     })
   }
 
