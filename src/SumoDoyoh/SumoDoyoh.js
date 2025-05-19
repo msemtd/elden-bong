@@ -17,10 +17,6 @@ export class SumoDoyoh extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      // this.gui.open()
-      // setTimeout(() => {
-      //   this.runTest()
-      // }, 600)
     })
   }
 
@@ -122,6 +118,12 @@ export class SumoDoyoh extends MiniGameBase {
           mesh3.position.setX(x)
           mesh3.position.setY(y)
           mesh3.rotateZ(i * Math.PI / 2)
+          doyoh.add(mesh3)
+        }
+        // corner tawara parts
+        {
+          const tawaraCorner = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 1, 8, 2, false)
+          const mesh3 = new THREE.Mesh(tawaraBorder, material)
           doyoh.add(mesh3)
         }
       }

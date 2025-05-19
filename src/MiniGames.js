@@ -58,6 +58,7 @@ class MiniGames extends THREE.EventDispatcher {
       sudoku: new Sudoku(this),
       sumoDoyoh: new SumoDoyoh(this),
     }
+    this.autoRunMiniGame = ''
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!
       console.assert(ev.gui instanceof GUI)
@@ -72,6 +73,19 @@ class MiniGames extends THREE.EventDispatcher {
       // this.addMoanSwooper(c)
       this.dispatchEvent({ type: 'ready', gui: this.gui, group: this.group, redrawFunc: this.redraw, screen: this.screen })
       this.deactivateAll()
+      if (this.autoRunMiniGame) {
+        // find game by name and run a function called runTest if it exists
+        const game = this.autoRunMiniGame.toLowerCase()
+        for (const [k, v] of Object.entries(this.games)) {
+          if (k.toLowerCase() === game) {
+            if (v.runTest instanceof Function) {
+              setTimeout(() => {
+                v.runTest()
+              })
+            }
+          }
+        }
+      }
     })
   }
 

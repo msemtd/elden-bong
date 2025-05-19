@@ -242,6 +242,7 @@ class Bong extends THREE.EventDispatcher {
         fld.add(this.settings.tools, 'magick')
         fld.add(this.settings.tools, 'sliceCommand')
         fld.add(this.settings, 'autoLoadMap')
+        fld.add(this.settings, 'autoRunMiniGame')
         const sub = fld.addFolder('onScreen').onFinishChange(() => {
           this.updateOnScreenGubbins()
         })
@@ -270,6 +271,9 @@ class Bong extends THREE.EventDispatcher {
       this.restoreGameState(this.settings.gameState)
     }
     this.miniGames = new MiniGames(this)
+    if (this.settings.autoRunMiniGame) {
+      this.miniGames.autoRunMiniGame = this.settings.autoRunMiniGame
+    }
     // OK, now we provide services to all listeners...
     this.dispatchEvent({
       type: 'ready',

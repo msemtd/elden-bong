@@ -13,7 +13,6 @@ export class Tetris extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.open()
     })
   }
 

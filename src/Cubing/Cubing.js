@@ -13,10 +13,14 @@ export class Cubing extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.open()
-      setTimeout(() => {
-        this.runTest()
-      }, 600)
     })
+  }
+
+  runTest () {
+    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+    this.activate()
+    // TODO this.makeCube()
+    this.group.position.setZ(0)
+    this.redraw()
   }
 }

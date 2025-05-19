@@ -61,10 +61,6 @@ export class Sudoku extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.open()
-      setTimeout(() => {
-        this.runTest()
-      }, 600)
     })
     const colours = new Colours()
 
