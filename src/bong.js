@@ -107,7 +107,7 @@ class Bong extends THREE.EventDispatcher {
     // this.addDemoCube(c)
     this.miniGames = null
     this.makeGui()
-    // this.gui.close()
+    this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     setTimeout(this.whenReady.bind(this), 30)
