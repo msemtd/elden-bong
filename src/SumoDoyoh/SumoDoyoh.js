@@ -100,7 +100,11 @@ export class SumoDoyoh extends MiniGameBase {
       const tawara = new THREE.TorusGeometry(ringRadius, tawaraThickRadius, 8, 16, (Math.PI / 2) - tokudawaraSegment)
       const tokudawara = new THREE.TorusGeometry(ringRadius + (tawaraThickRadius * 3), tawaraThickRadius, 8, 4, tokudawaraSegment)
       const tawaraBorder = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 5, 8, 8, false)
+      const tawaraCorner = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 0.8, 8, 2, false)
       const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), wireframe: true })
+      const tawaraBorderOffset = 3.1
+      const tawaraCornerOffset = 2.9
+      const tawaraCornerPos = [[-1, -1], [-1, 1], [1, 1], [1, -1]]
       for (let i = 0; i < 4; i++) {
         const mesh = new THREE.Mesh(tawara, material)
         mesh.rotateZ((i * Math.PI / 2) + (tokudawaraSegment / 2))
@@ -108,23 +112,26 @@ export class SumoDoyoh extends MiniGameBase {
         const mesh2 = new THREE.Mesh(tokudawara, material)
         mesh2.rotateZ((i * Math.PI / 2) - (tokudawaraSegment / 2))
         doyoh.add(mesh2)
-        // border
+        // border tawara
         {
-          const tawaraBorderOffset = 3.1
-          const mesh3 = new THREE.Mesh(tawaraBorder, material)
+          const m = new THREE.Mesh(tawaraBorder, material)
           const mul = Math.floor(i / 2) ? 1 : -1
           const x = (i % 2) ? 0 : mul * tawaraBorderOffset
           const y = (i % 2) ? mul * tawaraBorderOffset : 0
-          mesh3.position.setX(x)
-          mesh3.position.setY(y)
-          mesh3.rotateZ(i * Math.PI / 2)
-          doyoh.add(mesh3)
+          m.position.setX(x)
+          m.position.setY(y)
+          m.rotateZ(i * Math.PI / 2)
+          doyoh.add(m)
         }
         // corner tawara parts
         {
-          const tawaraCorner = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 1, 8, 2, false)
-          const mesh3 = new THREE.Mesh(tawaraBorder, material)
-          doyoh.add(mesh3)
+          const m = new THREE.Mesh(tawaraCorner, material)
+          const x = tawaraCornerPos[i][0] * tawaraCornerOffset
+          const y = tawaraCornerPos[i][1] * tawaraCornerOffset
+          m.position.setX(x)
+          m.position.setY(y)
+          m.rotateZ((i * Math.PI / 2) + Math.PI / 4)
+          doyoh.add(m)
         }
       }
     }
