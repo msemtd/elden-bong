@@ -1,6 +1,6 @@
 export class Marain {
   constructor () {
-    this.desc = 'https://www.omniglot.com/conscripts/marain.htm'
+    this.desc = 'https://trevor-hopkins.com/banks/a-few-notes-on-marain.html'
     this.mbm = {
       w: `
         @--
