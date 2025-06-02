@@ -286,7 +286,6 @@ class Bong extends THREE.EventDispatcher {
   }
 
   updateOnScreenGubbins () {
-    console.warn('yo')
     // read from settings
     const s = this.settings.scene.onScreen
     if (s.showTitleText) {
