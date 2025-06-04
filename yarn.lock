@@ -2033,6 +2033,11 @@ clone@^1.0.2:
   resolved "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz"
   integrity sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==
 
+cmu-pronouncing-dictionary@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/cmu-pronouncing-dictionary/-/cmu-pronouncing-dictionary-3.0.0.tgz#1a34297a97b5056965f1237bb63ee1276ab93f9d"
+  integrity sha512-6y5X4OxsYFnHERo6WSVPnLrk53G07MOQ8aUb2z555JgwynpbZsHR0a//WdN6DUcmE1j2auTF2TtL4PpoKze8QQ==
+
 color-convert@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz"
