@@ -37,6 +37,9 @@ const bongData = {
     'Kenneth Williams',
     'Morrissey the fail omen',
     'Phantom Flan Flinger',
+    'David Lynch',
+    'David Byrne',
+    'G.G Allin',
   ],
   regions: [
     { name: 'LameGrove', erName: 'Limgrave', description: '' },

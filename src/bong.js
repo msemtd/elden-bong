@@ -23,7 +23,7 @@ import { UserControls } from './Controls'
 import { MiniGames } from './MiniGames'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
 import deathSound from '../sounds/Humanoid Fall.mp3'
-import { isString, isObject, isInteger } from './wahWah'
+import { isInteger } from './wahWah'
 import { FileDrop } from './FileDrop'
 
 async function pick () {
