@@ -3,18 +3,67 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MiniGameBase } from '../MiniGameBase'
 import { Marain } from './Marain'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
-// cSpell:ignore marain
+import { dictionary } from 'cmu-pronouncing-dictionary'
+import Speech from 'speak-tts' // es6
+
+// cSpell:ignore marain ARPABET
 
 export class Culture extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Culture')
     this.marain = new Marain()
     this.lineFont = {}
+    this.convertMe = 'Whatever Dude'
+    this.speech = null
+    try {
+      const speech = new Speech() // will throw an exception if not browser supported
+      if (speech.hasBrowserSupport()) { // returns a boolean
+        console.log('speech synthesis supported')
+        this.speech = speech
+      } else {
+        console.log('no speech synthesis supported')
+      }
+    } catch (error) {
+      console.log('no speech synthesis supported')
+    }
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.gui.add(this, 'convertMe').onFinishChange(() => {
+        this.convertText(this.convertMe)
+      })
+    })
+  }
+
+  convertText (text) {
+    // https://www.npmjs.com/package/speak-tts
+    // https://codesandbox.io/p/sandbox/rmloxx60q4?file=%2Fsrc%2Findex.js
+    console.log(`convert this text: '${text}'`)
+    const aa = text.split(' ')
+    for (let i = 0; i < aa.length; i++) {
+      const word = aa[i].toLowerCase()
+      console.log(`convert this word: '${word}'`)
+      const res = dictionary[word]
+      if (!res) {
+        console.log('unknown word')
+      } else {
+        console.log(res)
+      }
+    }
+    this.speech.init().then((data) => {
+      // The "data" object contains the list of available voices and the voice synthesis params
+      console.log('Speech is ready, voices are available', data)
+      this.speech.speak({
+        text,
+      }).then(() => {
+        console.log('Success !')
+      }).catch(e => {
+        console.error('An error occurred :', e)
+      })
+    }).catch(e => {
+      console.error('An error occurred while initializing : ', e)
     })
   }
 
