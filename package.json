@@ -60,7 +60,7 @@
     "path-browserify": "^1.0.1",
     "seedrandom": "^3.0.5",
     "speak-tts": "^2.0.8",
-    "three": "^0.165.0",
+    "three": "0.169",
     "troika-three-text": "^0.49.1",
     "vanjs-core": "^1.5.0",
     "vanjs-ui": "^0.10.0",
