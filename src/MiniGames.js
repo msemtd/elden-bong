@@ -70,7 +70,10 @@ class MiniGames extends THREE.EventDispatcher {
       this.redraw = ev.redrawFunc
       this.screen = ev.screen
       ev.group.add(this.group)
-      const f = this.gui = ev.gui.addFolder('Mini Games Yo!')
+      // TODO find a folder of the expected name or create one
+      const folderName = this.group.name
+      const ef = ev.gui.folders.find(f => f._title === folderName)
+      const f = this.gui = ef || ev.gui.addFolder(folderName)
       f.add(this, 'deactivateAll')
       // this.addMoanSwooper(c)
       this.dispatchEvent({ type: 'ready', gui: this.gui, group: this.group, redrawFunc: this.redraw, screen: this.screen })

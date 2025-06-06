@@ -251,6 +251,11 @@ class Bong extends THREE.EventDispatcher {
         sub.add(this.settings.scene.onScreen, 'showCameraPosition')
         fld.add(this, 'resetSettings').name('⚠️ Restore Default Settings! ⚠️')
       }
+      {
+        this.gui.addFolder('Mini-Games').close()
+        const fld = this.gui.addFolder('Help').close()
+        fld.add(this, 'helpAbout').name('About')
+      }
 
       s.onChange(() => { this.redraw() })
     }
@@ -259,6 +264,11 @@ class Bong extends THREE.EventDispatcher {
   resetSettings () {
     console.log('reset settings to defaults')
     this.settings = saveTheseSettings('eldenBong', defaultSettings)
+  }
+
+  helpAbout () {
+    // TODO - show a dialog with attribution, links, etc.
+    console.warn('TODO help about')
   }
 
   whenReady () {
