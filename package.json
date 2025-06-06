@@ -44,6 +44,7 @@
     "@yatiac/name-that-color": "^1.1.0",
     "camera-controls": "^2.10.1",
     "cmu-pronouncing-dictionary": "^3.0.0",
+    "cubing": "^0.56.0",
     "debug": "^4.3.4",
     "dockview": "^1.17.2",
     "electron-squirrel-startup": "^1.0.0",
@@ -66,7 +67,7 @@
     "yargs-parser": "^21.1.1"
   },
   "volta": {
-    "node": "20.15.0",
+    "node": "20.19.2",
     "yarn": "1.22.22"
   }
 }
