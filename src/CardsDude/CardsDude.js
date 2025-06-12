@@ -625,4 +625,28 @@ class GameState extends THREE.EventDispatcher {
   }
 }
 
+const toughBigSpiderGame = {
+  xmsol: '876721932',
+  known: [
+    '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
+    '--------------------------------------',
+    '5h qh 8d ac 7h 4c 9h qh 9h 6c as kc 3d',
+    'th 6c jd qc 2c 7s 7d 9c 8s 6h td qc 5d',
+    '5d 8s 3s 6s 7c 3h 7h jc 4s 2s 4h 5c 6h',
+    'jh ad 2c 6h kc 3c td 9d ts 8c 4s tc qd',
+    '7d 7d 7c ah kc ah ks 2h 5h th 5s 5s ks',
+    '--------------------------------------',
+    'Kh 5h 5s 8s qd 9s 4d kd 3s 5c 8h kd ks',
+  ],
+
+  stack: [
+    '9d 2c as qd 3d 7c 4c 8h 4h kh 3c 7h ah',
+    '4s 2d jh td tc ts js kh 6d jd 4c 9c 7s',
+    'ad 3d 3h 7s 5c qs ac 9s 8h jc jh 6d js',
+    '9h qs 9d 2d 3c 6c 8d kd 8d tc as 6d 2s',
+    '8c 2d qh 4h 6s qc 2h js 4d 3s 8c 3h 6s',
+    'sd qs jd 9d 9c jc ac 4d 2s ad 2h th ts'
+
+  ]
+}
 export { CardsDude }
