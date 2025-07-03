@@ -1,10 +1,56 @@
 import { MiniGameBase } from '../MiniGameBase'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { RoundedBoxGeometry } from 'three/examples/jsm/Addons.js'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 
+const data = {
+  tetrominoes: {
+    I: `
+  #X##
+  `,
+    O: `
+  ##
+  X#
+  `,
+    T: `
+  .#.
+  #X#
+  `,
+    J: `
+  #..
+  #X#
+  `,
+    L: `
+  ..#
+  #X#
+  `,
+    S: `
+  .##
+  #X.
+  `,
+    Z: `
+  ##.
+  .X#
+  `,
+  },
+  colours: {
+    I: 'cyan',
+    O: 'yellow',
+    T: 'magenta',
+    J: 'blue',
+    L: 'orange',
+    S: 'green',
+    Z: 'red',
+  }
+}
+
+// Tetris rotations using the "Super Rotation System."
+// https://harddrop.com/wiki/SRS
+
+// cSpell:ignore Tetris tetrominoes
 export class Tetris extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Tetris')
@@ -22,5 +68,36 @@ export class Tetris extends MiniGameBase {
     // define the game
     // the controls
     // all dat stuff!
+    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+
+    const pieces = {}
+    let pp = 0
+    const bg = new RoundedBoxGeometry(1, 1, 1, 1)
+    for (const [k, bm] of Object.entries(data.tetrominoes)) {
+      const piece = new THREE.Group()
+      piece.name = k
+      const rows = bm.split('\n').map(x => x.trim()).filter(x => x.length).reverse()
+      const c = data.colours[k]
+      const m = new THREE.MeshLambertMaterial({ color: c, wireframe: false })
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        const cols = row.split('')
+        for (let j = 0; j < cols.length; j++) {
+          const pix = cols[j]
+          if (pix === '.') continue
+          const tile = new THREE.Mesh(bg, m)
+          tile.position.set(j, i, 0)
+          piece.add(tile)
+        }
+      }
+      piece.scale.divideScalar(4)
+      piece.position.setX(pp * 1.2)
+      this.group.add(piece)
+      pieces[k] = piece
+      pp++
+    }
+    this.activate()
+    this.group.position.setZ(3)
+    this.redraw()
   }
 }

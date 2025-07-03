@@ -2,6 +2,7 @@ import { GUI } from 'dat.gui'
 import { MiniGameBase } from '../MiniGameBase.js'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../../utils/threeUtils.js'
 import * as THREE from 'three'
+import { TwistyPlayer } from 'cubing/twisty'
 
 // https://github.com/cubing/cubing.js
 
@@ -20,7 +21,8 @@ export class Cubing extends MiniGameBase {
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.activate()
     // TODO this.makeCube()
-    this.group.position.setZ(0)
+    TwistyPlayer.experimentalCurrentThreeJSPuzzleObject()
+    this.group.position.setZ(1)
     this.redraw()
   }
 }

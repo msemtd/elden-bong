@@ -1,4 +1,4 @@
-import { MiniGameBase } from './MiniGameBase'
+import { MiniGameBase } from '../MiniGameBase'
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import ntc from '@yatiac/name-that-color'

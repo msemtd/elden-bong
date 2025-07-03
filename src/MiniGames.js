@@ -5,11 +5,12 @@ import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Screen } from './Screen'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
-import { NekoHerder } from './NekoHerder'
+import { NekoHerder } from './NekoHerder/NekoHerder'
 import { PiTrain } from './PiTrain/PiTrain'
 import { Sudoku } from './Sudoku/Sudoku'
 import { SumoDoyoh } from './SumoDoyoh/SumoDoyoh'
 import { Culture } from './Marain/Culture'
+import { Tetris } from './Tetris/Tetris'
 import { MiniGameBase } from './MiniGameBase'
 /**
  * Allow the mini-games wrapper provide a games room
@@ -49,6 +50,7 @@ class MiniGames extends THREE.EventDispatcher {
     this.gui = null
     this.group = new THREE.Group()
     this.group.name = 'Mini-Games'
+    // cSpell:ignore Tetris Doyoh Marain
     this.games = {
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
@@ -59,6 +61,7 @@ class MiniGames extends THREE.EventDispatcher {
       sudoku: new Sudoku(this),
       sumoDoyoh: new SumoDoyoh(this),
       culture: new Culture(this),
+      tetris: new Tetris(this),
     }
     this.autoRunMiniGame = ''
     parent.addEventListener('ready', (ev) => {
