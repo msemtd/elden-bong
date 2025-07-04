@@ -4,6 +4,8 @@
 import ntc from '@yatiac/name-that-color'
 import * as THREE from 'three'
 
+let _inst = null
+
 export class Colours {
   constructor () {
     this.colours = Colours.parseXkcd()
@@ -27,6 +29,11 @@ export class Colours {
       colours[name] = val
     })
     return colours
+  }
+
+  static get (name) {
+    if (!_inst) _inst = new Colours()
+    return _inst.gimme(name)
   }
 }
 

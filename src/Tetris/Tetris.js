@@ -5,6 +5,7 @@ import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
+import { Colours } from '../Colours'
 
 const data = {
   tetrominoes: {
@@ -73,6 +74,8 @@ export class Tetris extends MiniGameBase {
     const pieces = {}
     let pp = 0
     const bg = new RoundedBoxGeometry(1, 1, 1, 1)
+    const pivotMaterial = new THREE.MeshLambertMaterial({ color: Colours.get('pumpkin orange') })
+    const pivotGeometry = new THREE.BoxGeometry(0.2, 0.2, 2)
     for (const [k, bm] of Object.entries(data.tetrominoes)) {
       const piece = new THREE.Group()
       piece.name = k
@@ -87,6 +90,11 @@ export class Tetris extends MiniGameBase {
           if (pix === '.') continue
           const tile = new THREE.Mesh(bg, m)
           tile.position.set(j, i, 0)
+          if (pix === 'X') {
+            const piv = new THREE.Mesh(pivotGeometry, pivotMaterial)
+            piv.position.set(j, i, 0)
+            piece.add(piv)
+          }
           piece.add(tile)
         }
       }
