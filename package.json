@@ -42,7 +42,7 @@
     "@pnext/three-loader": "https://github.com/pnext/three-loader.git",
     "@svgdotjs/svg.js": "^3.2.0",
     "@yatiac/name-that-color": "^1.1.0",
-    "camera-controls": "^2.10.1",
+    "camera-controls": "^3.0.0",
     "cmu-pronouncing-dictionary": "^3.0.0",
     "cubing": "^0.56.0",
     "debug": "^4.3.4",

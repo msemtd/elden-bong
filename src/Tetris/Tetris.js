@@ -6,6 +6,8 @@ import CameraControls from 'camera-controls'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { Colours } from '../Colours'
+import floorDiffuse from './FloorsCheckerboard_S_Diffuse.jpg'
+import floorNormal from './FloorsCheckerboard_S_Normal.jpg'
 
 const data = {
   tetrominoes: {
@@ -105,6 +107,19 @@ export class Tetris extends MiniGameBase {
       pp++
     }
     this.activate()
+    {
+      const loader = new THREE.TextureLoader()
+      const t1 = loader.load(floorDiffuse, this.redraw)
+      const t2 = loader.load(floorNormal, this.redraw)
+      t1.wrapS = t2.wrapS = t1.wrapT = t2.wrapT = THREE.RepeatWrapping
+      t1.repeat = t2.repeat = new THREE.Vector2(10, 22).divideScalar(6)
+      const g = new THREE.BoxGeometry(10, 22, 1, 10, 22, 1)
+      const m = new THREE.MeshPhongMaterial({ color: 'white', map: t1, normalMap: t2 })
+      const o = new THREE.Mesh(g, m)
+      o.scale.divideScalar(4)
+      o.position.set(2.5, 2.5, -1)
+      this.group.add(o)
+    }
     this.group.position.setZ(3)
     this.redraw()
   }
