@@ -12,6 +12,7 @@ import { SumoDoyoh } from './SumoDoyoh/SumoDoyoh'
 import { Culture } from './Marain/Culture'
 import { Tetris } from './Tetris/Tetris'
 import { MiniGameBase } from './MiniGameBase'
+import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -62,6 +63,7 @@ class MiniGames extends THREE.EventDispatcher {
       sumoDoyoh: new SumoDoyoh(this),
       culture: new Culture(this),
       tetris: new Tetris(this),
+      geoRef: new GeoRefMiniGame(this),
     }
     this.autoRunMiniGame = ''
     parent.addEventListener('ready', (ev) => {
