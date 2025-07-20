@@ -36,5 +36,8 @@ export class GeoRef {
     const line2 = new THREE.Line(bg2, matLine2)
     grp1.add(line1)
     grp2.add(line2)
+    this.parts = {
+      pa1, pa2, grp1, grp2
+    }
   }
 }
