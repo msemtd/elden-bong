@@ -107,20 +107,42 @@ export class Tetris extends MiniGameBase {
       pp++
     }
     this.activate()
-    {
-      const loader = new THREE.TextureLoader()
-      const t1 = loader.load(floorDiffuse, this.redraw)
-      const t2 = loader.load(floorNormal, this.redraw)
-      t1.wrapS = t2.wrapS = t1.wrapT = t2.wrapT = THREE.RepeatWrapping
-      t1.repeat = t2.repeat = new THREE.Vector2(10, 22).divideScalar(6)
-      const g = new THREE.BoxGeometry(10, 22, 1, 10, 22, 1)
-      const m = new THREE.MeshPhongMaterial({ color: 'white', map: t1, normalMap: t2 })
-      const o = new THREE.Mesh(g, m)
-      o.scale.divideScalar(4)
-      o.position.set(2.5, 2.5, -1)
-      this.group.add(o)
-    }
+    this.makeBackground()
+    this.makeButtons()
     this.group.position.setZ(3)
     this.redraw()
+    this.positionCamera()
+  }
+
+  async positionCamera () {
+    this.redraw()
+    await this.screen.cameraControls.fitToSphere(this.group, true)
+    await this.screen.cameraControls.rotateAzimuthTo(0, true)
+    await this.screen.cameraControls.rotatePolarTo(Math.PI / 10, true)
+  }
+
+  makeBackground () {
+    const loader = new THREE.TextureLoader()
+    const t1 = loader.load(floorDiffuse, this.redraw)
+    const t2 = loader.load(floorNormal, this.redraw)
+    t1.wrapS = t2.wrapS = t1.wrapT = t2.wrapT = THREE.RepeatWrapping
+    t1.repeat = t2.repeat = new THREE.Vector2(10, 22).divideScalar(6)
+    const g = new THREE.BoxGeometry(10, 22, 1, 10, 22, 1)
+    const m = new THREE.MeshPhongMaterial({ color: 'white', map: t1, normalMap: t2 })
+    const o = new THREE.Mesh(g, m)
+    o.name = 'background'
+    o.scale.divideScalar(4)
+    o.position.set(2.5, 2.5, -1)
+    this.group.add(o)
+  }
+
+  makeButtons () {
+    const bg = this.group.getObjectByName('background')
+    const g = new THREE.BoxGeometry(3, 2, 1, 3, 2, 1)
+    const m = new THREE.MeshPhongMaterial({ color: 'green' })
+    const o = new THREE.Mesh(g, m)
+    o.scale.copy(bg.scale)
+    o.position.set(0.75, 1, -1)
+    this.group.add(o)
   }
 }
