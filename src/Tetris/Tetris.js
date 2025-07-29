@@ -47,7 +47,9 @@ const data = {
     L: 'orange',
     S: 'green',
     Z: 'red',
-  }
+  },
+  fw: 10,
+  fh: 22,
 }
 
 // Tetris rotations using the "Super Rotation System."
@@ -57,6 +59,7 @@ const data = {
 export class Tetris extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Tetris')
+    this.pieces = this.makePieces()
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -65,14 +68,7 @@ export class Tetris extends MiniGameBase {
     })
   }
 
-  runTest () {
-    // what to do here? Draw a playing field?
-    // define the blocks - get the colours right!
-    // define the game
-    // the controls
-    // all dat stuff!
-    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-
+  makePieces () {
     const pieces = {}
     let pp = 0
     const bg = new RoundedBoxGeometry(1, 1, 1, 1)
@@ -100,16 +96,26 @@ export class Tetris extends MiniGameBase {
           piece.add(tile)
         }
       }
-      piece.scale.divideScalar(4)
       piece.position.setX(pp * 1.2)
-      this.group.add(piece)
       pieces[k] = piece
       pp++
     }
+  }
+
+  runTest () {
+    // what to do here? Draw a playing field?
+    // define the blocks - get the colours right!
+    // define the game
+    // the controls
+    // all dat stuff!
+    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+    const grp = new THREE.Group()
+    grp.name = 'grp'
+    this.group.add(grp)
+
     this.activate()
-    this.makeBackground()
-    this.makeButtons()
-    this.group.position.setZ(3)
+    this.makeBackground(grp)
+    this.makeButtons(grp)
     this.redraw()
     this.positionCamera()
   }
@@ -121,28 +127,26 @@ export class Tetris extends MiniGameBase {
     await this.screen.cameraControls.rotatePolarTo(Math.PI / 10, true)
   }
 
-  makeBackground () {
+  makeBackground (grp) {
+    const [w, h] = [data.fw, data.fh]
     const loader = new THREE.TextureLoader()
     const t1 = loader.load(floorDiffuse, this.redraw)
     const t2 = loader.load(floorNormal, this.redraw)
     t1.wrapS = t2.wrapS = t1.wrapT = t2.wrapT = THREE.RepeatWrapping
-    t1.repeat = t2.repeat = new THREE.Vector2(10, 22).divideScalar(6)
-    const g = new THREE.BoxGeometry(10, 22, 1, 10, 22, 1)
+    t1.repeat = t2.repeat = new THREE.Vector2(w, h).divideScalar(6)
+    const g = new THREE.BoxGeometry(w, h, 1, w, h, 1)
     const m = new THREE.MeshPhongMaterial({ color: 'white', map: t1, normalMap: t2 })
     const o = new THREE.Mesh(g, m)
     o.name = 'background'
-    o.scale.divideScalar(4)
-    o.position.set(2.5, 2.5, -1)
-    this.group.add(o)
+    o.position.set(0, 0, -1)
+    grp.add(o)
   }
 
-  makeButtons () {
-    const bg = this.group.getObjectByName('background')
+  makeButtons (grp) {
     const g = new THREE.BoxGeometry(3, 2, 1, 3, 2, 1)
     const m = new THREE.MeshPhongMaterial({ color: 'green' })
     const o = new THREE.Mesh(g, m)
-    o.scale.copy(bg.scale)
-    o.position.set(0.75, 1, -1)
-    this.group.add(o)
+    o.position.set(-7, 1, -0.75)
+    grp.add(o)
   }
 }
