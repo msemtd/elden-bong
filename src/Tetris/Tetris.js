@@ -4,6 +4,7 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/Addons.js'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import * as THREE from 'three'
+import { Text } from 'troika-three-text'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { Colours } from '../Colours'
 import floorDiffuse from './FloorsCheckerboard_S_Diffuse.jpg'
@@ -148,5 +149,13 @@ export class Tetris extends MiniGameBase {
     const o = new THREE.Mesh(g, m)
     o.position.set(-7, 1, -0.75)
     grp.add(o)
+    const t = new Text()
+    t.text = 'Start'
+    t.anchorX = 'center'
+    t.anchorY = 'middle'
+    t.fontSize = 1
+    t.position.set(0, 0, 0.505)
+    t.sync(() => { this.redraw() })
+    o.add(t)
   }
 }
