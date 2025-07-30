@@ -32,7 +32,8 @@ export class GeoRefMiniGame extends MiniGameBase {
     if (!this.active) { return false }
     // anything on the timeline?
     if (!this.timeLine) { return false }
-    return this.timeLine.isActive()
+    const redraw = this.timeLine.isActive()
+    return redraw
   }
 
   runTest () {
@@ -58,13 +59,15 @@ export class GeoRefMiniGame extends MiniGameBase {
       // o.grp2.position.sub(o.pa2[0])
       {
         const pos = o.grp1.position
-        const v = pos.clone().sub(o.pa1[0])
-        this.timeLine.to(pos, { x: v.x, y: v.y, z: v.y, duration: 1 })
+        const v1 = pos.clone()
+        const v2 = pos.clone().sub(o.pa1[0])
+        this.timeLine.fromTo(pos, { x: v1.x, y: v1.y, z: v1.z }, { x: v2.x, y: v2.y, z: v2.z, duration: 1 })
       }
       {
         const pos = o.grp2.position
-        const v = pos.clone().sub(o.pa2[0])
-        this.timeLine.to(pos, { x: v.x, y: v.y, z: v.y, duration: 1 })
+        const v1 = pos.clone()
+        const v2 = pos.clone().sub(o.pa2[0])
+        this.timeLine.fromTo(pos, { x: v1.x, y: v1.y, z: v1.z }, { x: v2.x, y: v2.y, z: v2.z, duration: 1 })
       }
     }
     if (this.state === 2) {
