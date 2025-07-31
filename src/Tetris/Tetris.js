@@ -10,6 +10,13 @@ import { Colours } from '../Colours'
 import floorDiffuse from './FloorsCheckerboard_S_Diffuse.jpg'
 import floorNormal from './FloorsCheckerboard_S_Normal.jpg'
 
+// cSpell:ignore Tetris tetrominoes tetromino
+
+// Tetris rotations using the "Super Rotation System."
+// https://harddrop.com/wiki/SRS
+// The 'X' character in the tetromino definitions indicates the pivot point for rotation.
+// The '.' character indicates an empty space in the tetromino definition.
+
 const data = {
   tetrominoes: {
     I: `
@@ -49,14 +56,11 @@ const data = {
     S: 'green',
     Z: 'red',
   },
+  // field width and height in blocks
   fw: 10,
   fh: 22,
 }
 
-// Tetris rotations using the "Super Rotation System."
-// https://harddrop.com/wiki/SRS
-
-// cSpell:ignore Tetris tetrominoes
 export class Tetris extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Tetris')
@@ -69,6 +73,8 @@ export class Tetris extends MiniGameBase {
     })
   }
 
+  // In theory we can get away with a single three object per piece.
+  // Once a piece lands it can merge with the field blocks.
   makePieces () {
     const pieces = {}
     let pp = 0
@@ -113,6 +119,7 @@ export class Tetris extends MiniGameBase {
     const grp = new THREE.Group()
     grp.name = 'grp'
     this.group.add(grp)
+    grp.position.setZ(0.1)
 
     this.activate()
     this.makeBackground(grp)
