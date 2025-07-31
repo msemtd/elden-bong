@@ -4,7 +4,26 @@ import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 
-// cSpell:ignore doyoh dohyō
+// cSpell:ignore doyoh dohyō basho
+
+/*
+ * SumoDoyoh - a 3D model of a sumo dohyō (ring)
+ * The dohyō is a circular clay platform used in sumo wrestling.
+ * It is 4.55 meters in diameter and 66 cm high, with a square base.
+ * The ring is surrounded by rice-straw bales (tawara) that are partially buried in the clay.
+ *
+ * plan: option of each basho venue building layout including all the usual basho locations
+ *
+ * January Basho: Ryogoku Kokugikan, Tokyo
+ * March Basho: EDION Arena Osaka (Osaka Prefectural Gymnasium)
+ * May Basho: Ryogoku Kokugikan, Tokyo
+ * July Basho: IG Arena, Nagoya
+ * September Basho: Ryogoku Kokugikan, Tokyo
+ * November Basho: Fukuoka Kokusai Center
+ *
+ * Seating plans and cushion trajectory
+ */
+
 const doyohHeight = 0.66 // height of the clay platform
 const ringRadius = 4.55 / 2 // radius of the tawara ring
 const tawaraThickRadius = 0.05 // exposed tawara bale height (or radius)

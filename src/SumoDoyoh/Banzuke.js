@@ -6,7 +6,12 @@
 //
 // https://www.sumo.or.jp/EnSumoDataSumoBeya/wrap/
 // sumodb
+//
+// Looks like we can make these API calls to get the banzuke data:
 // https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/
+// https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/2/1/
+// https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/3/1/
+// https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/4/1/
 // https://www.sumo.or.jp/ResultBanzuke/table/
 // https://www.sumo.or.jp/EnSumoDataRikishi/profile/3842/
 // https://sumodb.sumogames.de/Rikishi_opp.aspx?r=1287
