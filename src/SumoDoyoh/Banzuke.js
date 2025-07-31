@@ -19,6 +19,9 @@
 // play along at home during a basho
 // learn in Japanese and English
 // rikishi squareness and character making - realistic vs chibi
+//
+// A web scraping workflow: for each stable, get page, parse the rikishi list
+// get each rikishi's details with slow fetches and cache all data
 
 export class Banzuke {
   constructor () {
