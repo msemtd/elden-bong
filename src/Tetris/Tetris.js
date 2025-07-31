@@ -64,7 +64,7 @@ const data = {
 export class Tetris extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Tetris')
-    this.pieces = this.makePieces()
+    this.pieces = {}
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -75,8 +75,11 @@ export class Tetris extends MiniGameBase {
 
   // In theory we can get away with a single three object per piece.
   // Once a piece lands it can merge with the field blocks.
-  makePieces () {
+  makePieces (grp) {
     const pieces = {}
+    const g = new THREE.Group()
+    g.name = 'pieces'
+    grp.add(g)
     let pp = 0
     const bg = new RoundedBoxGeometry(1, 1, 1, 1)
     const pivotMaterial = new THREE.MeshLambertMaterial({ color: Colours.get('pumpkin orange') })
@@ -103,8 +106,9 @@ export class Tetris extends MiniGameBase {
           piece.add(tile)
         }
       }
-      piece.position.setX(pp * 1.2)
+      piece.position.setY(pp * 2.5)
       pieces[k] = piece
+      g.add(piece)
       pp++
     }
   }
@@ -122,6 +126,7 @@ export class Tetris extends MiniGameBase {
     grp.position.setZ(0.1)
 
     this.activate()
+    this.pieces = this.makePieces(grp)
     this.makeBackground(grp)
     this.makeButtons(grp)
     this.redraw()
