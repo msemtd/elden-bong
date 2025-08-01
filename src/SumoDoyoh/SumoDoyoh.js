@@ -3,8 +3,9 @@ import { Colours } from '../Colours.js'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { Banzuke } from './Banzuke.js'
 
-// cSpell:ignore doyoh dohyō basho
+// cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan
 
 /*
  * SumoDoyoh - a 3D model of a sumo dohyō (ring)
@@ -14,7 +15,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
  *
  * plan: option of each basho venue building layout including all the usual basho locations
  *
- * January Basho: Ryogoku Kokugikan, Tokyo
+ * January Basho: Ryogoku Kokugikan, Tokyo (https://www.sumo.or.jp/Kokugikan/seat_view/)
  * March Basho: EDION Arena Osaka (Osaka Prefectural Gymnasium)
  * May Basho: Ryogoku Kokugikan, Tokyo
  * July Basho: IG Arena, Nagoya
@@ -28,6 +29,8 @@ const doyohHeight = 0.66 // height of the clay platform
 const ringRadius = 4.55 / 2 // radius of the tawara ring
 const tawaraThickRadius = 0.05 // exposed tawara bale height (or radius)
 
+const underDoyohPlatformHeight = 0.5 // height of the under dohyō platform
+
 export class SumoDoyoh extends MiniGameBase {
   constructor (parent) {
     super(parent, 'SumoDoyoh')
@@ -36,6 +39,7 @@ export class SumoDoyoh extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.gui.add(this, 'banzukeTest')
     })
   }
 
@@ -43,8 +47,27 @@ export class SumoDoyoh extends MiniGameBase {
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.activate()
     this.makeDoyoh()
+    this.makeUnderDoyoh()
     this.group.position.setZ(doyohHeight)
     this.redraw()
+  }
+
+  makeUnderDoyoh () {
+    // look at the under-dohyō platform about 0.5m high
+    // this is where the cushions are thrown from
+    // https://www.sumo.or.jp/Kokugikan/seat_view/
+    // https://livehis.com/house/house_kokugikan.html
+    // should probably create this in blender and import it
+    const underDoyoh = new THREE.Group()
+    this.group.add(underDoyoh)
+    underDoyoh.name = 'underDoyoh'
+
+    const b = new THREE.BoxHelper(this.group.getObjectByName('doyoh'), 0x00ffff)
+    this.group.add(b)
+
+    const g = new THREE.BoxGeometry(40, 40, 0.5, 80, 80, 1)
+    underDoyoh.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false })))
+    underDoyoh.position.setZ((0 - doyohHeight) - underDoyohPlatformHeight / 2 - 0.005)
   }
 
   // cspell:ignore tawara tokudawara
@@ -154,5 +177,10 @@ export class SumoDoyoh extends MiniGameBase {
         }
       }
     }
+  }
+
+  banzukeTest () {
+    const banzuke = new Banzuke()
+    banzuke.runTest()
   }
 }

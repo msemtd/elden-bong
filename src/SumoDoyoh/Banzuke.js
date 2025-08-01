@@ -57,4 +57,14 @@ export class Banzuke {
       Futagoyama Minato Musashigawa Yamahibiki
     `.trim().split(/\s+/)
   }
+
+  runTest () {
+    console.log('Banzuke Test')
+    fetch('https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/', { mode: 'no-cors' })
+      .then(response => response.json())
+      .then(data => {
+        console.log('got some data of length ' + data.length)
+        console.dir(data)
+      })
+  }
 }
