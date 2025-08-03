@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('handy', {
   readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
+  getJson: (...args) => ipcRenderer.invoke('getJson', ...args),
 })
 
 contextBridge.exposeInMainWorld('settings', {

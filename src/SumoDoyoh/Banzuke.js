@@ -1,3 +1,6 @@
+import { getJson } from '../HandyApi'
+import * as path from 'path-browserify'
+
 // cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
 
@@ -58,13 +61,34 @@ export class Banzuke {
     `.trim().split(/\s+/)
   }
 
-  runTest () {
+  async runTest () {
     console.log('Banzuke Test')
-    fetch('https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/', { mode: 'no-cors' })
-      .then(response => response.json())
-      .then(data => {
-        console.log('got some data of length ' + data.length)
-        console.dir(data)
-      })
+    // TODO add cache options to settings...
+    const baseCachePath = 'C:\\Users\\msemt\\Documents\\dev\\elden-bong-data'
+    const dir = 'BanzukeData'
+    const cacheFile = path.join(baseCachePath, dir, 'banzuke1.json')
+    const u1 = 'https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/'
+    const data = await getJson(u1, { cacheFile })
+    // console.dir(data)
+    // TODO parse the data!
+    // start grabbing images?
+    // https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/20170096.jpg
+    // https://www.sumo.or.jp/EnSumoDataRikishi/profile/3842
+    // https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/20170096.jpg
+    // build a little html page and pop it up!
+    console.assert(data && Array.isArray(data.BanzukeTable))
+    const tab = []
+    for (let i = 0; i < data.BanzukeTable.length; i++) {
+      const e = data.BanzukeTable[i]
+      const row = [
+        e.rikishi_id,
+        e.shikona,
+        e.banzuke_id,
+        e.banzuke_name,
+        e.ew,
+      ]
+      tab.push(row)
+    }
+    console.dir(tab)
   }
 }

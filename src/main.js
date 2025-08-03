@@ -66,9 +66,11 @@ app.whenReady().then(() => {
   ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
   ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
+  ipcMain.handle('getJson', (event, ...args) => { return getJson(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
+  // misc...
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
   ipcMain.handle('luaTest', (event, ...args) => { return luaTest(...args) })
   ipcMain.handle('readE57', (event, ...args) => { return E57.readE57(...args) })
@@ -207,4 +209,56 @@ async function shellOpenPath (path) {
 
 async function shellOpenExternal (url) {
   return await shell.openExternal(url)
+}
+
+async function getJson (url, options) {
+  // const request = net.request(url)
+  // request.on('response', (response) => {
+  //   console.log(`STATUS: ${response.statusCode}`)
+  //   console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
+  //   response.on('data', (chunk) => {
+  //     console.log(`BODY: ${chunk}`)
+  //   })
+  //   response.on('end', () => {
+  //     console.log('No more data in response.')
+  //   })
+  // })
+  // request.end()
+  const f = options?.cacheFile
+  if (f) {
+    console.log(`check JSON data cache for '${f}'...`)
+    // TODO validate the cache location - this can all be done in main with settings
+    const pp = path.parse(f)
+    await fs.ensureDir(pp.dir)
+    console.log(`..attempt read and parse '${f}...`)
+    let data = null
+    const exists = await fs.exists(f)
+    if (exists) {
+      data = await fs.readJson(f, { throws: false })
+    }
+    if (data === null) {
+      console.log('...nah mate - gotta go get it...')
+    } else {
+      console.log('...yeah mate - here you go')
+      return data
+    }
+  }
+  const response = await net.fetch(url)
+  const data = null
+  if (response.ok) {
+    const body = await response.json()
+
+    // Iterate response.body (a ReadableStream) asynchronously
+    // const chunks = []
+    // for await (const chunk of response.body) {
+    //   // Do something with each chunk
+    //   // Here we just accumulate the size of the response.
+    //   console.dir(chunk)
+    //   chunks.push(chunk)
+    //   // how to accumulate?
+    // }
+    await fs.writeJson(f, body)
+    return body
+  }
+  return data
 }
