@@ -1,8 +1,8 @@
-import { getJson } from '../HandyApi'
-import * as path from 'path-browserify'
+import { getJson, getImgExt } from '../HandyApi'
 
-// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho
+// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
+// cSpell:ignore chibi
 
 // A live sumo database in English and Japanese.
 // Web scraping or proper API calls? Why not both? Use whatever is available.
@@ -63,18 +63,25 @@ export class Banzuke {
 
   async runTest () {
     console.log('Banzuke Test')
-    const cacheFile = '../BanzukeData/banzuke1.json'
-    const u1 = 'https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/'
-    const data = await getJson(u1, { cacheFile })
-    // console.dir(data)
-    // TODO parse the data!
+    const division = 1
+    const page = 1
+    const cacheFile = `BanzukeData/banzuke${division}.json`
+    const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${page}/`
+    const data = await getJson(url, { cacheFile })
     // start grabbing images?
-    // https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/20170096.jpg
+    // thumbnails...
+    const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
+    // big pics...
+    const photoPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/'
+    // profiles...
     // https://www.sumo.or.jp/EnSumoDataRikishi/profile/3842
-    // https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/20170096.jpg
-    // build a little html page and pop it up!
     console.assert(data && Array.isArray(data.BanzukeTable))
     const tab = []
+    const ew = (x) => {
+      if (x === 1) return 'E'
+      if (x === 2) return 'W'
+      return x
+    }
     for (let i = 0; i < data.BanzukeTable.length; i++) {
       const e = data.BanzukeTable[i]
       const row = [
@@ -82,9 +89,18 @@ export class Banzuke {
         e.shikona,
         e.banzuke_id,
         e.banzuke_name,
-        e.ew,
+        ew(e.ew),
+        e.heya_name,
+        e.photo,
+        e.pref_name,
       ]
       tab.push(row)
+      if (i === 0) {
+        const imgUrl = thumbnailPrefix + e.photo
+        const cacheFile = `BanzukeData/rikishiThumbnails/${e.photo}`
+        const dunno = await getImgExt(imgUrl, { cacheFile })
+        console.dir(dunno)
+      }
     }
     console.dir(tab)
   }

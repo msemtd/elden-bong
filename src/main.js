@@ -70,6 +70,7 @@ app.whenReady().then(() => {
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
   ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
   ipcMain.handle('getJson', (event, ...args) => { return getJson(...args) })
+  ipcMain.handle('getImgExt', (event, ...args) => { return getImgExt(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -236,6 +237,21 @@ async function getJson (url, options) {
     data = await response.json()
     if (cf) {
       await fs.writeJson(cf, data)
+    }
+  }
+  return data
+}
+
+async function getImgExt (url, options) {
+  const cf = await checkCachePath(options?.cacheFile)
+  let data = null
+  const response = await net.fetch(url)
+  if (response.ok) {
+    const blob = await response.blob()
+    const buf = await blob.arrayBuffer()
+    data = new Uint8Array(buf)
+    if (cf) {
+      await fs.outputFile(cf, data)
     }
   }
   return data

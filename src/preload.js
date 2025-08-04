@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('handy', {
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
   getJson: (...args) => ipcRenderer.invoke('getJson', ...args),
+  getImgExt: (...args) => ipcRenderer.invoke('getImgExt', ...args),
 })
 
 contextBridge.exposeInMainWorld('settings', {
