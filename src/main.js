@@ -18,6 +18,9 @@ if (require('electron-squirrel-startup')) {
 }
 
 const staticDir = path.join(path.resolve(__dirname), '..', 'main', 'static')
+const dataDir = path.join(app.getPath('userData'), 'bongData')
+dbg(`staticDir: ${staticDir}`)
+dbg(`dataDir: ${dataDir}`)
 
 const rendererNotify = (topic, msg) => {
   mainWindow.webContents.send('renderer-notify', topic, msg)
@@ -211,54 +214,54 @@ async function shellOpenExternal (url) {
   return await shell.openExternal(url)
 }
 
+// Caching JSON data under the user's data directory.
+// Pass a url and options with a cacheFile relative path
+// The relative path must not be able to escape the data directory
+// The URL must return a body that can be parsed as JSON
 async function getJson (url, options) {
-  // const request = net.request(url)
-  // request.on('response', (response) => {
-  //   console.log(`STATUS: ${response.statusCode}`)
-  //   console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
-  //   response.on('data', (chunk) => {
-  //     console.log(`BODY: ${chunk}`)
-  //   })
-  //   response.on('end', () => {
-  //     console.log('No more data in response.')
-  //   })
-  // })
-  // request.end()
-  const f = options?.cacheFile
-  if (f) {
-    console.log(`check JSON data cache for '${f}'...`)
-    // TODO validate the cache location - this can all be done in main with settings
-    const pp = path.parse(f)
-    await fs.ensureDir(pp.dir)
-    console.log(`..attempt read and parse '${f}...`)
-    let data = null
-    const exists = await fs.exists(f)
-    if (exists) {
-      data = await fs.readJson(f, { throws: false })
+  const cf = await checkCachePath(options?.cacheFile)
+  let data = null
+  if (cf) {
+    if (await fs.exists(cf)) {
+      // NB: fs-extra readJson with throws=false returns null if the data does not parse
+      data = await fs.readJson(cf, { throws: false })
     }
-    if (data === null) {
-      console.log('...nah mate - gotta go get it...')
-    } else {
-      console.log('...yeah mate - here you go')
+    if (data !== null) {
+      dbg('return cached data for ' + url)
       return data
     }
   }
   const response = await net.fetch(url)
-  const data = null
   if (response.ok) {
-    const body = await response.json()
-
-    // Iterate response.body (a ReadableStream) asynchronously
-    // const chunks = []
-    // for await (const chunk of response.body) {
-    //   // Do something with each chunk
-    //   // Here we just accumulate the size of the response.
-    //   console.dir(chunk)
-    //   chunks.push(chunk)
-    //   // how to accumulate?
-    // }
-    await fs.writeJson(f, body)
-    return body
+    data = await response.json()
+    if (cf) {
+      await fs.writeJson(cf, data)
+    }
   }
   return data
+}
+
+// Ensure the cache file path is relative to the dataDir.
+// If the path is falsy, return it as is.
+// If the path is absolute, or not relative to dataDir, throw an error.
+// If the path is valid, ensure the directory exists and return the full path.
+// Purpose:
+// Common behaviour to stop jailbreaking the data directory.
+// Creating the directory allows a cache file to be read or written without
+// further checks.
+// Immediate return of falsy path simplifies caller in my use cases.
+async function checkCachePath (p) {
+  if (!p) {
+    return p
+  }
+  if (path.isAbsolute(p)) {
+    throw new Error('Cache file path must be relative')
+  }
+  const f = path.join(dataDir, p)
+  if (f.indexOf(dataDir) !== 0) {
+    throw new Error('Cache file path must be relative to dataDir')
+  }
+  const pp = path.parse(f)
+  await fs.ensureDir(pp.dir)
+  return f
 }

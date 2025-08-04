@@ -276,7 +276,17 @@ The above can also be used to upgrade the app platform: create a new empty app a
   Still not worked out how to get the data into three-js loaders - for now reading
   file data into buffers in the main thread and passing through the preload API
 
-NB: Should probably use volta (https://volta.sh/) to pin the tool versions.
+NB: Use volta (https://volta.sh/) to pin the tool versions.
+
+Currently developing in vs-code
+* set up a task on f7 to run `yarn start` for testing and debugging renderer using the chrome dev tools
+* debug main process with f5 - can still debug renderer in chrome dev tools
+* useful extensions:
+  - https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+  - https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments
+  - https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+  - https://marketplace.visualstudio.com/items?itemName=shardulm94.trailing-spaces
+  - https://marketplace.visualstudio.com/items?itemName=stuart.unique-window-colors
 
 ## Electron
 

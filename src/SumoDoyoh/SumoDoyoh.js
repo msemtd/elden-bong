@@ -1,9 +1,10 @@
 import { MiniGameBase } from '../MiniGameBase'
-import { Colours } from '../Colours.js'
+import { Colours } from '../Colours'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { Banzuke } from './Banzuke.js'
+import { Banzuke } from './Banzuke'
+import { Dlg } from '../dlg'
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan
 
@@ -181,6 +182,8 @@ export class SumoDoyoh extends MiniGameBase {
 
   banzukeTest () {
     const banzuke = new Banzuke()
-    banzuke.runTest()
+    banzuke.runTest().catch(error => {
+      Dlg.errorDialog(error)
+    })
   }
 }

@@ -65,6 +65,7 @@ const defaultSettings = {
     cameraPosition: [1, -12, 1.7],
   },
   autoRunMiniGame: '',
+  dataDir: '',
 }
 
 function loadSettings (localStorageKey, defaults) {

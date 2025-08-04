@@ -63,10 +63,7 @@ export class Banzuke {
 
   async runTest () {
     console.log('Banzuke Test')
-    // TODO add cache options to settings...
-    const baseCachePath = 'C:\\Users\\msemt\\Documents\\dev\\elden-bong-data'
-    const dir = 'BanzukeData'
-    const cacheFile = path.join(baseCachePath, dir, 'banzuke1.json')
+    const cacheFile = '../BanzukeData/banzuke1.json'
     const u1 = 'https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/1/1/'
     const data = await getJson(u1, { cacheFile })
     // console.dir(data)
