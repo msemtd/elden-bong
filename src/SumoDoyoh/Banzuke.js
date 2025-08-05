@@ -1,5 +1,5 @@
 import { getJson, getImgExt } from '../HandyApi'
-
+import { delayMs } from '../util'
 // cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
 // cSpell:ignore chibi
@@ -35,13 +35,13 @@ export class Banzuke {
   constructor () {
     this.rikishi = []
     this.divisions = [
-      { Makuuchi: { jpName: '幕内', enName: 'Top Division' } },
-      { Jūryō: { jpName: '十両', enName: 'Second Division' } },
-      { Makushita: { jpName: '幕下', enName: 'Third Division' } },
-      { Sandanme: { jpName: '三段目', enName: 'Fourth Division' } },
-      { Jonidan: { jpName: '序二段', enName: 'Fifth Division' } },
-      { Jonokuchi: { jpName: '序ノ口', enName: 'Lowest Division' } },
-      { Maezumo: { jpName: '前頭', enName: 'Unranked' } },
+      { name: 'Makuuchi', jpName: '幕内', enName: 'Top Division', sumoOrJpPage: 1 },
+      { name: 'Jūryō', jpName: '十両', enName: 'Second Division', sumoOrJpPage: 2 },
+      { name: 'Makushita', jpName: '幕下', enName: 'Third Division', sumoOrJpPage: 3 },
+      { name: 'Sandanme', jpName: '三段目', enName: 'Fourth Division', sumoOrJpPage: 4 },
+      { name: 'Jonidan', jpName: '序二段', enName: 'Fifth Division', sumoOrJpPage: 5 },
+      { name: 'Jonokuchi', jpName: '序ノ口', enName: 'Lowest Division', sumoOrJpPage: 6 },
+      { name: 'Maezumo', jpName: '前頭', enName: 'Unranked', sumoOrJpPage: undefined },
     ]
     // Yokozuna
     // Ozeki
@@ -61,20 +61,21 @@ export class Banzuke {
     `.trim().split(/\s+/)
   }
 
-  async runTest () {
-    console.log('Banzuke Test')
-    const division = 1
-    const page = 1
+  getDivisions () {
+    return structuredClone(this.divisions)
+  }
+
+  async cacheSumoOrJp (division, withThumbnails = false, withPhotos = false, withProfiles = false) {
+    if (division === undefined) {
+      return []
+    }
+    const pageSub = 1
     const cacheFile = `BanzukeData/banzuke${division}.json`
-    const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${page}/`
+    const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${pageSub}/`
     const data = await getJson(url, { cacheFile })
-    // start grabbing images?
-    // thumbnails...
     const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
-    // big pics...
     const photoPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/'
-    // profiles...
-    // https://www.sumo.or.jp/EnSumoDataRikishi/profile/3842
+    const profilePrefix = 'https://www.sumo.or.jp/EnSumoDataRikishi/profile/'
     console.assert(data && Array.isArray(data.BanzukeTable))
     const tab = []
     const ew = (x) => {
@@ -84,6 +85,10 @@ export class Banzuke {
     }
     for (let i = 0; i < data.BanzukeTable.length; i++) {
       const e = data.BanzukeTable[i]
+      if (!e.rikishi_id || !e.shikona || !e.banzuke_id || !e.banzuke_name) {
+        console.warn(`Skipping incomplete rikishi entry: ${JSON.stringify(e)}`)
+        continue
+      }
       const row = [
         e.rikishi_id,
         e.shikona,
@@ -95,13 +100,26 @@ export class Banzuke {
         e.pref_name,
       ]
       tab.push(row)
-      if (i === 0) {
+      if (withThumbnails) {
         const imgUrl = thumbnailPrefix + e.photo
         const cacheFile = `BanzukeData/rikishiThumbnails/${e.photo}`
-        const dunno = await getImgExt(imgUrl, { cacheFile })
-        console.dir(dunno)
+        const data = await getImgExt(imgUrl, { cacheFile })
+        console.dir(data)
+      }
+      if (withPhotos) {
+        const imgUrl = photoPrefix + e.photo
+        const cacheFile = `BanzukeData/rikishiPhotos/${e.photo}`
+        const data = await getImgExt(imgUrl, { cacheFile })
+        console.dir(data)
+      }
+      if (withProfiles) {
+        const profileUrl = profilePrefix + e.rikishi_id + '/'
+        const cacheFile = `BanzukeData/rikishiProfiles/${e.rikishi_id}.html`
+        const data = await getImgExt(profileUrl, { cacheFile })
+        console.dir(data)
+        await delayMs(100) // Delay between requests
       }
     }
-    console.dir(tab)
+    return tab
   }
 }

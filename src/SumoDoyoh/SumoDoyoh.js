@@ -5,6 +5,7 @@ import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke } from './Banzuke'
 import { Dlg } from '../dlg'
+import { delayMs } from '../util'
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan
 
@@ -180,10 +181,17 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  banzukeTest () {
+  async banzukeTest () {
     const banzuke = new Banzuke()
-    banzuke.runTest().catch(error => {
-      Dlg.errorDialog(error)
-    })
+    const divisions = banzuke.getDivisions()
+    for (let i = 0; i < divisions.length; i++) {
+      const d = divisions[i]
+      try {
+        const tab = await banzuke.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
+      } catch (error) {
+        Dlg.errorDialog(error)
+      }
+      await delayMs(1000) // Delay between requests
+    }
   }
 }

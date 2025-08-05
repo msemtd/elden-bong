@@ -242,6 +242,7 @@ async function getJson (url, options) {
   return data
 }
 
+// get an image file and add to the cache (optional)
 async function getImgExt (url, options) {
   const cf = await checkCachePath(options?.cacheFile)
   let data = null

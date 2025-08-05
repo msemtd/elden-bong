@@ -113,3 +113,7 @@ export function isInputEvent (event) {
       target.tagName === 'TEXTAREA' ||
       target.isContentEditable)
 }
+
+export async function delayMs (durationMs) {
+  return await new Promise(resolve => setTimeout(resolve, durationMs))
+}
