@@ -33,6 +33,7 @@ import { delayMs } from '../util'
 
 export class Banzuke {
   constructor () {
+    this.cacheDirName = 'BanzukeData'
     this.rikishi = []
     this.divisions = [
       { name: 'Makuuchi', jpName: '幕内', enName: 'Top Division', sumoOrJpPage: 1 },
@@ -70,7 +71,7 @@ export class Banzuke {
       return []
     }
     const pageSub = 1
-    const cacheFile = `BanzukeData/banzuke${division}.json`
+    const cacheFile = `${this.cacheDirName}/banzuke${division}.json`
     const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${pageSub}/`
     const data = await getJson(url, { cacheFile })
     const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
@@ -102,19 +103,19 @@ export class Banzuke {
       tab.push(row)
       if (withThumbnails) {
         const imgUrl = thumbnailPrefix + e.photo
-        const cacheFile = `BanzukeData/rikishiThumbnails/${e.photo}`
+        const cacheFile = `${this.cacheDirName}/rikishiThumbnails/${e.photo}`
         const data = await getImgExt(imgUrl, { cacheFile })
         console.dir(data)
       }
       if (withPhotos) {
         const imgUrl = photoPrefix + e.photo
-        const cacheFile = `BanzukeData/rikishiPhotos/${e.photo}`
+        const cacheFile = `${this.cacheDirName}/rikishiPhotos/${e.photo}`
         const data = await getImgExt(imgUrl, { cacheFile })
         console.dir(data)
       }
       if (withProfiles) {
         const profileUrl = profilePrefix + e.rikishi_id + '/'
-        const cacheFile = `BanzukeData/rikishiProfiles/${e.rikishi_id}.html`
+        const cacheFile = `${this.cacheDirName}/rikishiProfiles/${e.rikishi_id}.html`
         const data = await getImgExt(profileUrl, { cacheFile })
         console.dir(data)
         await delayMs(100) // Delay between requests

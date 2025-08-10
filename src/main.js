@@ -68,9 +68,10 @@ app.whenReady().then(() => {
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
   ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
-  ipcMain.handle('outputFile', (event, ...args) => { return outputFile(...args) })
-  ipcMain.handle('getJson', (event, ...args) => { return getJson(...args) })
-  ipcMain.handle('getImgExt', (event, ...args) => { return getImgExt(...args) })
+  ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
+  ipcMain.handle('getJson', async (event, ...args) => { return await getJson(...args) })
+  ipcMain.handle('getImgExt', async (event, ...args) => { return await getImgExt(...args) })
+  ipcMain.handle('getCacheDir', async (event, ...args) => { return await getCacheDir(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -271,14 +272,19 @@ async function checkCachePath (p) {
   if (!p) {
     return p
   }
+  const cp = getCacheDir(p)
+  const pp = path.parse(cp)
+  await fs.ensureDir(pp.dir)
+  return cp
+}
+
+async function getCacheDir (p) {
   if (path.isAbsolute(p)) {
     throw new Error('Cache file path must be relative')
   }
-  const f = path.join(dataDir, p)
-  if (f.indexOf(dataDir) !== 0) {
+  const cp = path.join(dataDir, p)
+  if (cp.indexOf(dataDir) !== 0) {
     throw new Error('Cache file path must be relative to dataDir')
   }
-  const pp = path.parse(f)
-  await fs.ensureDir(pp.dir)
-  return f
+  return cp
 }

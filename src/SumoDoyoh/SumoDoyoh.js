@@ -6,6 +6,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke } from './Banzuke'
 import { Dlg } from '../dlg'
 import { delayMs } from '../util'
+import { getCacheDir, shellOpenPath } from '../HandyApi'
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan
 
@@ -36,12 +37,14 @@ const underDoyohPlatformHeight = 0.5 // height of the under dohyō platform
 export class SumoDoyoh extends MiniGameBase {
   constructor (parent) {
     super(parent, 'SumoDoyoh')
+    this.banzuke = new Banzuke()
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'banzukeTest')
+      this.gui.add(this, 'openBanzukeDataDir')
     })
   }
 
@@ -64,11 +67,11 @@ export class SumoDoyoh extends MiniGameBase {
     this.group.add(underDoyoh)
     underDoyoh.name = 'underDoyoh'
 
-    const b = new THREE.BoxHelper(this.group.getObjectByName('doyoh'), 0x00ffff)
-    this.group.add(b)
+    // const b = new THREE.BoxHelper(this.group.getObjectByName('doyoh'), 0x00ffff)
+    // this.group.add(b)
 
     const g = new THREE.BoxGeometry(40, 40, 0.5, 80, 80, 1)
-    underDoyoh.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: false })))
+    underDoyoh.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })))
     underDoyoh.position.setZ((0 - doyohHeight) - underDoyohPlatformHeight / 2 - 0.005)
   }
 
@@ -182,16 +185,24 @@ export class SumoDoyoh extends MiniGameBase {
   }
 
   async banzukeTest () {
-    const banzuke = new Banzuke()
-    const divisions = banzuke.getDivisions()
+    const divisions = this.banzuke.getDivisions()
     for (let i = 0; i < divisions.length; i++) {
       const d = divisions[i]
       try {
-        const tab = await banzuke.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
+        const tab = await this.banzuke.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
       } catch (error) {
         Dlg.errorDialog(error)
       }
       await delayMs(1000) // Delay between requests
+    }
+  }
+
+  async openBanzukeDataDir () {
+    try {
+      const d = await getCacheDir(this.banzuke.cacheDirName)
+      await shellOpenPath(d)
+    } catch (error) {
+      Dlg.errorDialog(error)
     }
   }
 }
