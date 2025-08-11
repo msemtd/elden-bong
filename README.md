@@ -357,8 +357,15 @@ Layout based on game (from card game data) and user spacing preferences
   - yarn add https://github.com/pnext/three-loader.git
   - TODO: add a cloud for testing in user-specified dir
 
-* Data dir: fetch 3rd-party stuff from URLs to add local content - package ideas
 * Test data for LAS/e57/potree/COPC (https://validate.copc.io/)
+
+## Data directory system
+- fetch 3rd-party stuff from URLs to add local content
+- caching in various folders on the user's machine: in the usual ~\AppData\Roaming\elden-bong and other user-designated directories
+- package ideas including encrypted blobs of bonus data served up from secure locations and github releases, tar.gz zip 7z
+- fetching in main process - part of the Handy API
+
+
 
 # LICENSES AND ATTRIBUTION
 
