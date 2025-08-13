@@ -104,13 +104,13 @@ export class Banzuke {
       if (withThumbnails) {
         const imgUrl = thumbnailPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiThumbnails/${e.photo}`
-        const data = await getImgExt(imgUrl, { cacheFile })
+        const data = await getImgExt(imgUrl, { cacheFile, noDataJustCache: true })
         console.dir(data)
       }
       if (withPhotos) {
         const imgUrl = photoPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiPhotos/${e.photo}`
-        const data = await getImgExt(imgUrl, { cacheFile })
+        const data = await getImgExt(imgUrl, { cacheFile, noDataJustCache: true })
         console.dir(data)
       }
       if (withProfiles) {

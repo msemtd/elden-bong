@@ -247,6 +247,14 @@ async function getJson (url, options) {
 async function getImgExt (url, options) {
   const cf = await checkCachePath(options?.cacheFile)
   let data = null
+  if (cf) {
+    if (await fs.exists(cf)) {
+      if (options?.noDataJustCache) {
+        return data
+      }
+      return await fs.readFile(cf)
+    }
+  }
   const response = await net.fetch(url)
   if (response.ok) {
     const blob = await response.blob()
@@ -272,7 +280,7 @@ async function checkCachePath (p) {
   if (!p) {
     return p
   }
-  const cp = getCacheDir(p)
+  const cp = await getCacheDir(p)
   const pp = path.parse(cp)
   await fs.ensureDir(pp.dir)
   return cp
