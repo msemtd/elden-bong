@@ -1,5 +1,5 @@
-import { getJson, getImgExt } from '../HandyApi'
-import { delayMs } from '../util'
+import { DataDir } from '../DataDir'
+
 // cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
 // cSpell:ignore chibi
@@ -52,6 +52,13 @@ export class Banzuke {
     // 番付
     // 西
 
+    // cSpell:ignore  Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
+    // cSpell:ignore  Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
+    // cSpell:ignore  Sakaigawa Sadogatake Shikihide Shikoroyama Shibatayama Takasago Takadagawa
+    // cSpell:ignore  Takekuma Tagonoura Tatsunami Tamanoi Dewanoumi Tokitsukaze Tokiwayama Nakamura
+    // cSpell:ignore  Naruto Nishiiwa Nishikido Nishonoseki Hakkaku Hanaregoma Hidenoyama Fujishima
+    // cSpell:ignore  Futagoyama Minato Musashigawa Yamahibiki
+
     this.stables = `
       Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
       Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
@@ -60,6 +67,21 @@ export class Banzuke {
       Naruto Nishiiwa Nishikido Nishonoseki Hakkaku Hanaregoma Hidenoyama Fujishima
       Futagoyama Minato Musashigawa Yamahibiki
     `.trim().split(/\s+/)
+
+    this.tabColumns = `
+      rikishi_id
+      shikona
+      banzuke_id
+      banzuke_name
+      ew
+      heya_name
+      photo
+      pref_name
+      thumbnail
+      photo
+      profile_html
+    `.trim().split(/\s+/)
+    Object.freeze(this.tabColumns)
   }
 
   getDivisions () {
@@ -73,7 +95,7 @@ export class Banzuke {
     const pageSub = 1
     const cacheFile = `${this.cacheDirName}/banzuke${division}.json`
     const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${pageSub}/`
-    const data = await getJson(url, { cacheFile })
+    const data = await DataDir.getJson(url, { cacheFile })
     const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
     const photoPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/'
     const profilePrefix = 'https://www.sumo.or.jp/EnSumoDataRikishi/profile/'
@@ -87,7 +109,7 @@ export class Banzuke {
     for (let i = 0; i < data.BanzukeTable.length; i++) {
       const e = data.BanzukeTable[i]
       if (!e.rikishi_id || !e.shikona || !e.banzuke_id || !e.banzuke_name) {
-        console.warn(`Skipping incomplete rikishi entry: ${JSON.stringify(e)}`)
+        console.log(`Skipping empty entry: ${JSON.stringify(e)}`)
         continue
       }
       const row = [
@@ -104,23 +126,72 @@ export class Banzuke {
       if (withThumbnails) {
         const imgUrl = thumbnailPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiThumbnails/${e.photo}`
-        const data = await getImgExt(imgUrl, { cacheFile, noDataJustCache: true })
-        console.dir(data)
+        row[this.tabColumns.indexOf('thumbnail')] = cacheFile
+        await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
       }
       if (withPhotos) {
         const imgUrl = photoPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiPhotos/${e.photo}`
-        const data = await getImgExt(imgUrl, { cacheFile, noDataJustCache: true })
-        console.dir(data)
+        row[this.tabColumns.indexOf('photo')] = cacheFile
+        await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
       }
       if (withProfiles) {
         const profileUrl = profilePrefix + e.rikishi_id + '/'
         const cacheFile = `${this.cacheDirName}/rikishiProfiles/${e.rikishi_id}.html`
-        const data = await getImgExt(profileUrl, { cacheFile })
-        console.dir(data)
-        await delayMs(100) // Delay between requests
+        row[this.tabColumns.indexOf('profile_html')] = cacheFile
+        await DataDir.getBinary(profileUrl, { cacheFile, noDataJustCache: true })
       }
     }
     return tab
+  }
+
+  async fullCache () {
+    this.rikishi = []
+    const divisions = this.getDivisions()
+    const t1 = performance.now()
+    for (let i = 0; i < divisions.length; i++) {
+      const d = divisions[i]
+      const rows = await this.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
+      this.rikishi.push(...rows)
+      console.log(`Banzuke data for ${d.sumoOrJpPage} cached: ${rows.length} entries`)
+    }
+    const t2 = performance.now()
+    console.log(`fullCache build took ${t2 - t1} milliseconds.`)
+  }
+
+  async getCacheDirFullPath () {
+    const d = await DataDir.getCacheDir(this.cacheDirName)
+    return d
+  }
+
+  async fillInMissingData () {
+    for (const rikishi of this.rikishi) {
+      // Fill in missing data for each rikishi
+      await this.fillInRikishiData(rikishi)
+    }
+  }
+
+  async fillInRikishiData (rikishi) {
+    // console.log('Banzuke tab size:', this.banzuke.tab.length)
+    // // Further processing or consolidation logic here
+    // for (const row of this.banzuke.tab) {
+    //   // Process each row
+    //   // Example: console.log(row)
+    //   // get the html rikishi page and...
+    //   const profileHtml = row[this.banzuke.tabColumns.indexOf('profile_html')]
+    //   if (profileHtml) {
+    //     const cf = await getImgExt(profileHtml)
+    //     console.dir(cf)
+
+    //     // const parser = new DOMParser()
+    //     // const doc = parser.parseFromString(aaaaaaaaaaaaaa, 'text/html')
+    //     // // Extract relevant information from the profile page
+    //     // const age = doc.querySelector('.age')?.textContent
+    //     // const height = doc.querySelector('.height')?.textContent
+    //     // const weight = doc.querySelector('.weight')?.textContent
+    //     // Update the row with the extracted information
+    //     // row.push(age, height, weight)
+    //   }
+    // }
   }
 }

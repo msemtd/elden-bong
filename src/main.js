@@ -6,6 +6,7 @@ import { mineToFilePath, filePathToMine } from './util'
 import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
 import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
+import { DataDirMain } from './DataDirMain'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -69,9 +70,6 @@ app.whenReady().then(() => {
   ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
   ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
   ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
-  ipcMain.handle('getJson', async (event, ...args) => { return await getJson(...args) })
-  ipcMain.handle('getImgExt', async (event, ...args) => { return await getImgExt(...args) })
-  ipcMain.handle('getCacheDir', async (event, ...args) => { return await getCacheDir(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -79,6 +77,7 @@ app.whenReady().then(() => {
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
   ipcMain.handle('luaTest', (event, ...args) => { return luaTest(...args) })
   ipcMain.handle('readE57', (event, ...args) => { return E57.readE57(...args) })
+  DataDirMain.setupIpcMainHandlers(dataDir)
   createWindow()
 })
 
@@ -214,85 +213,4 @@ async function shellOpenPath (path) {
 
 async function shellOpenExternal (url) {
   return await shell.openExternal(url)
-}
-
-// Caching JSON data under the user's data directory.
-// Pass a url and options with a cacheFile relative path
-// The relative path must not be able to escape the data directory
-// The URL must return a body that can be parsed as JSON
-async function getJson (url, options) {
-  const cf = await checkCachePath(options?.cacheFile)
-  let data = null
-  if (cf) {
-    if (await fs.exists(cf)) {
-      // NB: fs-extra readJson with throws=false returns null if the data does not parse
-      data = await fs.readJson(cf, { throws: false })
-    }
-    if (data !== null) {
-      dbg('return cached data for ' + url)
-      return data
-    }
-  }
-  const response = await net.fetch(url)
-  if (response.ok) {
-    data = await response.json()
-    if (cf) {
-      await fs.writeJson(cf, data)
-    }
-  }
-  return data
-}
-
-// get an image file and add to the cache (optional)
-async function getImgExt (url, options) {
-  const cf = await checkCachePath(options?.cacheFile)
-  let data = null
-  if (cf) {
-    if (await fs.exists(cf)) {
-      if (options?.noDataJustCache) {
-        return data
-      }
-      return await fs.readFile(cf)
-    }
-  }
-  const response = await net.fetch(url)
-  if (response.ok) {
-    const blob = await response.blob()
-    const buf = await blob.arrayBuffer()
-    data = new Uint8Array(buf)
-    if (cf) {
-      await fs.outputFile(cf, data)
-    }
-  }
-  return data
-}
-
-// Ensure the cache file path is relative to the dataDir.
-// If the path is falsy, return it as is.
-// If the path is absolute, or not relative to dataDir, throw an error.
-// If the path is valid, ensure the directory exists and return the full path.
-// Purpose:
-// Common behaviour to stop jailbreaking the data directory.
-// Creating the directory allows a cache file to be read or written without
-// further checks.
-// Immediate return of falsy path simplifies caller in my use cases.
-async function checkCachePath (p) {
-  if (!p) {
-    return p
-  }
-  const cp = await getCacheDir(p)
-  const pp = path.parse(cp)
-  await fs.ensureDir(pp.dir)
-  return cp
-}
-
-async function getCacheDir (p) {
-  if (path.isAbsolute(p)) {
-    throw new Error('Cache file path must be relative')
-  }
-  const cp = path.join(dataDir, p)
-  if (cp.indexOf(dataDir) !== 0) {
-    throw new Error('Cache file path must be relative to dataDir')
-  }
-  return cp
 }

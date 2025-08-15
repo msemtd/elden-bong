@@ -5,10 +5,9 @@ import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke } from './Banzuke'
 import { Dlg } from '../dlg'
-import { delayMs } from '../util'
-import { getCacheDir, shellOpenPath } from '../HandyApi'
+import { shellOpenPath } from '../HandyApi'
 
-// cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan
+// cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
 /*
  * SumoDoyoh - a 3D model of a sumo dohyō (ring)
@@ -45,6 +44,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'banzukeTest')
       this.gui.add(this, 'openBanzukeDataDir')
+      this.gui.add(this, 'consolidateBanzukeData')
     })
   }
 
@@ -184,23 +184,26 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  async banzukeTest () {
-    const divisions = this.banzuke.getDivisions()
-    for (let i = 0; i < divisions.length; i++) {
-      const d = divisions[i]
-      try {
-        const tab = await this.banzuke.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
-      } catch (error) {
-        Dlg.errorDialog(error)
-      }
-      await delayMs(1000) // Delay between requests
+  async openBanzukeDataDir () {
+    try {
+      const d = await this.banzuke.getCacheDirFullPath()
+      await shellOpenPath(d)
+    } catch (error) {
+      Dlg.errorDialog(error)
     }
   }
 
-  async openBanzukeDataDir () {
+  async banzukeTest () {
     try {
-      const d = await getCacheDir(this.banzuke.cacheDirName)
-      await shellOpenPath(d)
+      await this.banzuke.fullCache()
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
+  }
+
+  async consolidateBanzukeData () {
+    try {
+      await this.banzuke.fillInMissingData()
     } catch (error) {
       Dlg.errorDialog(error)
     }

@@ -1,6 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 const { contextBridge, ipcRenderer } = require('electron')
+const { DataDirPreload } = require('./DataDirPreload.js')
 
 contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
@@ -29,11 +30,12 @@ contextBridge.exposeInMainWorld('handy', {
   readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
-  getJson: (...args) => ipcRenderer.invoke('getJson', ...args),
-  getImgExt: (...args) => ipcRenderer.invoke('getImgExt', ...args),
-  getCacheDir: (...args) => ipcRenderer.invoke('getCacheDir', ...args),
 })
 
 contextBridge.exposeInMainWorld('settings', {
   passSettingsToMain: (...args) => ipcRenderer.send('settings', ...args),
 })
+
+// it would be nice if webpack allowed us to bring this in...
+// maybe we can!
+DataDirPreload()

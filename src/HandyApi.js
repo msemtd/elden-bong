@@ -11,11 +11,8 @@ const readDir = handy.readDir
 const outputFile = handy.outputFile
 const shellOpenPath = handy.shellOpenPath
 const shellOpenExternal = handy.shellOpenExternal
-const getJson = handy.getJson
-const getImgExt = handy.getImgExt
-const getCacheDir = handy.getCacheDir
 
-export { pathJoin, pathParse, pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal, getJson, getImgExt, getCacheDir }
+export { pathJoin, pathParse, pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal }
 
 async function loadJsonFile (fp) { return await slurp(fp, { json: true }) }
 async function loadTextFile (fp) { return await slurp(fp, { text: true }) }
