@@ -8,11 +8,12 @@ import $ from 'jquery'
 import { Howl } from 'howler'
 // cSpell:ignore yatiac, kanjivg
 import ntc from '@yatiac/name-that-color'
+import { path } from 'path-browserify'
 
 import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pathParse, pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile, shellOpenExternal } from './HandyApi'
+import { pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile, shellOpenExternal } from './HandyApi'
 import { filePathToMine, isInputEvent } from './util'
 import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
 import { Dlg } from './dlg'
@@ -252,7 +253,7 @@ class Bong extends THREE.EventDispatcher {
         fld.add(this, 'resetSettings').name('⚠️ Restore Default Settings! ⚠️')
       }
       {
-        this.gui.addFolder('Mini-Games') //.close()
+        this.gui.addFolder('Mini-Games') // .close()
         const fld = this.gui.addFolder('Help').close()
         fld.add(this, 'helpAbout').name('About')
       }
@@ -583,7 +584,7 @@ class Bong extends THREE.EventDispatcher {
       const fp = fileIn || await pick()
       if (!fp) { return }
       const data = await loadJsonFile(fp)
-      const pp = await pathParse(fp)
+      const pp = path.parse(fp)
       this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene, () => { this.redraw() })
     } catch (error) {
       Dlg.errorDialog(error)

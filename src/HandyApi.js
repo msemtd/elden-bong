@@ -3,8 +3,6 @@
 
 const handy = window.handy
 
-const pathParse = handy.pathParse
-const pathJoin = handy.pathJoin
 const pickFile = handy.pickFile
 const slurp = handy.slurp
 const readDir = handy.readDir
@@ -12,7 +10,7 @@ const outputFile = handy.outputFile
 const shellOpenPath = handy.shellOpenPath
 const shellOpenExternal = handy.shellOpenExternal
 
-export { pathJoin, pathParse, pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal }
+export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal }
 
 async function loadJsonFile (fp) { return await slurp(fp, { json: true }) }
 async function loadTextFile (fp) { return await slurp(fp, { text: true }) }

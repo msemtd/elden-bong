@@ -19,8 +19,6 @@ contextBridge.exposeInMainWorld('handy', {
   pickFile: (...args) => ipcRenderer.invoke('pickFile', ...args),
   slurp: (filePath, options) => ipcRenderer.invoke('slurp', filePath, options),
   readDir: (path) => ipcRenderer.invoke('readDir', path),
-  pathParse: (...args) => ipcRenderer.invoke('pathParse', ...args),
-  pathJoin: (...args) => ipcRenderer.invoke('pathJoin', ...args),
   outputFile: (...args) => ipcRenderer.invoke('outputFile', ...args),
   // Map support...
   // getMapTiles: () => ipcRenderer.invoke('getMapTiles'),

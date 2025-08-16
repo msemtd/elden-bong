@@ -67,8 +67,6 @@ app.whenReady().then(() => {
   ipcMain.handle('shellOpenPath', async (event, ...args) => { return await shellOpenPath(...args) })
   ipcMain.handle('shellOpenExternal', async (event, ...args) => { return await shellOpenExternal(...args) })
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
-  ipcMain.handle('pathParse', (event, ...args) => { return pathParse(...args) })
-  ipcMain.handle('pathJoin', (event, ...args) => { return pathJoin(...args) })
   ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
@@ -173,14 +171,6 @@ async function pickFile () {
 
 async function readDir (path) {
   return await fs.readdir(path)
-}
-
-function pathParse (...args) {
-  return path.parse(...args)
-}
-
-function pathJoin (...args) {
-  return path.join(...args)
 }
 
 async function slurp (fp, options) {
