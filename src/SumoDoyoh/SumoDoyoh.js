@@ -6,6 +6,8 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke } from './Banzuke'
 import { Dlg } from '../dlg'
 import { shellOpenPath } from '../HandyApi'
+import { filePathToMine } from '../util'
+import path from 'path-browserify'
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
@@ -45,6 +47,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'banzukeTest')
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'consolidateBanzukeData')
+      this.gui.add(this, 'bobbleHead')
     })
   }
 
@@ -77,18 +80,17 @@ export class SumoDoyoh extends MiniGameBase {
 
   // cspell:ignore tawara tokudawara
   makeDoyoh () {
-    const colours = new Colours()
     const doyoh = new THREE.Group()
     doyoh.name = 'doyoh'
     this.group.add(doyoh)
     const clayMaterial = new THREE.MeshLambertMaterial({
-      color: colours.gimme('clay brown'),
+      color: Colours.get('clay brown'),
       polygonOffset: true,
       polygonOffsetFactor: 1,
       polygonOffsetUnits: 1
     })
     const sandMaterial = clayMaterial.clone()
-    sandMaterial.color.set(colours.gimme('sand brown'))
+    sandMaterial.color.set(Colours.get('sand brown'))
     const edgeMaterial = new THREE.LineBasicMaterial({ color: 'black' })
 
     // A typical dohyō is a circle made of partially buried rice-straw bales 4.55 meters in diameter
@@ -148,7 +150,7 @@ export class SumoDoyoh extends MiniGameBase {
       const tokudawara = new THREE.TorusGeometry(ringRadius + (tawaraThickRadius * 3), tawaraThickRadius, 8, 4, tokudawaraSegment)
       const tawaraBorder = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 5, 8, 8, false)
       const tawaraCorner = new THREE.CylinderGeometry(tawaraThickRadius, tawaraThickRadius, 0.8, 8, 2, false)
-      const material = new THREE.MeshBasicMaterial({ color: colours.gimme('sand yellow'), wireframe: true })
+      const material = new THREE.MeshBasicMaterial({ color: Colours.get('sand yellow'), wireframe: true })
       const tawaraBorderOffset = 3.1
       const tawaraCornerOffset = 2.9
       const tawaraCornerPos = [[-1, -1], [-1, 1], [1, 1], [1, -1]]
@@ -204,6 +206,53 @@ export class SumoDoyoh extends MiniGameBase {
   async consolidateBanzukeData () {
     try {
       await this.banzuke.fillInMissingData()
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
+  }
+
+  async bobbleHead () {
+    try {
+      this.activate()
+      const eg = this.group.getObjectByName('bobbleHead')
+      if (eg) {
+        depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
+      }
+      const g = new THREE.Group()
+      g.name = 'bobbleHead'
+      this.group.add(g)
+      g.position.setZ(1)
+      const geo = new THREE.IcosahedronGeometry(1, 2)
+      const t1 = await this.banzuke.getCacheDirFullPath()
+      const cd = t1.replace(/\\BanzukeData$/, '')
+      //
+      const doMe = async (fp, p) => {
+        const u = filePathToMine(fp)
+        const loader = new THREE.TextureLoader()
+        const texture = await loader.loadAsync(u)
+        const mat = new THREE.MeshLambertMaterial({ map: texture })
+        const mesh = new THREE.Mesh(geo, mat)
+        mesh.rotation.set(Math.PI / 2, Math.PI / 2, 0)
+        mesh.position.copy(p)
+        g.add(mesh)
+        this.redraw()
+      }
+      const p = new THREE.Vector3()
+      const space = 2.0
+      let w = this.banzuke.rikishi.length
+      w = Math.sqrt(w)
+      for (const guy of this.banzuke.rikishi) {
+        console.log(guy)
+        const fp = path.join(cd, guy[8])
+        await doMe(fp, p)
+        p.x += space
+        if (p.x > w * space) {
+          p.x = 0
+          p.z += space
+        }
+      }
+
+      this.redraw()
     } catch (error) {
       Dlg.errorDialog(error)
     }

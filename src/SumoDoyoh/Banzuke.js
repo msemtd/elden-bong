@@ -164,6 +164,10 @@ export class Banzuke {
     console.log(`fullCache build took ${t2 - t1} milliseconds.`)
   }
 
+  /**
+   * Get the cache dir for banzuke data
+   * @returns {string} full path
+   */
   async getCacheDirFullPath () {
     const d = await DataDir.getCacheDir(this.cacheDirName)
     return d
