@@ -50,16 +50,14 @@ export class DataDirMain {
         if (options?.noDataJustCache) {
           return data
         }
-        return await fs.readFile(cf)
+        return await fs.readFile(cf, { encoding: 'utf8' })
       }
     }
     const response = await net.fetch(url)
     if (response.ok) {
-      const blob = await response.blob()
-      const buf = await blob.arrayBuffer()
-      data = new Uint8Array(buf)
+      data = await response.text()
       if (cf) {
-        await fs.outputFile(cf, data)
+        await fs.outputFile(cf, data, { encoding: 'utf8' })
       }
     }
     return data

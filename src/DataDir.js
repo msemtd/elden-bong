@@ -28,4 +28,8 @@ export class DataDir {
   static async getBinary (url, options) {
     return await api.getBinary(url, options)
   }
+
+  static async getCacheDir (p) {
+    return await api.getCacheDir(p)
+  }
 }
