@@ -8,6 +8,7 @@ import { Dlg } from '../dlg'
 import { shellOpenPath } from '../HandyApi'
 import { filePathToMine } from '../util'
 import path from 'path-browserify'
+import { Text } from 'troika-three-text'
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
@@ -211,6 +212,17 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
+  addText (text, p) {
+    const t = new Text()
+    t.text = text
+    t.anchorX = 'center'
+    t.anchorY = 'middle'
+    t.fontSize = 1
+    t.position.copy(p)
+    t.sync(() => { this.redraw() })
+    return t
+  }
+
   async bobbleHead () {
     try {
       this.activate()
@@ -238,6 +250,7 @@ export class SumoDoyoh extends MiniGameBase {
         this.redraw()
       }
       const p = new THREE.Vector3()
+      const textOffset = new THREE.Vector3(0, 0, -1)
       const space = 2.0
       let w = this.banzuke.rikishi.length
       w = Math.sqrt(w)
@@ -245,10 +258,11 @@ export class SumoDoyoh extends MiniGameBase {
         console.log(guy)
         const fp = path.join(cd, guy[8])
         await doMe(fp, p)
+        g.add(this.addText(guy[1], p.clone().add(textOffset)))
         p.x += space
         if (p.x > w * space) {
           p.x = 0
-          p.z += space
+          p.z += space + 1
         }
       }
 
