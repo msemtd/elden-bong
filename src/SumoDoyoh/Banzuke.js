@@ -166,7 +166,7 @@ export class Banzuke {
 
   /**
    * Get the cache dir for banzuke data
-   * @returns {string} full path
+   * @returns {Promise<string>} full path
    */
   async getCacheDirFullPath () {
     const d = await DataDir.getCacheDir(this.cacheDirName)

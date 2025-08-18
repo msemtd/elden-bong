@@ -212,13 +212,16 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  addText (text, p) {
+  addText (text, p, rot) {
     const t = new Text()
     t.text = text
     t.anchorX = 'center'
     t.anchorY = 'middle'
-    t.fontSize = 1
+    t.fontSize = 0.4
     t.position.copy(p)
+    if (rot) {
+      t.rotation.copy(rot)
+    }
     t.sync(() => { this.redraw() })
     return t
   }
@@ -250,19 +253,20 @@ export class SumoDoyoh extends MiniGameBase {
         this.redraw()
       }
       const p = new THREE.Vector3()
-      const textOffset = new THREE.Vector3(0, 0, -1)
-      const space = 2.0
+      const textOffset = new THREE.Vector3(0, 0, -1.5)
+      const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
+      const space = 2.5
       let w = this.banzuke.rikishi.length
       w = Math.sqrt(w)
       for (const guy of this.banzuke.rikishi) {
         console.log(guy)
         const fp = path.join(cd, guy[8])
         await doMe(fp, p)
-        g.add(this.addText(guy[1], p.clone().add(textOffset)))
+        g.add(this.addText(guy[1], p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
           p.x = 0
-          p.z += space + 1
+          p.z += space + 0.5
         }
       }
 
