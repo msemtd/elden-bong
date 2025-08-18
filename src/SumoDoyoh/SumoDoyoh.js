@@ -12,7 +12,7 @@ import { Text } from 'troika-three-text'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 
-const { p, div, button } = van.tags
+const { p, div, button, label, progress } = van.tags
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
@@ -53,7 +53,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'consolidateBanzukeData')
       this.gui.add(this, 'bobbleHead')
-      this.gui.add(this, 'banzukeDialog').name('Test Banzuke Dialog')
+      this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
     })
   }
 
@@ -288,11 +288,13 @@ export class SumoDoyoh extends MiniGameBase {
       return
     }
     const closed = van.state(false)
+    const progressPct = van.state(0)
     van.add(document.body, FloatingWindow(
       { title: '📼 Banzuke Data', closed },
       div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
         p('Show banzuke data from the Japan Sumo Association website'),
-        button({ onclick: () => { console.log('refresh state - go get them') } }, 'refresh')
+        button({ onclick: () => { console.log('refresh state - go get them') } }, 'refresh'),
+        label({}, 'import: ', progress({ value: progressPct, max: 100 }))
       )
     ))
   }
