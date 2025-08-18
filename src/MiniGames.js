@@ -66,6 +66,7 @@ class MiniGames extends THREE.EventDispatcher {
       geoRef: new GeoRefMiniGame(this),
     }
     this.autoRunMiniGame = ''
+    this.autoOpenGuiFolder = ''
     parent.addEventListener('ready', (ev) => {
       // Kids, do as I do!
       console.assert(ev.gui instanceof GUI)
@@ -83,6 +84,18 @@ class MiniGames extends THREE.EventDispatcher {
       // this.addMoanSwooper(c)
       this.dispatchEvent({ type: 'ready', gui: this.gui, group: this.group, redrawFunc: this.redraw, screen: this.screen })
       this.deactivateAll()
+      if (this.autoOpenGuiFolder) {
+        const game = this.autoOpenGuiFolder.toLowerCase()
+        for (const [k, v] of Object.entries(this.games)) {
+          if (k.toLowerCase() === game) {
+            if (v.gui instanceof GUI) {
+              v.gui.open()
+              this.gui.open()
+              this.gui.root.open()
+            }
+          }
+        }
+      }
       if (this.autoRunMiniGame) {
         // find game by name and run a function called runTest if it exists
         const game = this.autoRunMiniGame.toLowerCase()

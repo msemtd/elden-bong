@@ -9,6 +9,10 @@ import { shellOpenPath } from '../HandyApi'
 import { filePathToMine } from '../util'
 import path from 'path-browserify'
 import { Text } from 'troika-three-text'
+import van from 'vanjs-core/debug'
+import { FloatingWindow } from 'vanjs-ui'
+
+const { p, div, button } = van.tags
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
@@ -49,6 +53,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'consolidateBanzukeData')
       this.gui.add(this, 'bobbleHead')
+      this.gui.add(this, 'banzukeDialog').name('Test Banzuke Dialog')
     })
   }
 
@@ -274,5 +279,21 @@ export class SumoDoyoh extends MiniGameBase {
     } catch (error) {
       Dlg.errorDialog(error)
     }
+  }
+
+  async banzukeDialog () {
+    // TODO only-one - pop-up or hide
+    if (document.getElementById('banzukeDialog')) {
+      console.log('Banzuke dialog is already open')
+      return
+    }
+    const closed = van.state(false)
+    van.add(document.body, FloatingWindow(
+      { title: '📼 Banzuke Data', closed },
+      div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
+        p('Show banzuke data from the Japan Sumo Association website'),
+        button({ onclick: () => { console.log('refresh state - go get them') } }, 'refresh')
+      )
+    ))
   }
 }
