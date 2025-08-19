@@ -12,7 +12,7 @@ import { Text } from 'troika-three-text'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 
-const { p, div, button, label, progress } = van.tags
+const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
 // cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
 
@@ -282,19 +282,29 @@ export class SumoDoyoh extends MiniGameBase {
   }
 
   async banzukeDialog () {
-    // TODO only-one - pop-up or hide
+    // only one pop-up...
     if (document.getElementById('banzukeDialog')) {
       console.log('Banzuke dialog is already open')
       return
     }
+    const dt = this.banzuke.divisions
+    const head = dt[0] ? Object.keys(dt[0]) : []
+    const data = dt.map(row => Object.values(row))
+    const Table = ({ head, data }) => table(
+      head ? thead(tr(head.map(h => th(h)))) : [],
+      tbody(data.map(row => tr(
+        row.map(col => td(col))
+      )))
+    )
     const closed = van.state(false)
     const progressPct = van.state(0)
     van.add(document.body, FloatingWindow(
-      { title: '📼 Banzuke Data', closed },
+      { title: '📼 Banzuke Data', closed, width: 600, height: 500 },
       div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
         p('Show banzuke data from the Japan Sumo Association website'),
         button({ onclick: () => { console.log('refresh state - go get them') } }, 'refresh'),
-        label({}, 'import: ', progress({ value: progressPct, max: 100 }))
+        label({}, 'import: ', progress({ value: progressPct, max: 100 })),
+        Table({ head, data })
       )
     ))
   }
