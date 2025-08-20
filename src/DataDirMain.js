@@ -32,6 +32,14 @@ export class DataDirMain {
         return data
       }
     }
+    // when there is no URL, there is nothing to fetch and this is a local-only file...
+    if (!url) {
+      // ...but we also need a way to write data in this case so provide a way...
+      if (cf && (options?.cacheThisData instanceof Object)) {
+        await fs.writeJson(cf, options.cacheThisData)
+      }
+      return data
+    }
     const response = await net.fetch(url)
     if (response.ok) {
       data = await response.json()

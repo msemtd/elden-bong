@@ -180,7 +180,14 @@ export class Banzuke {
     console.log(`Progress: ${pct}% - ${stage}`)
   }) {
     console.log('Rikishi tab size:', this.rikishi.length)
+    const fullCachedTableName = `${this.cacheDirName}/all-rikishi.json`
     if (!this.rikishi.length) {
+      // before we launch into a full load, let's see if we have a full cached table...
+      const data = await DataDir.getJson('', { cacheFile: fullCachedTableName })
+      if (data instanceof Object && Array.isArray(data.rikishi)) {
+        this.rikishi = data.rikishi
+        return
+      }
       await this.fullCache(progressCallback)
     }
     const t1 = performance.now()
@@ -193,6 +200,8 @@ export class Banzuke {
     }
     const t2 = performance.now()
     console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
+    const cacheThisData = { rikishi: this.rikishi }
+    await DataDir.getJson('', { cacheFile: fullCachedTableName, cacheThisData })
   }
 
   async fillInRikishiData (rikishi) {

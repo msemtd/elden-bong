@@ -50,7 +50,6 @@ export class SumoDoyoh extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.add(this, 'banzukeTest')
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'consolidateBanzukeData')
       this.gui.add(this, 'bobbleHead')
@@ -198,14 +197,6 @@ export class SumoDoyoh extends MiniGameBase {
     try {
       const d = await this.banzuke.getCacheDirFullPath()
       await shellOpenPath(d)
-    } catch (error) {
-      Dlg.errorDialog(error)
-    }
-  }
-
-  async banzukeTest () {
-    try {
-      await this.banzuke.fullCache()
     } catch (error) {
       Dlg.errorDialog(error)
     }
