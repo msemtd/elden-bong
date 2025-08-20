@@ -23,6 +23,7 @@ import $ from 'jquery'
 import { shellOpenExternal } from '../HandyApi'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
+import { KanjiByFrequency } from './KanjiByFrequency'
 
 const sources = {
   gradedReaders: {
@@ -116,6 +117,7 @@ class JapaneseStudy extends MiniGameBase {
         wpKyouikuKanji: () => { shellOpenExternal('https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji') },
       }
       this.gui.add(links, 'wpKyouikuKanji')
+      this.gui.add(this, 'testKanjiByFrequency')
 
       // do more!
     })
@@ -201,6 +203,13 @@ class JapaneseStudy extends MiniGameBase {
       return
     }
     $(`<div id="${id}">Hello</div>`).appendTo('body')
+  }
+
+  async testKanjiByFrequency () {
+    console.warn('TODO testKanjiByFrequency')
+    console.assert(KanjiByFrequency.getFreq('日') === 1)
+    console.assert(KanjiByFrequency.getFreq('味') === 442)
+    console.assert(KanjiByFrequency.getFreq('Z') === 0)
   }
 }
 
