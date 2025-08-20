@@ -11,6 +11,7 @@ import path from 'path-browserify'
 import { Text } from 'troika-three-text'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
+import { SumoBody } from './SumoBody'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
@@ -53,6 +54,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'consolidateBanzukeData')
       this.gui.add(this, 'bobbleHead')
+      this.gui.add(this, 'bobbleBody')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
     })
   }
@@ -275,6 +277,27 @@ export class SumoDoyoh extends MiniGameBase {
         }
       }
 
+      this.redraw()
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
+  }
+
+  async bobbleBody () {
+    try {
+      this.activate()
+      const eg = this.group.getObjectByName('bobbleBody')
+      if (eg) {
+        depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
+      }
+      const g = new THREE.Group()
+      g.name = 'bobbleBody'
+      this.group.add(g)
+      const j = new SumoBody().bodyJson()
+      const loader = new THREE.ObjectLoader()
+      const data = await loader.parseAsync(j.scene)
+      g.add(data.children[0])
+      g.rotateX(Math.PI / 2)
       this.redraw()
     } catch (error) {
       Dlg.errorDialog(error)

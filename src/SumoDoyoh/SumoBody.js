@@ -1,0 +1,430 @@
+export class SumoBody {
+  bodyJson () {
+    return {
+      metadata: {},
+      project: {
+        shadows: true,
+        shadowType: 1,
+        toneMapping: 0,
+        toneMappingExposure: 1
+      },
+      camera: {
+        metadata: {
+          version: 4.7,
+          type: 'Object',
+          generator: 'Object3D.toJSON'
+        },
+        object: {
+          uuid: '43b3ccb8-a8a7-4f6e-8312-80f4433be938',
+          type: 'PerspectiveCamera',
+          name: 'Camera',
+          layers: 1,
+          matrix: [
+            0.9643776244612926,
+            0,
+            0.2645293886100253,
+            0,
+            -0.0360164313108293,
+            0.9906878419868012,
+            0.1313027662129278,
+            0,
+            -0.26206604914415393,
+            -0.1361528543201885,
+            0.955397187637916,
+            0,
+            -5.458803180409342,
+            3.7682292059450195,
+            17.61206231098159,
+            1
+          ],
+          up: [
+            0,
+            1,
+            0
+          ],
+          fov: 50,
+          zoom: 1,
+          near: 0.01,
+          far: 1000,
+          focus: 10,
+          aspect: 1.7861205915813425,
+          filmGauge: 35,
+          filmOffset: 0
+        }
+      },
+      scene: {
+        metadata: {
+          version: 4.7,
+          type: 'Object',
+          generator: 'Object3D.toJSON'
+        },
+        geometries: [
+          {
+            uuid: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+            type: 'CapsuleGeometry',
+            radius: 1,
+            height: 1,
+            capSegments: 4,
+            radialSegments: 8,
+            heightSegments: 1
+          },
+          {
+            uuid: '1a8e4da2-4365-4bf8-a112-320be4ea0481',
+            type: 'TorusGeometry',
+            name: 'pants1',
+            radius: 1,
+            tube: 0.24,
+            radialSegments: 12,
+            tubularSegments: 48,
+            arc: 6.283185307179586
+          },
+          {
+            uuid: '55a3b790-551d-4a12-af1e-899a7eb2ceb7',
+            type: 'TorusGeometry',
+            name: 'pants2',
+            radius: 1,
+            tube: 0.24,
+            radialSegments: 12,
+            tubularSegments: 48,
+            arc: 3.141592653589793
+          }
+        ],
+        materials: [
+          {
+            uuid: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31',
+            type: 'MeshStandardMaterial',
+            color: 16777215,
+            roughness: 1,
+            metalness: 0,
+            emissive: 0,
+            envMapRotation: [
+              0,
+              0,
+              0,
+              'XYZ'
+            ],
+            envMapIntensity: 1,
+            blendColor: 0
+          },
+          {
+            uuid: '6dd98c5b-4c40-4bc7-a0a0-aa8c8afe480e',
+            type: 'MeshStandardMaterial',
+            color: 16777215,
+            roughness: 1,
+            metalness: 0,
+            emissive: 0,
+            envMapRotation: [
+              0,
+              0,
+              0,
+              'XYZ'
+            ],
+            envMapIntensity: 1,
+            blendColor: 0
+          }
+        ],
+        object: {
+          uuid: 'e648c5bf-96db-484c-9bf6-60befd72108d',
+          type: 'Scene',
+          name: 'Scene',
+          layers: 1,
+          matrix: [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          up: [
+            0,
+            1,
+            0
+          ],
+          children: [
+            {
+              uuid: '9a6c8913-a323-4178-9110-064248a6981e',
+              type: 'Group',
+              name: 'sumo-body',
+              layers: 1,
+              matrix: [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                3.366763808891007,
+                0,
+                1
+              ],
+              up: [
+                0,
+                1,
+                0
+              ],
+              children: [
+                {
+                  uuid: '4582c2d5-7952-48d9-981c-362048f0cbdd',
+                  type: 'Mesh',
+                  name: 'body',
+                  layers: 1,
+                  matrix: [
+                    1.8383090544016882,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  up: [
+                    0,
+                    1,
+                    0
+                  ],
+                  geometry: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+                  material: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31',
+                  children: [
+                    {
+                      uuid: '2bfa0e97-3d00-4286-b3fd-87e8045132ec',
+                      type: 'Mesh',
+                      name: 'Torus',
+                      layers: 1,
+                      matrix: [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        2.220446049250313e-16,
+                        1,
+                        0,
+                        0,
+                        -1,
+                        2.220446049250313e-16,
+                        0,
+                        0,
+                        -0.5,
+                        0,
+                        1
+                      ],
+                      up: [
+                        0,
+                        1,
+                        0
+                      ],
+                      geometry: '1a8e4da2-4365-4bf8-a112-320be4ea0481',
+                      material: '6dd98c5b-4c40-4bc7-a0a0-aa8c8afe480e',
+                      children: [
+                        {
+                          uuid: 'b0f19fc4-4f10-4d3e-9f59-636ab3164e0d',
+                          type: 'Mesh',
+                          name: 'Torus',
+                          layers: 1,
+                          matrix: [
+                            2.220446049250313e-16,
+                            1,
+                            -3.774758283725532e-15,
+                            0,
+                            0,
+                            3.774758283725534e-15,
+                            1.0000000000000004,
+                            0,
+                            1,
+                            -2.220446049250313e-16,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                          ],
+                          up: [
+                            0,
+                            1,
+                            0
+                          ],
+                          geometry: '55a3b790-551d-4a12-af1e-899a7eb2ceb7',
+                          material: '6dd98c5b-4c40-4bc7-a0a0-aa8c8afe480e'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  uuid: '5e161790-f776-48c5-814a-4515570edffc',
+                  type: 'Mesh',
+                  name: 'leg',
+                  layers: 1,
+                  matrix: [
+                    0.3758770483143634,
+                    0.13680805733026746,
+                    0,
+                    0,
+                    -0.29071712182681836,
+                    0.7987387276680221,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0.4,
+                    0,
+                    1.3205730350987404,
+                    -2.0688909350726807,
+                    0,
+                    1
+                  ],
+                  up: [
+                    0,
+                    1,
+                    0
+                  ],
+                  geometry: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+                  material: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31'
+                },
+                {
+                  uuid: '521abe14-88d3-41e6-881b-ee16bfcc0d90',
+                  type: 'Mesh',
+                  name: 'arm',
+                  layers: 1,
+                  matrix: [
+                    0.19757674663369246,
+                    -0.3477979718020876,
+                    0,
+                    0,
+                    0.739070690079436,
+                    0.41985058659659646,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0.4,
+                    0,
+                    -2.629338638405471,
+                    -0.05951169244164012,
+                    0,
+                    1
+                  ],
+                  up: [
+                    0,
+                    1,
+                    0
+                  ],
+                  geometry: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+                  material: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31'
+                },
+                {
+                  uuid: 'ea882756-98cf-4d12-a9ad-34d185868281',
+                  type: 'Mesh',
+                  name: 'arm',
+                  layers: 1,
+                  matrix: [
+                    0.20000000000000007,
+                    0.34641016151377546,
+                    0,
+                    0,
+                    -0.7361215932167728,
+                    0.4250000000000001,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0.4,
+                    0,
+                    2.6553120428111288,
+                    -0.03318214307650669,
+                    0,
+                    1
+                  ],
+                  up: [
+                    0,
+                    1,
+                    0
+                  ],
+                  geometry: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+                  material: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31'
+                },
+                {
+                  uuid: 'f1162706-48eb-4f91-b3b5-aa6d437dda5d',
+                  type: 'Mesh',
+                  name: 'leg',
+                  layers: 1,
+                  matrix: [
+                    0.3758770483143634,
+                    -0.13680805733026746,
+                    0,
+                    0,
+                    0.29071712182681836,
+                    0.7987387276680221,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0.4,
+                    0,
+                    -1.3300176632765508,
+                    -2.0688909350726807,
+                    0,
+                    1
+                  ],
+                  up: [
+                    0,
+                    1,
+                    0
+                  ],
+                  geometry: 'caa768d0-3789-4b3c-ab8a-f7da0b67ab63',
+                  material: 'cb6cb2dc-5dcd-4311-928e-0bc7760a9b31'
+                }
+              ]
+            }
+          ],
+          backgroundRotation: [
+            0,
+            0,
+            0,
+            'XYZ'
+          ],
+          environmentRotation: [
+            0,
+            0,
+            0,
+            'XYZ'
+          ]
+        }
+      },
+      scripts: {},
+      history: {
+        undos: [],
+        redos: []
+      },
+      environment: null
+    }
+  }
+}
