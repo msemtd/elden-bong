@@ -224,6 +224,18 @@ export class SumoDoyoh extends MiniGameBase {
     return t
   }
 
+  async addHead (geo, fp, p, g) {
+    const u = filePathToMine(fp)
+    const loader = new THREE.TextureLoader()
+    const texture = await loader.loadAsync(u)
+    const mat = new THREE.MeshLambertMaterial({ map: texture })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.rotation.set(Math.PI / 2, Math.PI / 2, 0)
+    mesh.position.copy(p)
+    g.add(mesh)
+    this.redraw()
+  }
+
   async bobbleHead () {
     try {
       this.activate()
@@ -238,18 +250,6 @@ export class SumoDoyoh extends MiniGameBase {
       const geo = new THREE.IcosahedronGeometry(1, 2)
       const t1 = await this.banzuke.getCacheDirFullPath()
       const cd = t1.replace(/\\BanzukeData$/, '')
-      //
-      const makeHead = async (fp, p) => {
-        const u = filePathToMine(fp)
-        const loader = new THREE.TextureLoader()
-        const texture = await loader.loadAsync(u)
-        const mat = new THREE.MeshLambertMaterial({ map: texture })
-        const mesh = new THREE.Mesh(geo, mat)
-        mesh.rotation.set(Math.PI / 2, Math.PI / 2, 0)
-        mesh.position.copy(p)
-        g.add(mesh)
-        this.redraw()
-      }
       const p = new THREE.Vector3()
       const textOffset = new THREE.Vector3(0, 0, -1.5)
       const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
@@ -259,7 +259,7 @@ export class SumoDoyoh extends MiniGameBase {
       for (const guy of this.banzuke.rikishi) {
         console.log(guy)
         const fp = path.join(cd, guy[8])
-        await makeHead(fp, p)
+        await this.addHead(geo, fp, p, g)
         g.add(this.addText(guy[1], p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
@@ -267,7 +267,6 @@ export class SumoDoyoh extends MiniGameBase {
           p.z += space + 0.5
         }
       }
-
       this.redraw()
     } catch (error) {
       Dlg.errorDialog(error)
@@ -287,8 +286,10 @@ export class SumoDoyoh extends MiniGameBase {
       const j = new SumoBody().bodyJson()
       const loader = new THREE.ObjectLoader()
       const data = await loader.parseAsync(j.scene)
-      g.add(data.children[0])
-      g.rotateX(Math.PI / 2)
+      const bod = data.children[0]
+      bod.rotateX(Math.PI / 2)
+      g.add(bod)
+      // todo get rikishi by name and add a head
       this.redraw()
     } catch (error) {
       Dlg.errorDialog(error)
