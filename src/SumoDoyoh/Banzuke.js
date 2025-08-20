@@ -150,7 +150,9 @@ export class Banzuke {
     return tab
   }
 
-  async fullCache () {
+  async fullCache (progressCallback = (pct, stage) => {
+    console.log(`Progress: ${pct}% - ${stage}`)
+  }) {
     this.rikishi = []
     const divisions = this.getDivisions()
     const t1 = performance.now()
@@ -159,6 +161,7 @@ export class Banzuke {
       const rows = await this.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
       this.rikishi.push(...rows)
       console.log(`Banzuke data for ${d.sumoOrJpPage} cached: ${rows.length} entries`)
+      progressCallback(Math.floor((i / divisions.length) * 100), `Processing division ${d.sumoOrJpPage || 0}`)
     }
     const t2 = performance.now()
     console.log(`fullCache build took ${t2 - t1} milliseconds.`)
@@ -173,15 +176,20 @@ export class Banzuke {
     return d
   }
 
-  async fillInMissingData () {
+  async fillInMissingData (progressCallback = (pct, stage) => {
+    console.log(`Progress: ${pct}% - ${stage}`)
+  }) {
     console.log('Rikishi tab size:', this.rikishi.length)
     if (!this.rikishi.length) {
-      await this.fullCache()
+      await this.fullCache(progressCallback)
     }
     const t1 = performance.now()
+    let i = 0
     for (const rikishi of this.rikishi) {
       // Fill in missing data for each rikishi
       await this.fillInRikishiData(rikishi)
+      i++
+      progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
     }
     const t2 = performance.now()
     console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)

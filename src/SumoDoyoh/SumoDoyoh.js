@@ -311,21 +311,37 @@ export class SumoDoyoh extends MiniGameBase {
       return
     }
     const dt = this.banzuke.divisions
-    const head = dt[0] ? Object.keys(dt[0]) : []
-    const data = dt.map(row => Object.values(row))
+    const head = ['jp', 'en', 'info', 'count', 'pct', 'btn']
+    const data = dt.map(row => [row.jpName, row.name, row.enName, 0, 0, button({ }, 'yo')])
     const Table = ({ head, data }) => table(
-      head ? thead(tr(head.map(h => th(h)))) : [],
+      { border: '1px solid black', width: '100%' },
+      head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
       tbody(data.map(row => tr(
         row.map(col => td(col))
       )))
     )
     const closed = van.state(false)
     const progressPct = van.state(0)
+    const progressStage = van.state('<none yet>')
+    const progressCallback = (pct, stage) => {
+      progressPct.val = pct
+      progressStage.val = stage
+    }
+    const doTheThing = async () => {
+      try {
+        await this.banzuke.fillInMissingData(progressCallback)
+        progressCallback(100, 'Done! ' + this.banzuke.rikishi.length + ' rikishi processed')
+        // update the table
+      } catch (error) {
+        Dlg.errorDialog(error)
+      }
+    }
     van.add(document.body, FloatingWindow(
       { title: '📼 Banzuke Data', closed, width: 600, height: 500 },
       div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
         p('Show banzuke data from the Japan Sumo Association website'),
-        button({ onclick: () => { console.log('refresh state - go get them') } }, 'refresh'),
+        button({ onclick: doTheThing }, 'refresh'),
+        label({}, 'stage: ', progressStage),
         label({}, 'import: ', progress({ value: progressPct, max: 100 })),
         Table({ head, data })
       )
