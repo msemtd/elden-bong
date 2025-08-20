@@ -248,7 +248,7 @@ export class SumoDoyoh extends MiniGameBase {
       const t1 = await this.banzuke.getCacheDirFullPath()
       const cd = t1.replace(/\\BanzukeData$/, '')
       //
-      const doMe = async (fp, p) => {
+      const makeHead = async (fp, p) => {
         const u = filePathToMine(fp)
         const loader = new THREE.TextureLoader()
         const texture = await loader.loadAsync(u)
@@ -268,7 +268,7 @@ export class SumoDoyoh extends MiniGameBase {
       for (const guy of this.banzuke.rikishi) {
         console.log(guy)
         const fp = path.join(cd, guy[8])
-        await doMe(fp, p)
+        await makeHead(fp, p)
         g.add(this.addText(guy[1], p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
