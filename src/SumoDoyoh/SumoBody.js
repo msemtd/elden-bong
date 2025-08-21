@@ -171,7 +171,7 @@ export class SumoBody {
                 1,
                 0,
                 0,
-                3.366763808891007,
+                0,
                 0,
                 1
               ],
@@ -215,7 +215,7 @@ export class SumoBody {
                     {
                       uuid: '2bfa0e97-3d00-4286-b3fd-87e8045132ec',
                       type: 'Mesh',
-                      name: 'Torus',
+                      name: 'mawashi_1',
                       layers: 1,
                       matrix: [
                         1,
@@ -246,7 +246,7 @@ export class SumoBody {
                         {
                           uuid: 'b0f19fc4-4f10-4d3e-9f59-636ab3164e0d',
                           type: 'Mesh',
-                          name: 'Torus',
+                          name: 'mawashi_2',
                           layers: 1,
                           matrix: [
                             2.220446049250313e-16,

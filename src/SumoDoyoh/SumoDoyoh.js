@@ -258,7 +258,7 @@ export class SumoDoyoh extends MiniGameBase {
       w = Math.sqrt(w)
       for (const guy of this.banzuke.rikishi) {
         console.log(guy)
-        const fp = path.join(cd, guy[8])
+        const fp = path.join(cd, guy[this.banzuke.tabColumns.indexOf('thumbnail')])
         await this.addHead(geo, fp, p, g)
         g.add(this.addText(guy[1], p.clone().add(textOffset), textRot))
         p.x += space
@@ -290,6 +290,24 @@ export class SumoDoyoh extends MiniGameBase {
       bod.rotateX(Math.PI / 2)
       g.add(bod)
       // todo get rikishi by name and add a head
+      const getRikishiByName = (name) => {
+        return this.banzuke.rikishi.find(r => r[1] === name)
+      }
+      const ura = getRikishiByName('Ura')
+      if (ura) {
+        ura[this.banzuke.tabColumns.indexOf('mawashi_colour')] = 'bubble gum pink'
+        ura[this.banzuke.tabColumns.indexOf('skin_colour')] = 'pinkish tan'
+        const t1 = await this.banzuke.getCacheDirFullPath()
+        const cd = t1.replace(/\\BanzukeData$/, '')
+        const geo = new THREE.IcosahedronGeometry(1, 2)
+        const fp = path.join(cd, ura[this.banzuke.tabColumns.indexOf('thumbnail')])
+        await this.addHead(geo, fp, new THREE.Vector3(0, 0, 2.4), g)
+        const c = ura[this.banzuke.tabColumns.indexOf('mawashi_colour')] || 'yellow'
+        const maw = bod.getObjectByName('body')?.getObjectByName('mawashi_1')
+        if (maw) {
+          maw.material.color = new THREE.Color(Colours.get(c))
+        }
+      }
       this.redraw()
     } catch (error) {
       Dlg.errorDialog(error)
