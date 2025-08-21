@@ -101,6 +101,12 @@ export class Banzuke {
       skin_colour
     `.trim().split(/\s+/)
     Object.freeze(this.tabColumns)
+    this.col = {}
+    for (let i = 0; i < this.tabColumns.length; i++) {
+      const s = this.tabColumns[i]
+      this.col[s] = i
+    }
+    Object.freeze(this.col)
   }
 
   getDivisions () {
@@ -145,6 +151,8 @@ export class Banzuke {
         console.log(`Skipping empty entry: ${JSON.stringify(e)}`)
         continue
       }
+      // NB: I can't be bothered to find a way to do this "properly" so this has
+      // to match the column layout!
       const row = [
         e.rikishi_id,
         e.shikona,
@@ -160,20 +168,20 @@ export class Banzuke {
       if (withThumbnails) {
         const imgUrl = thumbnailPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiThumbnails/${e.photo}`
-        row[this.tabColumns.indexOf('thumbnail')] = cacheFile
         await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
+        row[this.col.thumbnail] = cacheFile
       }
       if (withPhotos) {
         const imgUrl = photoPrefix + e.photo
         const cacheFile = `${this.cacheDirName}/rikishiPhotos/${e.photo}`
-        row[this.tabColumns.indexOf('photo')] = cacheFile
         await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
+        row[this.col.photo] = cacheFile
       }
       if (withProfiles) {
         const profileUrl = profilePrefix + e.rikishi_id + '/'
         const cacheFile = `${this.cacheDirName}/rikishiProfiles/${e.rikishi_id}.html`
-        row[this.tabColumns.indexOf('profile_html')] = cacheFile
         await DataDir.getText(profileUrl, { cacheFile, noDataJustCache: true })
+        row[this.col.profile_html] = cacheFile
       }
     }
     return tab
@@ -187,13 +195,13 @@ export class Banzuke {
     console.log(`Progress: ${pct}% - ${stage}`)
   }) {
     this.rikishi = []
+    progressCallback(0, 'fetch banzuke JSON')
     const divisions = this.getDivisions()
     const t1 = performance.now()
     for (let i = 0; i < divisions.length; i++) {
       const d = divisions[i]
-      const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, true, true, true)
+      const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, false, false, false)
       this.rikishi.push(...rows)
-      console.log(`Banzuke data for ${d.sumoOrJpPage} cached: ${rows.length} entries`)
       progressCallback(Math.floor((i / divisions.length) * 100), `Processing division ${d.sumoOrJpPage || 0}`)
     }
     const t2 = performance.now()
@@ -204,14 +212,17 @@ export class Banzuke {
     console.log(`Progress: ${pct}% - ${stage}`)
   }) {
     this.rikishi = []
-    // before we start a long build, let's see if we have a fully built table...
+    // 1. Before we start a long build, let's see if we have a fully built table...
+    // NB: we should only create the full table if it is truly complete
     const fullTableFile = `${this.cacheDirName}/all-rikishi.json`
     const data = await DataDir.getJson('', { cacheFile: fullTableFile })
     if (data instanceof Object && Array.isArray(data.rikishi)) {
       this.rikishi = data.rikishi
       return
     }
-    // if not, we need to build it...
+    // 2. we need to build it...
+    // really should just go get the basic banzuke JSON data first...
+
     await this.cacheAllSumoOrJpDivisions(progressCallback)
     const t1 = performance.now()
     let i = 0
@@ -226,8 +237,8 @@ export class Banzuke {
     progressCallback(100, `Processed all rikishi ${this.rikishi.length}`)
     const t2 = performance.now()
     console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
-    const cacheThisData = { rikishi: this.rikishi }
-    await DataDir.getJson('', { cacheFile: fullTableFile, cacheThisData })
+    // const cacheThisData = { savedAt: new Date().toISOString(), columns: this.tabColumns, rikishi: this.rikishi }
+    // await DataDir.getJson('', { cacheFile: fullTableFile, cacheThisData })
   }
 
   async fillInRikishiData (rikishi) {
@@ -253,12 +264,12 @@ export class Banzuke {
       console.warn('problem scraping data from ' + cacheFile)
     }
     // Update the db with the extracted information
-    rikishi[this.tabColumns.indexOf('real_name')] = rn
-    rikishi[this.tabColumns.indexOf('birthday')] = bd
-    rikishi[this.tabColumns.indexOf('height')] = hi
-    rikishi[this.tabColumns.indexOf('weight')] = we
-    rikishi[this.tabColumns.indexOf('mawashi_colour')] = ''
-    rikishi[this.tabColumns.indexOf('skin_colour')] = ''
+    rikishi[this.col.real_name] = rn
+    rikishi[this.col.birthday] = bd
+    rikishi[this.col.height] = hi
+    rikishi[this.col.weight] = we
+    rikishi[this.col.mawashi_colour] = ''
+    rikishi[this.col.skin_colour] = ''
   }
 
   getRikishiForDivision (division) {
