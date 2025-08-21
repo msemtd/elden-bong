@@ -51,7 +51,7 @@ export class SumoDoyoh extends MiniGameBase {
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'openBanzukeDataDir')
-      this.gui.add(this, 'consolidateBanzukeData')
+      this.gui.add(this, 'loadBanzukeData')
       this.gui.add(this, 'bobbleHead')
       this.gui.add(this, 'bobbleBody')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
@@ -202,9 +202,9 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  async consolidateBanzukeData () {
+  async loadBanzukeData () {
     try {
-      await this.banzuke.fillInMissingData()
+      await this.banzuke.load()
     } catch (error) {
       Dlg.errorDialog(error)
     }
@@ -321,7 +321,7 @@ export class SumoDoyoh extends MiniGameBase {
     }
     const doTheThing = async () => {
       try {
-        await this.banzuke.fillInMissingData(progressCallback)
+        await this.banzuke.load(progressCallback)
         progressCallback(100, 'Done! ' + this.banzuke.rikishi.length + ' rikishi processed')
         // update the table
       } catch (error) {

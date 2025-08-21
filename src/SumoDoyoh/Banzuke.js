@@ -30,6 +30,14 @@ import { DataDir } from '../DataDir'
 //
 // A web scraping workflow: for each stable, get page, parse the rikishi list
 // get each rikishi's details with slow fetches and cache all data
+//
+// OK, so the implementation as it stands:
+// - using the DataDir class for data storage and retrieval
+// - each division has its own JSON file fetched from sumo.or.jp banzuke
+// - each rikishi thumbnail, photo, and profile HTML is also fetched and cached
+// - rikishi profile is scraped for extra columns: height, weight, birthday etc.
+// - all-rikishi.json is the full custom table with all additions
+//
 
 const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
 const photoPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/'
@@ -88,6 +96,8 @@ export class Banzuke {
       birthday
       height
       weight
+      mawashi_colour
+      skin_colour
     `.trim().split(/\s+/)
     Object.freeze(this.tabColumns)
   }
@@ -96,7 +106,24 @@ export class Banzuke {
     return structuredClone(this.divisions)
   }
 
-  async cacheSumoOrJp (division, withThumbnails = false, withPhotos = false, withProfiles = false) {
+  /**
+   * Get the cache dir for banzuke data
+   * @returns {Promise<string>} full path
+   */
+  async getCacheDirFullPath () {
+    const d = await DataDir.getCacheDir(this.cacheDirName)
+    return d
+  }
+
+  /**
+   * Cache a single division from current sumo.or.jp website banzuke
+   * @param {number} division - The division number
+   * @param {boolean} withThumbnails - Whether to cache thumbnails
+   * @param {boolean} withPhotos - Whether to cache photos
+   * @param {boolean} withProfiles - Whether to cache profiles
+   * @returns {Promise<Array>} - The cached data
+   */
+  async cacheSumoOrJpDivision (division, withThumbnails = false, withPhotos = false, withProfiles = false) {
     if (division === undefined) {
       return []
     }
@@ -150,7 +177,11 @@ export class Banzuke {
     return tab
   }
 
-  async fullCache (progressCallback = (pct, stage) => {
+  /**
+   * Cache all division and rikishi data from current sumo.or.jp website banzuke
+   * @param {function} progressCallback - Callback function to report progress
+   */
+  async cacheAllSumoOrJpDivisions (progressCallback = (pct, stage) => {
     console.log(`Progress: ${pct}% - ${stage}`)
   }) {
     this.rikishi = []
@@ -158,7 +189,7 @@ export class Banzuke {
     const t1 = performance.now()
     for (let i = 0; i < divisions.length; i++) {
       const d = divisions[i]
-      const rows = await this.cacheSumoOrJp(d.sumoOrJpPage, true, true, true)
+      const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, true, true, true)
       this.rikishi.push(...rows)
       console.log(`Banzuke data for ${d.sumoOrJpPage} cached: ${rows.length} entries`)
       progressCallback(Math.floor((i / divisions.length) * 100), `Processing division ${d.sumoOrJpPage || 0}`)
@@ -167,29 +198,19 @@ export class Banzuke {
     console.log(`fullCache build took ${t2 - t1} milliseconds.`)
   }
 
-  /**
-   * Get the cache dir for banzuke data
-   * @returns {Promise<string>} full path
-   */
-  async getCacheDirFullPath () {
-    const d = await DataDir.getCacheDir(this.cacheDirName)
-    return d
-  }
-
-  async fillInMissingData (progressCallback = (pct, stage) => {
+  async load (progressCallback = (pct, stage) => {
     console.log(`Progress: ${pct}% - ${stage}`)
   }) {
-    console.log('Rikishi tab size:', this.rikishi.length)
-    const fullCachedTableName = `${this.cacheDirName}/all-rikishi.json`
-    if (!this.rikishi.length) {
-      // before we launch into a full load, let's see if we have a full cached table...
-      const data = await DataDir.getJson('', { cacheFile: fullCachedTableName })
-      if (data instanceof Object && Array.isArray(data.rikishi)) {
-        this.rikishi = data.rikishi
-        return
-      }
-      await this.fullCache(progressCallback)
+    this.rikishi = []
+    // before we start a long build, let's see if we have a fully built table...
+    const fullTableFile = `${this.cacheDirName}/all-rikishi.json`
+    const data = await DataDir.getJson('', { cacheFile: fullTableFile })
+    if (data instanceof Object && Array.isArray(data.rikishi)) {
+      this.rikishi = data.rikishi
+      return
     }
+    // if not, we need to build it...
+    await this.cacheAllSumoOrJpDivisions(progressCallback)
     const t1 = performance.now()
     let i = 0
     for (const rikishi of this.rikishi) {
@@ -201,7 +222,7 @@ export class Banzuke {
     const t2 = performance.now()
     console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
     const cacheThisData = { rikishi: this.rikishi }
-    await DataDir.getJson('', { cacheFile: fullCachedTableName, cacheThisData })
+    await DataDir.getJson('', { cacheFile: fullTableFile, cacheThisData })
   }
 
   async fillInRikishiData (rikishi) {
