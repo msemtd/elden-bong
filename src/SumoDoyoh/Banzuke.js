@@ -1,6 +1,6 @@
 import { DataDir } from '../DataDir'
 
-// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya
+// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya mawashi
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
 // cSpell:ignore chibi
 
@@ -83,6 +83,7 @@ export class Banzuke {
     this.tabColumns = `
       rikishi_id
       shikona
+      division
       banzuke_id
       banzuke_name
       ew
@@ -147,6 +148,7 @@ export class Banzuke {
       const row = [
         e.rikishi_id,
         e.shikona,
+        division,
         e.banzuke_id,
         e.banzuke_name,
         ew(e.ew),
@@ -214,11 +216,14 @@ export class Banzuke {
     const t1 = performance.now()
     let i = 0
     for (const rikishi of this.rikishi) {
-      // Fill in missing data for each rikishi
+      // Fill in missing data for each rikishi from profile page!
       await this.fillInRikishiData(rikishi)
+      if (!(i % 10)) {
+        progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
+      }
       i++
-      progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
     }
+    progressCallback(100, `Processed all rikishi ${this.rikishi.length}`)
     const t2 = performance.now()
     console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
     const cacheThisData = { rikishi: this.rikishi }
@@ -232,6 +237,7 @@ export class Banzuke {
       console.log('no html for ', rikishi)
       return
     }
+    // TODO list the problems and give directions or make UX for user to solve them!
     const id = rikishi[this.tabColumns.indexOf('rikishi_id')]
     const profileUrl = profilePrefix + id + '/'
     const data = await DataDir.getText(profileUrl, { cacheFile })
@@ -251,5 +257,11 @@ export class Banzuke {
     rikishi[this.tabColumns.indexOf('birthday')] = bd
     rikishi[this.tabColumns.indexOf('height')] = hi
     rikishi[this.tabColumns.indexOf('weight')] = we
+    rikishi[this.tabColumns.indexOf('mawashi_colour')] = ''
+    rikishi[this.tabColumns.indexOf('skin_colour')] = ''
+  }
+
+  getRikishiForDivision (division) {
+    return this.rikishi.filter(r => r[this.tabColumns.indexOf('division')] === division)
   }
 }

@@ -15,7 +15,7 @@ import { SumoBody } from './SumoBody'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
-// cSpell:ignore doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai
+// cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi
 
 /*
  * SumoDoyoh - a 3D model of a sumo dohyō (ring)
@@ -304,7 +304,7 @@ export class SumoDoyoh extends MiniGameBase {
     }
     const dt = this.banzuke.divisions
     const head = ['jp', 'en', 'info', 'count', 'pct', 'btn']
-    const data = dt.map(row => [row.jpName, row.name, row.enName, 0, 0, button({ }, 'yo')])
+    const data = dt.map(row => [row.jpName, row.name, row.enName, 0, 0, button({ onclick: () => { this.showDivisionDialog(row.name) } }, 'show')])
     const Table = ({ head, data }) => table(
       { border: '1px solid black', width: '100%' },
       head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
@@ -338,5 +338,19 @@ export class SumoDoyoh extends MiniGameBase {
         Table({ head, data })
       )
     ))
+  }
+
+  async showDivisionDialog (divisionName) {
+    console.log('Show division dialog for:', divisionName)
+    const dt = this.banzuke.divisions
+    const d = dt.find(row => row.name === divisionName)
+    if (!d) {
+      console.warn('Division not found:', divisionName)
+      return
+    }
+    console.log('Division found:', d)
+    // Show the division data
+    const data = this.banzuke.getRikishiForDivision(d.sumoOrJpPage)
+    console.table(data)
   }
 }
