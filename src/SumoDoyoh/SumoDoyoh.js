@@ -3,7 +3,7 @@ import { Colours } from '../Colours'
 import * as THREE from 'three'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { Banzuke } from './Banzuke'
+import { Banzuke, Rikishi } from './Banzuke'
 import { Dlg } from '../dlg'
 import { shellOpenPath } from '../HandyApi'
 import { filePathToMine } from '../util'
@@ -15,7 +15,7 @@ import { SumoBody } from './SumoBody'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
-// cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi mawashi
+// cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi mawashi shikona
 
 /*
  * SumoDoyoh - a 3D model of a sumo dohyō (ring)
@@ -58,12 +58,24 @@ export class SumoDoyoh extends MiniGameBase {
     })
   }
 
-  runTest () {
+  async runTest () {
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.activate()
     this.makeDoyoh()
-    this.makeUnderDoyoh()
+    // this.makeUnderDoyoh()
     this.group.position.setZ(doyohHeight)
+    await this.loadBanzukeData()
+    const ura = await this.bobbleBody('Ura', 'bubble gum pink')
+    const waka = await this.bobbleBody('Wakatakakage', 'blue')
+    const yams = await this.bobbleBody('Ichiyamamoto', 'emerald green')
+    waka.position.x += 2
+    waka.position.y -= 0.5
+    yams.position.x -= 1.8
+    waka.rotateZ(Math.PI / -6)
+
+    yams.position.y -= 0.4
+    yams.rotateZ(Math.PI / 6)
+    ura.position.y += 0.2
     this.redraw()
   }
 
@@ -248,8 +260,7 @@ export class SumoDoyoh extends MiniGameBase {
       this.group.add(g)
       g.position.setZ(1)
       const geo = new THREE.IcosahedronGeometry(1, 2)
-      const t1 = await this.banzuke.getCacheDirFullPath()
-      const cd = t1.replace(/\\BanzukeData$/, '')
+      const cd = await this.banzuke.getCacheDirFullPath(true)
       const p = new THREE.Vector3()
       const textOffset = new THREE.Vector3(0, 0, -1.5)
       const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
@@ -257,10 +268,10 @@ export class SumoDoyoh extends MiniGameBase {
       let w = this.banzuke.rikishi.length
       w = Math.sqrt(w)
       for (const row of this.banzuke.rikishi) {
-        console.log(row)
-        const fp = path.join(cd, row[this.banzuke.tabColumns.indexOf('thumbnail')])
+        const r = new Rikishi(...row)
+        const fp = path.join(cd, r.cacheFileThumbnail())
         await this.addHead(geo, fp, p, g)
-        g.add(this.addText(row[1], p.clone().add(textOffset), textRot))
+        g.add(this.addText(r.shikona, p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
           p.x = 0
@@ -273,15 +284,15 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  async bobbleBody () {
+  async bobbleBody (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
     try {
       this.activate()
-      const eg = this.group.getObjectByName('bobbleBody')
-      if (eg) {
-        depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
-      }
+      // const eg = this.group.getObjectByName(name)
+      // if (eg) {
+      //   depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
+      // }
       const g = new THREE.Group()
-      g.name = 'bobbleBody'
+      g.name = name
       this.group.add(g)
       const j = new SumoBody().bodyJson()
       const loader = new THREE.ObjectLoader()
@@ -291,24 +302,35 @@ export class SumoDoyoh extends MiniGameBase {
       g.add(bod)
       // todo get rikishi by name and add a head
       const getRikishiByName = (name) => {
-        return this.banzuke.rikishi.find(r => r[1] === name)
+        return this.banzuke.rikishi.find(r => r[Rikishi.cols.shikona] === name)
       }
-      const ura = getRikishiByName('Ura')
-      if (ura) {
-        ura[this.banzuke.tabColumns.indexOf('mawashi_colour')] = 'bubble gum pink'
-        ura[this.banzuke.tabColumns.indexOf('skin_colour')] = 'pinkish tan'
-        const t1 = await this.banzuke.getCacheDirFullPath()
-        const cd = t1.replace(/\\BanzukeData$/, '')
+      const row = getRikishiByName(name)
+      if (row) {
+        const r = new Rikishi(...row)
+        r.mawashiColour = mawashiColour
+        r.skinColour = skinColour
         const geo = new THREE.IcosahedronGeometry(1, 2)
-        const fp = path.join(cd, ura[this.banzuke.tabColumns.indexOf('thumbnail')])
-        await this.addHead(geo, fp, new THREE.Vector3(0, 0, 2.4), g)
-        const c = ura[this.banzuke.tabColumns.indexOf('mawashi_colour')] || 'yellow'
+        const cd = await this.banzuke.getCacheDirFullPath(true)
+        const fp = path.join(cd, r.cacheFileThumbnail())
+        const headPos = new THREE.Vector3(0, 0, 2.4)
+        const textOffset = new THREE.Vector3(0, 0, 1.3)
+        const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
+        await this.addHead(geo, fp, headPos, g)
+        g.add(this.addText(r.shikona, headPos.clone().add(textOffset), textRot))
+
         const maw = bod.getObjectByName('body')?.getObjectByName('mawashi_1')
         if (maw) {
-          maw.material.color = new THREE.Color(Colours.get(c))
+          maw.material.color = new THREE.Color(Colours.get(r.mawashiColour))
+        }
+        const flesh = bod.getObjectByName('body')
+        if (flesh) {
+          flesh.material.color = new THREE.Color(Colours.get(r.skinColour))
         }
       }
+      g.position.set(0, 2, 0.87)
+      g.scale.divideScalar(3.8)
       this.redraw()
+      return g
     } catch (error) {
       Dlg.errorDialog(error)
     }

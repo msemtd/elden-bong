@@ -171,6 +171,8 @@ export class Rikishi {
 export class Banzuke {
   constructor () {
     this.rikishi = []
+    // when incomplete load, just save it anyway for a faster start
+    this.saveTabAnyway = true
     this.divisions = [
       { name: 'Makuuchi', jpName: '幕内', enName: 'Top Division', sumoOrJpPage: 1 },
       { name: 'Jūryō', jpName: '十両', enName: 'Second Division', sumoOrJpPage: 2 },
@@ -203,8 +205,13 @@ export class Banzuke {
    * Get the cache dir for banzuke data
    * @returns {Promise<string>} full path
    */
-  async getCacheDirFullPath () {
+  async getCacheDirFullPath (base = false) {
     const d = await DataDir.getCachePath(cacheDirName)
+    if (base) {
+      console.assert(d.endsWith('\\' + cacheDirName))
+      const cd = d.replace(new RegExp('\\\\' + cacheDirName + '$'), '')
+      return cd
+    }
     return d
   }
 
@@ -272,10 +279,11 @@ export class Banzuke {
     this.rikishi = []
     // 1. Before we start a long build, let's see if we have a fully built table...
     // NB: we should only create the full table if it is truly complete
-    const fullTableFile = `${this.cacheDirName}/all-rikishi.json`
+    const fullTableFile = `${cacheDirName}/all-rikishi.json`
     const data = await DataDir.getJson('', { cacheFile: fullTableFile })
     if (data instanceof Object && Array.isArray(data.rikishi)) {
       this.rikishi = data.rikishi
+      progressCallback(100, 'loaded all-rikishi ' + this.rikishi.length)
       return
     }
     let faults = 0
@@ -311,15 +319,17 @@ export class Banzuke {
     }
     // 4. all good? Can save table to JSON
     if (faults === 0) {
-      const newData = {
-        written: new Date().toISOString(),
-        columns: Rikishi.cols,
-        rikishi: this.rikishi
-      }
-      await DataDir.getJson(null, { cacheFile: fullTableFile, cacheThisData: newData })
       progressCallback(100, 'all good - saved table')
     } else {
       progressCallback(100, `faults: ${faults} - just reload to try again`)
+      if (!this.saveTabAnyway) { return }
     }
+    // Save it anyway
+    const newData = {
+      written: new Date().toISOString(),
+      columns: Rikishi.cols,
+      rikishi: this.rikishi
+    }
+    await DataDir.getJson(null, { cacheFile: fullTableFile, cacheThisData: newData })
   }
 }
