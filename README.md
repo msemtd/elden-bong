@@ -363,7 +363,8 @@ Layout based on game (from card game data) and user spacing preferences
 - fetch 3rd-party stuff from URLs to add local content
 - caching in various folders on the user's machine: in the usual ~\AppData\Roaming\elden-bong and other user-designated directories
 - package ideas including encrypted blobs of bonus data served up from secure locations and github releases, tar.gz zip 7z
-- fetching in main process - part of the Handy API
+- fetching in main process - providing data by transferable objects or by the
+  "mine://" URL protocol
 
 
 

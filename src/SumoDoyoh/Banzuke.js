@@ -81,24 +81,10 @@ export class Banzuke {
     `.trim().split(/\s+/)
 
     this.tabColumns = `
-      rikishi_id
-      shikona
-      division
-      banzuke_id
-      banzuke_name
-      ew
-      heya_name
-      photo
-      pref_name
-      thumbnail
-      photo
-      profile_html
-      real_name
-      birthday
-      height
-      weight
-      mawashi_colour
-      skin_colour
+      rikishi_id shikona division banzuke_id banzuke_name ew
+      heya_name photo pref_name thumbnail profile_html
+      real_name birthday height weight
+      mawashi_colour skin_colour
     `.trim().split(/\s+/)
     Object.freeze(this.tabColumns)
     this.col = {}
@@ -118,7 +104,7 @@ export class Banzuke {
    * @returns {Promise<string>} full path
    */
   async getCacheDirFullPath () {
-    const d = await DataDir.getCacheDir(this.cacheDirName)
+    const d = await DataDir.getCachePath(this.cacheDirName)
     return d
   }
 
@@ -197,15 +183,12 @@ export class Banzuke {
     this.rikishi = []
     progressCallback(0, 'fetch banzuke JSON')
     const divisions = this.getDivisions()
-    const t1 = performance.now()
     for (let i = 0; i < divisions.length; i++) {
       const d = divisions[i]
       const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, false, false, false)
       this.rikishi.push(...rows)
-      progressCallback(Math.floor((i / divisions.length) * 100), `Processing division ${d.sumoOrJpPage || 0}`)
+      progressCallback(Math.floor((i / divisions.length) * 100), `fetch division ${d.sumoOrJpPage || 0}`)
     }
-    const t2 = performance.now()
-    console.log(`fullCache build took ${t2 - t1} milliseconds.`)
   }
 
   async load (progressCallback = (pct, stage) => {
@@ -222,21 +205,53 @@ export class Banzuke {
     }
     // 2. we need to build it...
     // really should just go get the basic banzuke JSON data first...
-
-    await this.cacheAllSumoOrJpDivisions(progressCallback)
-    const t1 = performance.now()
-    let i = 0
-    for (const rikishi of this.rikishi) {
-      // Fill in missing data for each rikishi from profile page!
-      await this.fillInRikishiData(rikishi)
-      if (!(i % 10)) {
-        progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
-      }
-      i++
+    progressCallback(0, 'fetch banzuke JSON')
+    const divisions = this.getDivisions()
+    for (let i = 0; i < divisions.length; i++) {
+      const d = divisions[i]
+      const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, false, false, false)
+      this.rikishi.push(...rows)
+      progressCallback(Math.floor((i / divisions.length) * 100), `fetch division ${d.sumoOrJpPage || 0}`)
     }
-    progressCallback(100, `Processed all rikishi ${this.rikishi.length}`)
-    const t2 = performance.now()
-    console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
+    // 3. get the thumbnails if not got already - this usually works OK when the website is up
+    progressCallback(0, 'load/fetch rikishi profiles...')
+    for (let i = 0; i < this.rikishi.length; i++) {
+      const row = this.rikishi[i]
+      const name = row[this.col.shikona]
+      progressCallback(Math.floor((i / this.rikishi.length) * 100), `rikishi ${name} (${i + 1} of ${this.rikishi.length})`)
+      const photo = row[this.col.photo]
+      // Thumbnail...
+      let cacheFile = `${this.cacheDirName}/rikishiThumbnails/${photo}`
+      await DataDir.getBinary(thumbnailPrefix + photo, { cacheFile, noDataJustCache: true })
+      row[this.col.thumbnail] = cacheFile
+      // Profile - give it a try - can be a bit sketchy so nice if we throttle or naturally rate-limit by doing other things in-between
+      const id = row[this.col.rikishi_id]
+      cacheFile = `${this.cacheDirName}/rikishiProfiles/${id}.html`
+      const html = await DataDir.getText(profilePrefix + id + '/', { cacheFile })
+      row[this.col.profile_html] = cacheFile
+      // todo scrape the HTML for any missing data - if bad then delete the cache file and we'll get it next time!
+      console.warn(html.length)
+
+
+
+
+
+
+    }
+
+    // const t1 = performance.now()
+    // let i = 0
+    // for (const rikishi of this.rikishi) {
+    //   // Fill in missing data for each rikishi from profile page!
+    //   await this.fillInRikishiData(rikishi)
+    //   if (!(i % 10)) {
+    //     progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
+    //   }
+    //   i++
+    // }
+    // progressCallback(100, `Processed all rikishi ${this.rikishi.length}`)
+    // const t2 = performance.now()
+    // console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
     // const cacheThisData = { savedAt: new Date().toISOString(), columns: this.tabColumns, rikishi: this.rikishi }
     // await DataDir.getJson('', { cacheFile: fullTableFile, cacheThisData })
   }

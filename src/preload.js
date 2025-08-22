@@ -34,6 +34,5 @@ contextBridge.exposeInMainWorld('settings', {
   passSettingsToMain: (...args) => ipcRenderer.send('settings', ...args),
 })
 
-// it would be nice if webpack allowed us to bring this in...
-// maybe we can!
+// webpack is kind enough to allow this...
 DataDirPreload()

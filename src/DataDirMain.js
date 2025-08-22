@@ -1,27 +1,71 @@
-import { ipcMain, net, app } from 'electron'
+import { ipcMain, net } from 'electron'
 import path from 'path'
 import fs from 'fs-extra'
 
-// The default location for our data is...
-let dataDirLocation = path.join(app.getPath('userData'), 'dataDirLocation')
-
 export class DataDirMain {
-  static setupIpcMainHandlers (p) {
-    if (p) {
-      dataDirLocation = p
-    }
-    ipcMain.handle('DataDir:getJson', async (_event, ...args) => { return await DataDirMain.getJson(...args) })
-    ipcMain.handle('DataDir:getText', async (_event, ...args) => { return await DataDirMain.getText(...args) })
-    ipcMain.handle('DataDir:getBinary', async (_event, ...args) => { return await DataDirMain.getBinary(...args) })
-    ipcMain.handle('DataDir:getCacheDir', async (_event, ...args) => { return await DataDirMain.getCacheDir(...args) })
+  constructor (p) {
+    this.dir = p
   }
 
-  // Caching JSON data under the user's data directory.
-  // Pass a url and options with a cacheFile relative path
-  // The relative path must not be able to escape the data directory
-  // The URL must return a body that can be parsed as JSON
-  static async getJson (url, options) {
-    const cf = await DataDirMain.checkCachePath(options?.cacheFile)
+  /**
+   * Sets up the IPC main handlers for data directory operations.
+   * The glue between the main and renderer processes via preload.
+   */
+  setupIpcMainHandlers () {
+    // TODO - to have multiple data directories we could have different prefixes
+    ipcMain.handle('DataDir:getJson', async (_event, ...args) => { return await this.getJson(...args) })
+    ipcMain.handle('DataDir:getText', async (_event, ...args) => { return await this.getText(...args) })
+    ipcMain.handle('DataDir:getBinary', async (_event, ...args) => { return await this.getBinary(...args) })
+    ipcMain.handle('DataDir:getCachePath', async (_event, ...args) => { return await this.getCachePath(...args) })
+    ipcMain.handle('DataDir:hasFile', async (_event, ...args) => { return await this.hasFile(...args) })
+    ipcMain.handle('DataDir:deleteFile', async (_event, ...args) => { return await this.deleteFile(...args) })
+  }
+
+  /**
+   * Checks if a file exists in the cache.
+   * @argument {string} f - The cache file path to check.
+   * @returns {Promise<boolean>} Returns true if the file exists.
+   */
+  async hasFile (f) {
+    const cf = await this.ensureCachePath(f)
+    if (!cf) return false
+    if (!await fs.exists(cf)) return false
+    return true
+  }
+
+  /**
+   * Deletes a file from the cache.
+   * @argument {string} f - The cache file path to delete.
+   * @returns {Promise<boolean>} Returns true if the file was deleted.
+   */
+  async deleteFile (f) {
+    const cf = await this.ensureCachePath(f)
+    if (!cf) return false
+    if (!await fs.exists(cf)) return false
+    await fs.remove(cf)
+    return true
+  }
+
+  /**
+   * @typedef GetOptions
+   * @type {object}
+   * @property {string =} cacheFile - relative cache file path, optional.
+   * @property {boolean = false} noDataJustCache - do not return the data (e.g.
+   * if huge), just cache it.
+   * @property {Object =} cacheThisData - kind of a hack right now in place of putJson - just
+   * stick this data in the cache when it doesn't make sense to fetch from a remote URL.
+   */
+
+  /**
+   * Get some JSON given a URL and maybe cache it.
+   * @argument {string} url - The URL to fetch JSON from.
+   * @argument {GetOptions} options - Options for the fetch operation.
+   * Pass a url and options with a cacheFile relative path
+   * The relative path must not be able to escape the data directory
+   * The URL must return a body that can be parsed as JSON
+   */
+  async getJson (url, options = {}) {
+    const cf = await this.ensureCachePath(options?.cacheFile)
     let data = null
     if (cf) {
       if (await fs.exists(cf)) {
@@ -50,8 +94,8 @@ export class DataDirMain {
     return data
   }
 
-  static async getText (url, options) {
-    const cf = await DataDirMain.checkCachePath(options?.cacheFile)
+  async getText (url, options = {}) {
+    const cf = await this.ensureCachePath(options?.cacheFile)
     let data = null
     if (cf) {
       if (await fs.exists(cf)) {
@@ -71,8 +115,8 @@ export class DataDirMain {
     return data
   }
 
-  static async getBinary (url, options) {
-    const cf = await DataDirMain.checkCachePath(options?.cacheFile)
+  async getBinary (url, options = {}) {
+    const cf = await this.ensureCachePath(options?.cacheFile)
     let data = null
     if (cf) {
       if (await fs.exists(cf)) {
@@ -94,32 +138,50 @@ export class DataDirMain {
     return data
   }
 
-  // Ensure the cache file path is relative to the dataDir.
-  // If the path is falsy, return it as is.
-  // If the path is absolute, or not relative to dataDir, throw an error.
-  // If the path is valid, ensure the directory exists and return the full path.
-  // Purpose:
-  // Common behaviour to stop jailbreaking the data directory.
-  // Creating the directory allows a cache file to be read or written without
-  // further checks.
-  // Immediate return of falsy path simplifies caller in my use cases.
-  static async checkCachePath (p) {
+  /**
+   * Common behaviour to stop jailbreaking the data directory.
+   * @private
+   *
+   * @param {string} p - The cache file path to check.
+   * @returns {Promise<string>} Returns the full cache file path if valid, or falsy if not.
+   * @throws {Error} If the cache path is not relative.
+   *
+   * Ensures the cache file path is relative to the dataDir.
+   * If the path is falsy, return it as is (simplifies caller in my use cases).
+   * If the path is absolute, or not relative to dataDir, throw an error.
+   * If the path is valid, ensure the directory exists and return the full path.
+   *
+   * Creating the directory is considered a worthwhile side-effect! It allows a
+   * cache file to be read or written without further checks.
+   */
+  async ensureCachePath (p) {
     if (!p) {
       return p
     }
-    const cp = await DataDirMain.getCacheDir(p)
+    const cp = await this.getCachePath(p)
     const pp = path.parse(cp)
     await fs.ensureDir(pp.dir)
     return cp
   }
 
-  static async getCacheDir (p) {
+  /**
+   * Get the absolute path of a relative cache path.
+   * @public
+   * The API user in the Renderer process should only work in relative paths and
+   * only within the data directory.
+   * Sometimes we want to expose that path and that's acceptable. The user owns
+   * the data so there's no reason to hide it.
+   * @param {string} p - The relative cache path to convert.
+   * @return {Promise<string>} Returns the absolute cache path.
+   * @throws {Error} If the cache path is not relative.
+   */
+  async getCachePath (p) {
     // Implementation for getting cache directory
     if (path.isAbsolute(p)) {
       throw new Error('Cache file path must be relative')
     }
-    const cp = path.join(dataDirLocation, p)
-    if (cp.indexOf(dataDirLocation) !== 0) {
+    const cp = path.join(this.dir, p)
+    if (cp.indexOf(this.dir) !== 0) {
       throw new Error('Cache file path must be relative to dataDir')
     }
     return cp

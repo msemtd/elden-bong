@@ -1,19 +1,28 @@
 /*
- * DataDir
- * Provides methods for fetching, caching, and managing files in an electron
- * application.
+ * DataDir / DataDirMain / DataDirPreload
+ *
+ * Provides a convenient and standardised API for fetching, caching, and managing
+ * files in a secure electron application (best practices as of August 2025).
+ *
+ * see https://www.electronjs.org/docs/latest/tutorial/process-model
+ *
+ * - DataDir - the API callable from a renderer process is provided here as a thin wrapper
+ *   with jsdoc to assist the developer.
+ * - DataDirMain - the code for the main process is in DataDirMain - this is what actually happens.
+ * - DataDirPreload - the preload function that exposes the API to the renderer
+ *   process via the contextBridge.
  *
  * Supports:
- * - data files (JSON)
- * - text files
- * - binary image files
+ * - data files (JSON as transferable objects)
+ * - text files (e.g. HTML or plain text with utf8 encoding)
+ * - binary image files (buffers of bytes - could be anything!)
  *
- * Just an attempt at a nicer formal way of doing the right thing for process context isolation in electron
- * This class is used in the renderer process because that's where I like to keep my app logic.
- * The gubbins for the main process is in DataDirMain
- * preload and main contextBridge
+ * Uses the {Electron.Net.fetch()} so possibly another level of caching is done - that's just considered a bonus!
+ * Uses fs-extra for convenient and safe file system operations.
+ *
  */
 
+// This is how preload exposes this API to the renderer process
 const api = window.apiDataDir
 
 export class DataDir {
@@ -29,7 +38,36 @@ export class DataDir {
     return await api.getBinary(url, options)
   }
 
-  static async getCacheDir (p) {
-    return await api.getCacheDir(p)
+  /**
+   * Get the absolute path of a relative cache path.
+   * @public
+   * The API user in the Renderer process should only work in relative paths and
+   * only within the data directory.
+   * Sometimes we want to expose that path and that's acceptable. The user owns
+   * the data so there's no reason to hide it.
+   * @param {string} p - The relative cache path to convert.
+   * @return {Promise<string>} Returns the absolute cache path.
+   * @throws {Error} If the cache path is not relative.
+   */
+  static async getCachePath (p) {
+    return await api.getCachePath(p)
+  }
+
+  /**
+   * Checks if a file exists in the cache.
+   * @param {string} f - The cache file path to check.
+   * @returns {Promise<boolean>} Returns true if the file exists.
+   */
+  static async hasFile (f) {
+    return await api.hasFile(f)
+  }
+
+  /**
+   * Deletes a file from the cache.
+   * @param {string} f - The cache file path to delete.
+   * @returns {Promise<boolean>} Returns true if the file was deleted.
+   */
+  static async deleteFile (f) {
+    return await api.deleteFile(f)
   }
 }

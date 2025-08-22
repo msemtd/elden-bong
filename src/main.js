@@ -19,9 +19,9 @@ if (require('electron-squirrel-startup')) {
 }
 
 const staticDir = path.join(path.resolve(__dirname), '..', 'main', 'static')
-const dataDir = path.join(app.getPath('userData'), 'bongData')
+const dataDir = new DataDirMain(path.join(app.getPath('userData'), 'bongData'))
 dbg(`staticDir: ${staticDir}`)
-dbg(`dataDir: ${dataDir}`)
+dbg(`dataDir: ${dataDir.dir}`)
 
 const rendererNotify = (topic, msg) => {
   mainWindow.webContents.send('renderer-notify', topic, msg)
@@ -75,7 +75,7 @@ app.whenReady().then(() => {
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
   ipcMain.handle('luaTest', (event, ...args) => { return luaTest(...args) })
   ipcMain.handle('readE57', (event, ...args) => { return E57.readE57(...args) })
-  DataDirMain.setupIpcMainHandlers(dataDir)
+  dataDir.setupIpcMainHandlers()
   createWindow()
 })
 
