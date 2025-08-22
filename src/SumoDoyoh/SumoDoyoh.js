@@ -342,8 +342,7 @@ export class SumoDoyoh extends MiniGameBase {
       try {
         refreshButtonDisabled.val = true
         await this.banzuke.load(progressCallback)
-        progressCallback(100, 'Done! ' + this.banzuke.rikishi.length + ' rikishi processed')
-        // update the table
+        // TODO update the table summary
       } catch (error) {
         Dlg.errorDialog(error)
       }
