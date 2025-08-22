@@ -1,9 +1,4 @@
 import { DataDir } from '../DataDir'
-
-// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya mawashi
-// cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
-// cSpell:ignore chibi
-
 // A live sumo database in English and Japanese.
 // Web scraping or proper API calls? Why not both? Use whatever is available.
 //
@@ -37,15 +32,144 @@ import { DataDir } from '../DataDir'
 // - each rikishi thumbnail, photo, and profile HTML is also fetched and cached
 // - rikishi profile is scraped for extra columns: height, weight, birthday etc.
 // - all-rikishi.json is the full custom table with all additions
-//
 
-const thumbnailPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/'
-const photoPrefix = 'https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/'
-const profilePrefix = 'https://www.sumo.or.jp/EnSumoDataRikishi/profile/'
+// cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya mawashi
+// cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
+// cSpell:ignore chibi
+
+// cSpell:ignore  Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
+// cSpell:ignore  Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
+// cSpell:ignore  Sakaigawa Sadogatake Shikihide Shikoroyama Shibatayama Takasago Takadagawa
+// cSpell:ignore  Takekuma Tagonoura Tatsunami Tamanoi Dewanoumi Tokitsukaze Tokiwayama Nakamura
+// cSpell:ignore  Naruto Nishiiwa Nishikido Nishonoseki Hakkaku Hanaregoma Hidenoyama Fujishima
+// cSpell:ignore  Futagoyama Minato Musashigawa Yamahibiki
+
+const cacheDirName = 'BanzukeData'
+
+export class Rikishi {
+  constructor (
+    rikishiId = 0,
+    shikona = '',
+    division = 0,
+    banzukeId = 0,
+    banzukeName = '',
+    eastWest = '',
+    heyaName = '',
+    photo = '',
+    prefecture = '',
+    realName = '',
+    birthday = '',
+    height = '',
+    weight = '',
+    mawashiColour = '',
+    skinColour = ''
+  ) {
+    this.rikishiId = rikishiId
+    this.shikona = shikona
+    this.division = division
+    this.banzukeId = banzukeId
+    this.banzukeName = banzukeName
+    this.eastWest = eastWest
+    this.heyaName = heyaName
+    this.photo = photo
+    this.prefecture = prefecture
+    this.realName = realName
+    this.birthday = birthday
+    this.height = height
+    this.weight = weight
+    this.mawashiColour = mawashiColour
+    this.skinColour = skinColour
+  }
+
+  asRow () {
+    return [
+      this.rikishiId,
+      this.shikona,
+      this.division,
+      this.banzukeId,
+      this.banzukeName,
+      this.eastWest,
+      this.heyaName,
+      this.photo,
+      this.prefecture,
+      this.realName,
+      this.birthday,
+      this.height,
+      this.weight,
+      this.mawashiColour,
+      this.skinColour
+    ]
+  }
+
+  static cols = {
+    rikishiId: 0,
+    shikona: 1,
+    division: 2,
+    banzukeId: 3,
+    banzukeName: 4,
+    eastWest: 5,
+    heyaName: 6,
+    photo: 7,
+    prefecture: 8,
+    realName: 9,
+    birthday: 10,
+    height: 11,
+    weight: 12,
+    mawashiColour: 13,
+    skinColour: 14,
+  }
+
+  urlProfileEnglish () {
+    return `https://www.sumo.or.jp/EnSumoDataRikishi/profile/${this.rikishiId}/`
+  }
+
+  urlProfileJp () {
+    return `https://www.sumo.or.jp/ResultRikishiData/profile/${this.rikishiId}/`
+  }
+
+  urlProfilePic () {
+    return `https://www.sumo.or.jp/img/sumo_data/rikishi/270x474/${this.photo}`
+  }
+
+  urlThumbnail () {
+    return `https://www.sumo.or.jp/img/sumo_data/rikishi/60x60/${this.photo}`
+  }
+
+  cacheFileProfile () {
+    return `${cacheDirName}/rikishiProfiles/${this.rikishiId}.html`
+  }
+
+  cacheFileThumbnail () {
+    return `${cacheDirName}/rikishiThumbnails/${this.photo}`
+  }
+
+  cacheFileProfilePic () {
+    return `${cacheDirName}/rikishiPhotos/${this.photo}`
+  }
+
+  /**
+   * Scrape relevant information from the English profile HTML text
+   */
+  scrapeProfileDataEn (html) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const rn = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(3) > td')?.textContent
+    const bd = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(6) > td')?.textContent
+    const hi = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(8) > td')?.textContent
+    const we = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(9) > td')?.textContent
+    if ([rn, bd, hi, we].includes(undefined)) {
+      return false
+    }
+    this.realName = rn
+    this.birthday = bd
+    this.height = hi
+    this.weight = we
+    return true
+  }
+}
 
 export class Banzuke {
   constructor () {
-    this.cacheDirName = 'BanzukeData'
     this.rikishi = []
     this.divisions = [
       { name: 'Makuuchi', jpName: '幕内', enName: 'Top Division', sumoOrJpPage: 1 },
@@ -56,6 +180,7 @@ export class Banzuke {
       { name: 'Jonokuchi', jpName: '序ノ口', enName: 'Lowest Division', sumoOrJpPage: 6 },
       { name: 'Maezumo', jpName: '前頭', enName: 'Unranked', sumoOrJpPage: undefined },
     ]
+    Object.freeze(this.divisions)
     // Yokozuna
     // Ozeki
     // Sekiwake
@@ -63,13 +188,6 @@ export class Banzuke {
     // 東
     // 番付
     // 西
-
-    // cSpell:ignore  Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
-    // cSpell:ignore  Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
-    // cSpell:ignore  Sakaigawa Sadogatake Shikihide Shikoroyama Shibatayama Takasago Takadagawa
-    // cSpell:ignore  Takekuma Tagonoura Tatsunami Tamanoi Dewanoumi Tokitsukaze Tokiwayama Nakamura
-    // cSpell:ignore  Naruto Nishiiwa Nishikido Nishonoseki Hakkaku Hanaregoma Hidenoyama Fujishima
-    // cSpell:ignore  Futagoyama Minato Musashigawa Yamahibiki
 
     this.stables = `
       Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
@@ -79,24 +197,6 @@ export class Banzuke {
       Naruto Nishiiwa Nishikido Nishonoseki Hakkaku Hanaregoma Hidenoyama Fujishima
       Futagoyama Minato Musashigawa Yamahibiki
     `.trim().split(/\s+/)
-
-    this.tabColumns = `
-      rikishi_id shikona division banzuke_id banzuke_name ew
-      heya_name photo pref_name thumbnail profile_html
-      real_name birthday height weight
-      mawashi_colour skin_colour
-    `.trim().split(/\s+/)
-    Object.freeze(this.tabColumns)
-    this.col = {}
-    for (let i = 0; i < this.tabColumns.length; i++) {
-      const s = this.tabColumns[i]
-      this.col[s] = i
-    }
-    Object.freeze(this.col)
-  }
-
-  getDivisions () {
-    return structuredClone(this.divisions)
   }
 
   /**
@@ -104,26 +204,32 @@ export class Banzuke {
    * @returns {Promise<string>} full path
    */
   async getCacheDirFullPath () {
-    const d = await DataDir.getCachePath(this.cacheDirName)
+    const d = await DataDir.getCachePath(cacheDirName)
     return d
+  }
+
+  urlBanzukeDivisionData (division) {
+    return `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/1/`
+  }
+
+  cachePathBanzukeDivision (division) {
+    return `${cacheDirName}/banzuke${division}.json`
+  }
+
+  getRikishiForDivision (division) {
+    return this.rikishi.filter(r => r[Rikishi.cols.division] === division)
   }
 
   /**
    * Cache a single division from current sumo.or.jp website banzuke
    * @param {number} division - The division number
-   * @param {boolean} withThumbnails - Whether to cache thumbnails
-   * @param {boolean} withPhotos - Whether to cache photos
-   * @param {boolean} withProfiles - Whether to cache profiles
    * @returns {Promise<Array>} - The cached data
    */
-  async cacheSumoOrJpDivision (division, withThumbnails = false, withPhotos = false, withProfiles = false) {
+  async cacheSumoOrJpDivision (division) {
     if (division === undefined) {
       return []
     }
-    const pageSub = 1
-    const cacheFile = `${this.cacheDirName}/banzuke${division}.json`
-    const url = `https://www.sumo.or.jp/EnHonbashoBanzuke/indexAjax/${division}/${pageSub}/`
-    const data = await DataDir.getJson(url, { cacheFile })
+    const data = await DataDir.getJson(this.urlBanzukeDivisionData(division), { cacheFile: this.cachePathBanzukeDivision(division) })
     console.assert(data && Array.isArray(data.BanzukeTable))
     const tab = []
     const ew = (x) => {
@@ -137,38 +243,8 @@ export class Banzuke {
         console.log(`Skipping empty entry: ${JSON.stringify(e)}`)
         continue
       }
-      // NB: I can't be bothered to find a way to do this "properly" so this has
-      // to match the column layout!
-      const row = [
-        e.rikishi_id,
-        e.shikona,
-        division,
-        e.banzuke_id,
-        e.banzuke_name,
-        ew(e.ew),
-        e.heya_name,
-        e.photo,
-        e.pref_name,
-      ]
-      tab.push(row)
-      if (withThumbnails) {
-        const imgUrl = thumbnailPrefix + e.photo
-        const cacheFile = `${this.cacheDirName}/rikishiThumbnails/${e.photo}`
-        await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
-        row[this.col.thumbnail] = cacheFile
-      }
-      if (withPhotos) {
-        const imgUrl = photoPrefix + e.photo
-        const cacheFile = `${this.cacheDirName}/rikishiPhotos/${e.photo}`
-        await DataDir.getBinary(imgUrl, { cacheFile, noDataJustCache: true })
-        row[this.col.photo] = cacheFile
-      }
-      if (withProfiles) {
-        const profileUrl = profilePrefix + e.rikishi_id + '/'
-        const cacheFile = `${this.cacheDirName}/rikishiProfiles/${e.rikishi_id}.html`
-        await DataDir.getText(profileUrl, { cacheFile, noDataJustCache: true })
-        row[this.col.profile_html] = cacheFile
-      }
+      const r = new Rikishi(e.rikishi_id, e.shikona, division, e.banzuke_id, e.banzuke_name, ew(e.ew), e.heya_name, e.photo, e.pref_name)
+      tab.push(r.asRow())
     }
     return tab
   }
@@ -182,12 +258,11 @@ export class Banzuke {
   }) {
     this.rikishi = []
     progressCallback(0, 'fetch banzuke JSON')
-    const divisions = this.getDivisions()
-    for (let i = 0; i < divisions.length; i++) {
-      const d = divisions[i]
-      const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, false, false, false)
+    const aa = this.divisions
+    for (let i = 0; i < aa.length; i++) {
+      const rows = await this.cacheSumoOrJpDivision(aa[i].sumoOrJpPage, false, false, false)
       this.rikishi.push(...rows)
-      progressCallback(Math.floor((i / divisions.length) * 100), `fetch division ${d.sumoOrJpPage || 0}`)
+      progressCallback(Math.floor((i / aa.length) * 100), `fetch division ${aa[i].sumoOrJpPage || 0}`)
     }
   }
 
@@ -203,91 +278,48 @@ export class Banzuke {
       this.rikishi = data.rikishi
       return
     }
+    let faults = 0
     // 2. we need to build it...
     // really should just go get the basic banzuke JSON data first...
     progressCallback(0, 'fetch banzuke JSON')
-    const divisions = this.getDivisions()
-    for (let i = 0; i < divisions.length; i++) {
-      const d = divisions[i]
+    const aa = this.divisions
+    for (let i = 0; i < aa.length; i++) {
+      const d = aa[i]
+      progressCallback(Math.floor((i / aa.length) * 100), `fetch division ${d.sumoOrJpPage || 0}`)
       const rows = await this.cacheSumoOrJpDivision(d.sumoOrJpPage, false, false, false)
       this.rikishi.push(...rows)
-      progressCallback(Math.floor((i / divisions.length) * 100), `fetch division ${d.sumoOrJpPage || 0}`)
     }
     // 3. get the thumbnails if not got already - this usually works OK when the website is up
     progressCallback(0, 'load/fetch rikishi profiles...')
     for (let i = 0; i < this.rikishi.length; i++) {
-      const row = this.rikishi[i]
-      const name = row[this.col.shikona]
-      progressCallback(Math.floor((i / this.rikishi.length) * 100), `rikishi ${name} (${i + 1} of ${this.rikishi.length})`)
-      const photo = row[this.col.photo]
-      // Thumbnail...
-      let cacheFile = `${this.cacheDirName}/rikishiThumbnails/${photo}`
-      await DataDir.getBinary(thumbnailPrefix + photo, { cacheFile, noDataJustCache: true })
-      row[this.col.thumbnail] = cacheFile
+      const r = new Rikishi(...this.rikishi[i])
+      progressCallback(Math.floor((i / this.rikishi.length) * 100), `rikishi ${r.shikona} (${i + 1} of ${this.rikishi.length})`)
+      // Thumbnail - usually fine
+      await DataDir.getBinary(r.urlThumbnail(), { cacheFile: r.cacheFileThumbnail(), noDataJustCache: true })
       // Profile - give it a try - can be a bit sketchy so nice if we throttle or naturally rate-limit by doing other things in-between
-      const id = row[this.col.rikishi_id]
-      cacheFile = `${this.cacheDirName}/rikishiProfiles/${id}.html`
-      const html = await DataDir.getText(profilePrefix + id + '/', { cacheFile })
-      row[this.col.profile_html] = cacheFile
-      // todo scrape the HTML for any missing data - if bad then delete the cache file and we'll get it next time!
-      console.warn(html.length)
-
-
-
-
-
-
+      const html = await DataDir.getText(r.urlProfileEnglish(), { cacheFile: r.cacheFileProfile() })
+      // Photo - usually fine...
+      await DataDir.getBinary(r.urlProfilePic(), { cacheFile: r.cacheFileProfilePic(), noDataJustCache: true })
+      // Scrape the HTML for additional data
+      if (!r.scrapeProfileDataEn(html)) {
+        console.warn('problem scraping profile data for ' + r.shikona + ' ' + r.rikishiId)
+        // If bad then delete the cache file
+        await DataDir.deleteFile(r.cacheFileProfile())
+        faults++
+      }
+      this.rikishi[i] = r.asRow()
     }
-
-    // const t1 = performance.now()
-    // let i = 0
-    // for (const rikishi of this.rikishi) {
-    //   // Fill in missing data for each rikishi from profile page!
-    //   await this.fillInRikishiData(rikishi)
-    //   if (!(i % 10)) {
-    //     progressCallback(Math.floor((i / this.rikishi.length) * 100), `Processing rikishi ${rikishi[1]} (${rikishi[0]})`)
-    //   }
-    //   i++
-    // }
-    // progressCallback(100, `Processed all rikishi ${this.rikishi.length}`)
-    // const t2 = performance.now()
-    // console.log(`Rikishi tab patched with extra columns: ${this.rikishi.length} in ${t2 - t1} ms.`)
-    // const cacheThisData = { savedAt: new Date().toISOString(), columns: this.tabColumns, rikishi: this.rikishi }
-    // await DataDir.getJson('', { cacheFile: fullTableFile, cacheThisData })
-  }
-
-  async fillInRikishiData (rikishi) {
-    // get the html rikishi page and...
-    const cacheFile = rikishi[this.tabColumns.indexOf('profile_html')]
-    if (!cacheFile) {
-      console.log('no html for ', rikishi)
-      return
+    // 4. all good? Can save table to JSON
+    if (faults === 0) {
+      const newData = {
+        written: new Date().toISOString(),
+        columns: Rikishi.cols,
+        rikishi: this.rikishi
+      }
+      await DataDir.getJson(null, { cacheFile: fullTableFile, cacheThisData: newData })
+      progressCallback(100, 'all good - saved table')
+    } else {
+      progressCallback(100, `faults: ${faults} - just reload to try again`)
     }
-    // TODO list the problems and give directions or make UX for user to solve them!
-    const id = rikishi[this.tabColumns.indexOf('rikishi_id')]
-    const profileUrl = profilePrefix + id + '/'
-    const data = await DataDir.getText(profileUrl, { cacheFile })
-    // parse...
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(data, 'text/html')
-    // Scrape relevant information from the profile page
-    const rn = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(3) > td')?.textContent
-    const bd = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(6) > td')?.textContent
-    const hi = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(8) > td')?.textContent
-    const we = doc.querySelector('#mainContent > div:nth-child(3) > div > div > table > tbody > tr:nth-child(9) > td')?.textContent
-    if ([rn, bd, hi, we].includes(undefined)) {
-      console.warn('problem scraping data from ' + cacheFile)
-    }
-    // Update the db with the extracted information
-    rikishi[this.col.real_name] = rn
-    rikishi[this.col.birthday] = bd
-    rikishi[this.col.height] = hi
-    rikishi[this.col.weight] = we
-    rikishi[this.col.mawashi_colour] = ''
-    rikishi[this.col.skin_colour] = ''
-  }
-
-  getRikishiForDivision (division) {
-    return this.rikishi.filter(r => r[this.tabColumns.indexOf('division')] === division)
   }
 }

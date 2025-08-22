@@ -15,7 +15,7 @@ import { SumoBody } from './SumoBody'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
-// cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi
+// cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi mawashi
 
 /*
  * SumoDoyoh - a 3D model of a sumo dohyō (ring)
@@ -256,11 +256,11 @@ export class SumoDoyoh extends MiniGameBase {
       const space = 2.5
       let w = this.banzuke.rikishi.length
       w = Math.sqrt(w)
-      for (const guy of this.banzuke.rikishi) {
-        console.log(guy)
-        const fp = path.join(cd, guy[this.banzuke.tabColumns.indexOf('thumbnail')])
+      for (const row of this.banzuke.rikishi) {
+        console.log(row)
+        const fp = path.join(cd, row[this.banzuke.tabColumns.indexOf('thumbnail')])
         await this.addHead(geo, fp, p, g)
-        g.add(this.addText(guy[1], p.clone().add(textOffset), textRot))
+        g.add(this.addText(row[1], p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
           p.x = 0
@@ -333,24 +333,27 @@ export class SumoDoyoh extends MiniGameBase {
     const closed = van.state(false)
     const progressPct = van.state(0)
     const progressStage = van.state('<none yet>')
+    const refreshButtonDisabled = van.state(false)
     const progressCallback = (pct, stage) => {
       progressPct.val = pct
       progressStage.val = stage
     }
     const doTheThing = async () => {
       try {
+        refreshButtonDisabled.val = true
         await this.banzuke.load(progressCallback)
         progressCallback(100, 'Done! ' + this.banzuke.rikishi.length + ' rikishi processed')
         // update the table
       } catch (error) {
         Dlg.errorDialog(error)
       }
+      refreshButtonDisabled.val = false
     }
     van.add(document.body, FloatingWindow(
       { title: '📼 Banzuke Data', closed, width: 600, height: 500 },
       div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
         p('Show banzuke data from the Japan Sumo Association website'),
-        button({ onclick: doTheThing }, 'refresh'),
+        button({ disabled: refreshButtonDisabled, onclick: doTheThing }, 'refresh'),
         label({}, 'stage: ', progressStage),
         label({}, 'import: ', progress({ value: progressPct, max: 100 })),
         Table({ head, data })
