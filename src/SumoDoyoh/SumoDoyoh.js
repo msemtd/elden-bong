@@ -68,14 +68,13 @@ export class SumoDoyoh extends MiniGameBase {
     const ura = await this.bobbleBody('Ura', 'bubble gum pink')
     const waka = await this.bobbleBody('Wakatakakage', 'blue')
     const yams = await this.bobbleBody('Ichiyamamoto', 'emerald green')
+    ura.position.y += 0.2
     waka.position.x += 2
     waka.position.y -= 0.5
-    yams.position.x -= 1.8
     waka.rotateZ(Math.PI / -6)
-
+    yams.position.x -= 1.8
     yams.position.y -= 0.4
     yams.rotateZ(Math.PI / 6)
-    ura.position.y += 0.2
     this.redraw()
   }
 
