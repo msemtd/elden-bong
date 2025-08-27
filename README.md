@@ -324,6 +324,7 @@ I can just bundle all my other throwaway junk apps in here and use this app as a
 * Suica Game
 * Tetris
 * some sort of integration of Crochet Parade https://www.crochetparade.org/Manual.html
+* Kikkoman bottle https://youtu.be/pBl4YXzCxXg
 
 2D game mode with "mostly" fixed camera - allow user to choose a nice camera position (relative to gameplay board) and save it in a list of favourites. Pause and resume of sub-games.
 Maybe tie into the Elden Bong narrative and use them as side-quests!
