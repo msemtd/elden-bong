@@ -52,8 +52,8 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'loadBanzukeData')
-      this.gui.add(this, 'bobbleHead')
-      this.gui.add(this, 'bobbleBody')
+      this.gui.add(this, 'allBobbleHeads')
+      this.gui.add(this, 'makeRikishi')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
     })
   }
@@ -65,9 +65,9 @@ export class SumoDoyoh extends MiniGameBase {
     // this.makeUnderDoyoh()
     this.group.position.setZ(doyohHeight)
     await this.loadBanzukeData()
-    const ura = await this.bobbleBody('Ura', 'bubble gum pink')
-    const waka = await this.bobbleBody('Wakatakakage', 'blue')
-    const yams = await this.bobbleBody('Ichiyamamoto', 'emerald green')
+    const ura = await this.makeRikishi('Ura', 'bubble gum pink')
+    const waka = await this.makeRikishi('Wakatakakage', 'blue')
+    const yams = await this.makeRikishi('Ichiyamamoto', 'emerald green')
     ura.position.y += 0.2
     waka.position.x += 2
     waka.position.y -= 0.5
@@ -247,15 +247,15 @@ export class SumoDoyoh extends MiniGameBase {
     this.redraw()
   }
 
-  async bobbleHead () {
+  async allBobbleHeads () {
     try {
       this.activate()
-      const eg = this.group.getObjectByName('bobbleHead')
+      const eg = this.group.getObjectByName('allBobbleHeads')
       if (eg) {
         depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
       }
       const g = new THREE.Group()
-      g.name = 'bobbleHead'
+      g.name = 'allBobbleHeads'
       this.group.add(g)
       g.position.setZ(1)
       const geo = new THREE.IcosahedronGeometry(1, 2)
@@ -283,7 +283,7 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  async bobbleBody (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
+  async makeRikishi (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
     try {
       this.activate()
       // const eg = this.group.getObjectByName(name)
