@@ -45,6 +45,7 @@ export class SumoDoyoh extends MiniGameBase {
   constructor (parent) {
     super(parent, 'SumoDoyoh')
     this.banzuke = new Banzuke()
+    this.bobbleHeadGeometry = new THREE.IcosahedronGeometry(1, 2)
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -235,7 +236,8 @@ export class SumoDoyoh extends MiniGameBase {
     return t
   }
 
-  async addHead (geo, fp, p, g) {
+  async addHead (fp, p, g) {
+    const geo = this.bobbleHeadGeometry
     const u = filePathToMine(fp)
     const loader = new THREE.TextureLoader()
     const texture = await loader.loadAsync(u)
@@ -258,7 +260,6 @@ export class SumoDoyoh extends MiniGameBase {
       g.name = 'allBobbleHeads'
       this.group.add(g)
       g.position.setZ(1)
-      const geo = new THREE.IcosahedronGeometry(1, 2)
       const cd = await this.banzuke.getCacheDirFullPath(true)
       const p = new THREE.Vector3()
       const textOffset = new THREE.Vector3(0, 0, -1.5)
@@ -269,7 +270,7 @@ export class SumoDoyoh extends MiniGameBase {
       for (const row of this.banzuke.rikishi) {
         const r = new Rikishi(...row)
         const fp = path.join(cd, r.cacheFileThumbnail())
-        await this.addHead(geo, fp, p, g)
+        await this.addHead(fp, p, g)
         g.add(this.addText(r.shikona, p.clone().add(textOffset), textRot))
         p.x += space
         if (p.x > w * space) {
@@ -308,13 +309,12 @@ export class SumoDoyoh extends MiniGameBase {
         const r = new Rikishi(...row)
         r.mawashiColour = mawashiColour
         r.skinColour = skinColour
-        const geo = new THREE.IcosahedronGeometry(1, 2)
         const cd = await this.banzuke.getCacheDirFullPath(true)
         const fp = path.join(cd, r.cacheFileThumbnail())
         const headPos = new THREE.Vector3(0, 0, 2.4)
         const textOffset = new THREE.Vector3(0, 0, 1.3)
         const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
-        await this.addHead(geo, fp, headPos, g)
+        await this.addHead(fp, headPos, g)
         g.add(this.addText(r.shikona, headPos.clone().add(textOffset), textRot))
 
         const maw = bod.getObjectByName('body')?.getObjectByName('mawashi_1')
