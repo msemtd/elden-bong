@@ -46,6 +46,7 @@ export class SumoDoyoh extends MiniGameBase {
     super(parent, 'SumoDoyoh')
     this.banzuke = new Banzuke()
     this.bobbleHeadGeometry = new THREE.IcosahedronGeometry(1, 2)
+    this.sumoBodyProto = null
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -54,7 +55,6 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'loadBanzukeData')
       this.gui.add(this, 'allBobbleHeads')
-      this.gui.add(this, 'makeRikishi')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
     })
   }
@@ -76,6 +76,21 @@ export class SumoDoyoh extends MiniGameBase {
     yams.position.x -= 1.8
     yams.position.y -= 0.4
     yams.rotateZ(Math.PI / 6)
+    this.group.add(ura)
+    this.group.add(yams)
+    this.group.add(waka)
+    // stick ura in a box and see how tall he is in world space
+    ura.position.z += 1
+    const box = new THREE.BoxHelper(ura, 0xffff00)
+    this.screen.scene.add(box)
+    const b3 = new THREE.Box3()
+    b3.setFromObject(ura)
+    const v1 = new THREE.Vector3()
+    b3.getSize(v1)
+    const row = this.banzuke.rikishi.find(r => r[Rikishi.cols.shikona] === 'Ura')
+    const r = new Rikishi(...row)
+    const msg = `${r.shikona} is ${r.height} vs ${v1.z}`
+    console.log(msg)
     this.redraw()
   }
 
@@ -284,48 +299,57 @@ export class SumoDoyoh extends MiniGameBase {
     }
   }
 
-  async makeRikishi (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
-    try {
-      this.activate()
-      // const eg = this.group.getObjectByName(name)
-      // if (eg) {
-      //   depthFirstReverseTraverse(this.group, eg, generalObj3dClean)
-      // }
-      const g = new THREE.Group()
-      g.name = name
-      this.group.add(g)
+  async getNewSumoBody (mawashiColour = 'grey', skinColour = 'purple') {
+    // only need to load the model once...
+    if (!this.sumoBodyProto) {
       const j = new SumoBody().bodyJson()
       const loader = new THREE.ObjectLoader()
       const data = await loader.parseAsync(j.scene)
       const bod = data.children[0]
       bod.rotateX(Math.PI / 2)
-      g.add(bod)
-      // todo get rikishi by name and add a head
+      this.sumoBodyProto = bod
+    }
+    // we will be returning a clone with unique colours...
+    const b = this.sumoBodyProto.clone()
+    // replace the skin and mawashi materials...
+    {
+      const color = new THREE.Color(Colours.get(skinColour))
+      const mat = new THREE.MeshLambertMaterial({ color })
+      const aa = ['body', 'arm-1', 'arm-2', 'leg-1', 'leg-2'].map(n => b.getObjectByName(n))
+      aa.forEach(o => { o.material = mat })
+    }
+    {
+      const color = new THREE.Color(Colours.get(mawashiColour))
+      const mat = new THREE.MeshLambertMaterial({ color })
+      const aa = ['mawashi_1', 'mawashi_2'].map(n => b.getObjectByName(n))
+      aa.forEach(o => { o.material = mat })
+    }
+    return b
+  }
+
+  async makeRikishi (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
+    try {
       const getRikishiByName = (name) => {
         return this.banzuke.rikishi.find(r => r[Rikishi.cols.shikona] === name)
       }
       const row = getRikishiByName(name)
-      if (row) {
-        const r = new Rikishi(...row)
-        r.mawashiColour = mawashiColour
-        r.skinColour = skinColour
-        const cd = await this.banzuke.getCacheDirFullPath(true)
-        const fp = path.join(cd, r.cacheFileThumbnail())
-        const headPos = new THREE.Vector3(0, 0, 2.4)
-        const textOffset = new THREE.Vector3(0, 0, 1.3)
-        const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
-        await this.addHead(fp, headPos, g)
-        g.add(this.addText(r.shikona, headPos.clone().add(textOffset), textRot))
-
-        const maw = bod.getObjectByName('body')?.getObjectByName('mawashi_1')
-        if (maw) {
-          maw.material.color = new THREE.Color(Colours.get(r.mawashiColour))
-        }
-        const flesh = bod.getObjectByName('body')
-        if (flesh) {
-          flesh.material.color = new THREE.Color(Colours.get(r.skinColour))
-        }
+      if (!row) {
+        throw Error('Rikishi not found')
       }
+      const r = new Rikishi(...row)
+      r.mawashiColour = mawashiColour
+      r.skinColour = skinColour
+      const g = new THREE.Group()
+      g.name = name
+      const bod = await this.getNewSumoBody(mawashiColour, skinColour)
+      g.add(bod)
+      const cd = await this.banzuke.getCacheDirFullPath(true)
+      const fp = path.join(cd, r.cacheFileThumbnail())
+      const headPos = new THREE.Vector3(0, 0, 2.4)
+      const textOffset = new THREE.Vector3(0, 0, 1.3)
+      const textRot = new THREE.Euler(Math.PI / 2, 0, 0)
+      await this.addHead(fp, headPos, g)
+      g.add(this.addText(r.shikona, headPos.clone().add(textOffset), textRot))
       g.position.set(0, 2, 0.87)
       g.scale.divideScalar(3.8)
       this.redraw()

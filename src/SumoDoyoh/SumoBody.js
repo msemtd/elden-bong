@@ -281,7 +281,7 @@ export class SumoBody {
                 {
                   uuid: '5e161790-f776-48c5-814a-4515570edffc',
                   type: 'Mesh',
-                  name: 'leg',
+                  name: 'leg-1',
                   layers: 1,
                   matrix: [
                     0.3758770483143634,
@@ -312,7 +312,7 @@ export class SumoBody {
                 {
                   uuid: '521abe14-88d3-41e6-881b-ee16bfcc0d90',
                   type: 'Mesh',
-                  name: 'arm',
+                  name: 'arm-1',
                   layers: 1,
                   matrix: [
                     0.19757674663369246,
@@ -343,7 +343,7 @@ export class SumoBody {
                 {
                   uuid: 'ea882756-98cf-4d12-a9ad-34d185868281',
                   type: 'Mesh',
-                  name: 'arm',
+                  name: 'arm-2',
                   layers: 1,
                   matrix: [
                     0.20000000000000007,
@@ -374,7 +374,7 @@ export class SumoBody {
                 {
                   uuid: 'f1162706-48eb-4f91-b3b5-aa6d437dda5d',
                   type: 'Mesh',
-                  name: 'leg',
+                  name: 'leg-2',
                   layers: 1,
                   matrix: [
                     0.3758770483143634,
