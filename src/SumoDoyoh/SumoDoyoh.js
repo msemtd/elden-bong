@@ -47,6 +47,8 @@ export class SumoDoyoh extends MiniGameBase {
     this.banzuke = new Banzuke()
     this.bobbleHeadGeometry = new THREE.IcosahedronGeometry(1, 2)
     this.sumoBodyProto = null
+    this.clickableGuys = []
+    // this.screen.addMixer('SumoDoyoh', (delta) => { return this.animate(delta) })
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -57,6 +59,49 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'allBobbleHeads')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
     })
+  }
+
+  /**
+   * @returns {boolean} whether a redraw is required
+   */
+  animate (delta) {
+    if (!this.active) { return false }
+    // anything on the timeline?
+    if (!this.timeLine) { return false }
+    return this.timeLine.isActive()
+  }
+
+  /**
+   * @returns true if I accept the intersect offer
+   */
+  offerDoubleClick (ev, mousePos, raycaster) {
+    if (!this.active || ev.button !== 0) { return false }
+    const hits = raycaster.intersectObjects(this.clickableGuys, true)
+    if (!hits.length) {
+      return false
+    }
+    this.guyClicked(hits[0].object)
+    return true
+  }
+
+  guyClicked (object) {
+    // given a clickable part of a guy find the parent group with rikishi UserData
+    let o = object
+    while (o) {
+      if (o.userData?.rikishi instanceof Rikishi) {
+        break
+      }
+      o = o.parent
+    }
+    console.assert(o, 'failed to find parent object for this guy part')
+    if (!o) { return }
+    const r = o.userData.rikishi
+    this.popRikishiDialog(r, o)
+  }
+
+  popRikishiDialog (rikishi, obj) {
+    console.log(rikishi)
+
   }
 
   async runTest () {
@@ -87,10 +132,10 @@ export class SumoDoyoh extends MiniGameBase {
     b3.setFromObject(ura)
     const v1 = new THREE.Vector3()
     b3.getSize(v1)
-    const row = this.banzuke.rikishi.find(r => r[Rikishi.cols.shikona] === 'Ura')
-    const r = new Rikishi(...row)
+    const r = ura.userData.rikishi
     const msg = `${r.shikona} is ${r.height} vs ${v1.z}`
     console.log(msg)
+    this.clickableGuys = [ura, waka, yams]
     this.redraw()
   }
 
@@ -329,18 +374,13 @@ export class SumoDoyoh extends MiniGameBase {
 
   async makeRikishi (name = 'Ura', mawashiColour = 'bubble gum pink', skinColour = 'pinkish tan') {
     try {
-      const getRikishiByName = (name) => {
-        return this.banzuke.rikishi.find(r => r[Rikishi.cols.shikona] === name)
-      }
-      const row = getRikishiByName(name)
-      if (!row) {
-        throw Error('Rikishi not found')
-      }
-      const r = new Rikishi(...row)
+      const r = this.banzuke.getRikishiObjByName(name)
+      if (!r) throw Error(`unknown rikishi '${name}'`)
       r.mawashiColour = mawashiColour
       r.skinColour = skinColour
       const g = new THREE.Group()
       g.name = name
+      g.userData.rikishi = r
       const bod = await this.getNewSumoBody(mawashiColour, skinColour)
       g.add(bod)
       const cd = await this.banzuke.getCacheDirFullPath(true)

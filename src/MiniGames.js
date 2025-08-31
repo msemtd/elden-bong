@@ -143,6 +143,9 @@ class MiniGames extends THREE.EventDispatcher {
     if (this.games.sudoku.active) {
       return this.games.sudoku.offerDoubleClick(ev, mousePos, raycaster)
     }
+    if (this.games.sumoDoyoh.active) {
+      return this.games.sumoDoyoh.offerDoubleClick(ev, mousePos, raycaster)
+    }
     return false
   }
 

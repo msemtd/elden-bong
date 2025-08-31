@@ -35,7 +35,7 @@ import { DataDir } from '../DataDir'
 
 // cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya mawashi
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
-// cSpell:ignore chibi
+// cSpell:ignore chibi romaji
 
 // cSpell:ignore  Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
 // cSpell:ignore  Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
@@ -225,6 +225,26 @@ export class Banzuke {
 
   getRikishiForDivision (division) {
     return this.rikishi.filter(r => r[Rikishi.cols.division] === division)
+  }
+
+  /**
+   * Get rikishi table data by shikona (ring-name)
+   * @param {string} name name (shikona) of the rikishi in romaji
+   * @returns {Array} row from the table
+   */
+  getRikishiByName (name) {
+    return this.rikishi.find(r => r[Rikishi.cols.shikona] === name)
+  }
+
+  /**
+   * Get a new rikishi object by shikona (ring-name)
+   * @param {string} name name (shikona) of the rikishi in romaji
+   * @returns {Rikishi} new object from the table row data
+   */
+  getRikishiObjByName (name) {
+    const row = this.getRikishiByName(name)
+    if (!row) return null
+    return new Rikishi(...row)
   }
 
   /**
