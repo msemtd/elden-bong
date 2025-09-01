@@ -12,6 +12,7 @@ import { Text } from 'troika-three-text'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 import { SumoBody } from './SumoBody'
+import { WeatherForecast } from './WeatherForecast'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
@@ -57,7 +58,9 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'openBanzukeDataDir')
       this.gui.add(this, 'loadBanzukeData')
       this.gui.add(this, 'allBobbleHeads')
+      this.gui.add(this, 'tokyoWeatherForecast').name('Tokyo Weather')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
+      this.gui.add(this, 'isThereNewBanzuke').name('New Banzuke?')
     })
   }
 
@@ -102,6 +105,22 @@ export class SumoDoyoh extends MiniGameBase {
   popRikishiDialog (rikishi, obj) {
     console.log(rikishi)
 
+  }
+
+  async isThereNewBanzuke () {
+    // Check if there is a new banzuke available
+    try {
+      // is full cache of banzuke loaded?
+      const gotFull = await this.banzuke.isFullCacheAvailable()
+      if (!gotFull) {
+        throw Error('Full banzuke cache is not available, please refresh banzuke data')
+      }
+      await this.banzuke.load()
+      const info = await this.banzuke.checkDivisionChange(1)
+      Dlg.popup(info ? `There is a new banzuke: ${info}` : 'No new banzuke at this time')
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
   }
 
   async runTest () {
@@ -457,5 +476,10 @@ export class SumoDoyoh extends MiniGameBase {
     // Show the division data
     const data = this.banzuke.getRikishiForDivision(d.sumoOrJpPage)
     console.table(data)
+  }
+
+  async tokyoWeatherForecast () {
+    const wf = new WeatherForecast()
+    console.log(wf.processedData)
   }
 }

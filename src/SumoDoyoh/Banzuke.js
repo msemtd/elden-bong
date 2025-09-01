@@ -247,6 +247,24 @@ export class Banzuke {
     return new Rikishi(...row)
   }
 
+  async checkDivisionChange (division) {
+    // get the cached division - do not fetch!
+    const data1 = await DataDir.getJson('', { cacheFile: this.cachePathBanzukeDivision(division) })
+    // fetch the division - do not cache!
+    const data2 = await DataDir.getJson(this.urlBanzukeDivisionData(division))
+    // compare the dates or other info
+    console.log('old vs new data', data1, data2)
+    if (data1?.basho_name && data2?.basho_name && data1?.year_jp && data2?.year_jp) {
+      const b1 = `${data1.basho_name} (${data1.year_jp})`
+      const b2 = `${data2.basho_name} (${data2.year_jp})`
+      if (b1 === b2) {
+        return ''
+      }
+      return `New Basho: '${b2}' <-- ${b1}`
+    }
+    return 'dunno mate'
+  }
+
   /**
    * Cache a single division from current sumo.or.jp website banzuke
    * @param {number} division - The division number
@@ -291,6 +309,15 @@ export class Banzuke {
       this.rikishi.push(...rows)
       progressCallback(Math.floor((i / aa.length) * 100), `fetch division ${aa[i].sumoOrJpPage || 0}`)
     }
+  }
+
+  async isFullCacheAvailable () {
+    const fullTableFile = `${cacheDirName}/all-rikishi.json`
+    const data = await DataDir.getJson('', { cacheFile: fullTableFile })
+    if (data instanceof Object && Array.isArray(data.rikishi)) {
+      return true
+    }
+    return false
   }
 
   async load (progressCallback = (pct, stage) => {
