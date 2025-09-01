@@ -172,7 +172,7 @@ export class Banzuke {
   constructor () {
     this.rikishi = []
     // when incomplete load, just save it anyway for a faster start
-    this.saveTabAnyway = true
+    this.saveTabAnyway = false
     this.divisions = [
       { name: 'Makuuchi', jpName: '幕内', enName: 'Top Division', sumoOrJpPage: 1 },
       { name: 'Jūryō', jpName: '十両', enName: 'Second Division', sumoOrJpPage: 2 },
@@ -358,6 +358,7 @@ export class Banzuke {
       // Scrape the HTML for additional data
       if (!r.scrapeProfileDataEn(html)) {
         console.warn('problem scraping profile data for ' + r.shikona + ' ' + r.rikishiId)
+        console.log(`go and test url: ${r.urlProfileEnglish()}`)
         // If bad then delete the cache file
         await DataDir.deleteFile(r.cacheFileProfile())
         faults++

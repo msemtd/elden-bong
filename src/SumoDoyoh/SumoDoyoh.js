@@ -103,8 +103,8 @@ export class SumoDoyoh extends MiniGameBase {
   }
 
   popRikishiDialog (rikishi, obj) {
+    // TODO practice your art: pop up a VanJS dialog with fun data
     console.log(rikishi)
-
   }
 
   async isThereNewBanzuke () {
