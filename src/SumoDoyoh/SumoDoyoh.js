@@ -481,5 +481,6 @@ export class SumoDoyoh extends MiniGameBase {
   async tokyoWeatherForecast () {
     const wf = new WeatherForecast()
     console.log(wf.processedData)
+    // not worth it but fun: await wf.tryScrapingDirectly()
   }
 }

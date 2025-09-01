@@ -1,7 +1,19 @@
+import { DataDir } from '../DataDir'
+
 /**
  *  Copy and paste days forecast text from...
  * https://www.accuweather.com/en/jp/tokyo/226396/daily-weather-forecast/226396
  * Then let's see how it changes over time
+ *
+ * So this loads a number of forward-looking forecasts (just text pasted from a page right now)
+ * - with a view to seeing how it changes over time
+ * - if fetched once a day we would see days pass and change
+ * - we would be able to see a trend of "getting warmer", "looks like less rain forecast", etc.
+ * - we would naturally expect a forecast to get more accurate as we approach the days in question!
+ *
+ * Try to fetch data regularly to keep a fresh set of forecasts with enough overlap to see trends over time!
+ * Allow the user to set their location URL - provide Tokyo and go from there!
+ * Use the DataDir caches and allow the user to manage their data.
  */
 export class WeatherForecast {
   constructor () {
@@ -32,7 +44,10 @@ export class WeatherForecast {
         currentDay = { dow: line, rem: [] }
         days.push(currentDay)
       } else {
-        currentDay.rem.push(line)
+        if (!currentDay) {
+          console.warn('Unexpected line found before day header:', line)
+        }
+        currentDay?.rem.push(line)
       }
     }
     days.forEach(day => {
@@ -46,6 +61,16 @@ export class WeatherForecast {
       day.wind = day.rem[11] // e.g. S 24 km/h
     })
     return days
+  }
+
+  async tryScrapingDirectly () {
+    // I don't think it's worth scraping this data - it's more fun to paste it in manually from the website!
+    const url = 'https://www.accuweather.com/en/jp/tokyo/226396/daily-weather-forecast/226396'
+    // const ts = new Date().toISOString().substring(0, 19).replace(/[:T]/g, '-')
+    const ts = new Date().toISOString().substring(0, 10).replace(/[:T]/g, '-')
+    const d = await DataDir.getText(url, { useCache: false, timeout: 15000 })
+    console.log(d)
+    console.log(`Fetching ${url} at ${ts}`)
   }
 
   getData () {
