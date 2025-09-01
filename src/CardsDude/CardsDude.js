@@ -625,28 +625,53 @@ class GameState extends THREE.EventDispatcher {
   }
 }
 
-const toughBigSpiderGame = {
-  xmsol: '876721932',
-  known: [
-    '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
-    '--------------------------------------',
-    '5h qh 8d ac 7h 4c 9h qh 9h 6c as kc 3d',
-    'th 6c jd qc 2c 7s 7d 9c 8s 6h td qc 5d',
-    '5d 8s 3s 6s 7c 3h 7h jc 4s 2s 4h 5c 6h',
-    'jh ad 2c 6h kc 3c td 9d ts 8c 4s tc qd',
-    '7d 7d 7c ah kc ah ks 2h 5h th 5s 5s ks',
-    '--------------------------------------',
-    'Kh 5h 5s 8s qd 9s 4d kd 3s 5c 8h kd ks',
-  ],
+const toughBigSpiderGames = [
+  {
+    xmsol: '876721932',
+    known: [
+      '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
+      '--------------------------------------',
+      '5h qh 8d ac 7h 4c 9h qh 9h 6c as kc 3d',
+      'th 6c jd qc 2c 7s 7d 9c 8s 6h td qc 5d',
+      '5d 8s 3s 6s 7c 3h 7h jc 4s 2s 4h 5c 6h',
+      'jh ad 2c 6h kc 3c td 9d ts 8c 4s tc qd',
+      '7d 7d 7c ah kc ah ks 2h 5h th 5s 5s ks',
+      '--------------------------------------',
+      'Kh 5h 5s 8s qd 9s 4d kd 3s 5c 8h kd ks',
+    ],
 
-  stack: [
-    '9d 2c as qd 3d 7c 4c 8h 4h kh 3c 7h ah',
-    '4s 2d jh td tc ts js kh 6d jd 4c 9c 7s',
-    'ad 3d 3h 7s 5c qs ac 9s 8h jc jh 6d js',
-    '9h qs 9d 2d 3c 6c 8d kd 8d tc as 6d 2s',
-    '8c 2d qh 4h 6s qc 2h js 4d 3s 8c 3h 6s',
-    'sd qs jd 9d 9c jc ac 4d 2s ad 2h th ts'
+    stack: [
+      '9d 2c as qd 3d 7c 4c 8h 4h kh 3c 7h ah',
+      '4s 2d jh td tc ts js kh 6d jd 4c 9c 7s',
+      'ad 3d 3h 7s 5c qs ac 9s 8h jc jh 6d js',
+      '9h qs 9d 2d 3c 6c 8d kd 8d tc as 6d 2s',
+      '8c 2d qh 4h 6s qc 2h js 4d 3s 8c 3h 6s',
+      'sd qs jd 9d 9c jc ac 4d 2s ad 2h th ts'
 
-  ]
-}
+    ]
+  },
+  {
+    xmsol: '2454013121',
+    known: [
+      '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
+      '--------------------------------------',
+      'qh 9h 9c ## 5d qd ## ## ## ## 5c ## ##',
+      '9c 7d qd ## 4h 8d 8c ## ## ## 3c ## ##',
+      '5d 3c 9h ## 2s 6d 8c ## ## ## 4s ## ##',
+      '5h 2c 4s ## 9d 2d 2d ## ## ## 7c ## jh',
+      'kh 8s 7c ## td kd th ## 3h ## ts ## tc',
+      '--------------------------------------',
+      '3d 7s ac 7c 6d 6s th 3s 5h ks 2h kh qd',
+    ],
+
+    stack: [
+      '3h 2d 6s as kd td 4c ks ad kh qd ah ac',
+      'qd tc ts 5c 4h 9d ad 5c 7s 8s 5s as th',
+      'as 5s 6s kd qc jd qh 8h td 7s 2c jh 2d',
+      '3d jc 7h 6c qd 3h 8d 2c tc 4d 6h 5s 8d',
+      '4h jd 7h 8h ah ts 8s 9d 3s 8h 7h ah jc',
+      '4d ks 5h 4s 9d 4d 9c 9h 2h qc ad 4c jc',
+    ]
+  },
+]
 export { CardsDude }
