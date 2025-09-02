@@ -9,7 +9,7 @@ import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
 
 const dbg = debug('main')
-debug.enable('main')
+// debug.enable('main')
 
 dbg('we appear to be alive')
 

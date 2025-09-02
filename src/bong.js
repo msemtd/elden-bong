@@ -445,7 +445,6 @@ class Bong extends THREE.EventDispatcher {
   }
 
   changeRegionByNumber (n) {
-    console.log(`change region to ${n}`)
     const inRange = (isInteger(n) && n >= 0 && n < regionNames.length)
     console.assert(inRange)
     if (!inRange) { return }
@@ -482,14 +481,12 @@ class Bong extends THREE.EventDispatcher {
       if (this.settings.scene.background?.skyBox) {
         this.setSkyBox(this.settings.scene.background.skyBox)
       }
-      console.dir(this.settings.scene)
       return
     }
     console.log('main process says: ', topic, msg)
   }
 
   async setSkyBox (v) {
-    console.log('TODO setSkyBox: ', v)
     const scene = this.screen.scene
     if (scene.background?.isTexture) {
       scene.background.dispose()
@@ -510,7 +507,6 @@ class Bong extends THREE.EventDispatcher {
   }
 
   setSkyBoxList (va) {
-    console.log('main process skyBoxList: ', va)
     if (!Array.isArray(va)) {
       throw Error('bad skyBoxList')
     }

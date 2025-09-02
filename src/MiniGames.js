@@ -123,7 +123,6 @@ class MiniGames extends THREE.EventDispatcher {
     // visit each game and get it to pause/hide itself
     for (const [k, v] of Object.entries(this.games)) {
       if (v instanceof MiniGameBase) {
-        console.log('deactivate ' + k)
         v.deactivate()
       }
     }

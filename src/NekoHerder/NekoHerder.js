@@ -20,11 +20,11 @@ class NekoHerder extends MiniGameBase {
       this.hexBlockGeometry = NekoHerder.hexBlock()
     })
     // TODO: ntc is not as awesome as it could be - we cannot do lookups by name - maybe fork it
-    this.blockColours = ['Racing Green', 'Japanese Laurel']
-    for (const c of this.blockColours) {
-      const r = ntc(c)
-      console.dir(r)
-    }
+    // this.blockColours = ['Racing Green', 'Japanese Laurel']
+    // for (const c of this.blockColours) {
+    //   const r = ntc(c)
+    //   console.dir(r)
+    // }
   }
 
   static hexBlock () {
