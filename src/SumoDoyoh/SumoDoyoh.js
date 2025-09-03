@@ -5,7 +5,7 @@ import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke, Rikishi } from './Banzuke'
 import { Dlg } from '../dlg'
-import { shellOpenPath } from '../HandyApi'
+import { shellOpenPath, shellOpenExternal } from '../HandyApi'
 import { filePathToMine } from '../util'
 import path from 'path-browserify'
 import { Text } from 'troika-three-text'
@@ -479,8 +479,22 @@ export class SumoDoyoh extends MiniGameBase {
   }
 
   async tokyoWeatherForecast () {
-    const wf = new WeatherForecast()
-    console.log(wf.processedData)
-    // not worth it but fun: await wf.tryScrapingDirectly()
+    try {
+      const wf = new WeatherForecast()
+      console.log(wf.processedData)
+
+      // let's make a dialog
+      const closed = van.state(false)
+      van.add(document.body, FloatingWindow(
+        { title: `${wf.location} Weather Forecast Trends`, closed, width: 400, height: 300 },
+        div({},
+          p(`Weather forecast for ${wf.location}`),
+          div({ id: 'weatherForecast' }),
+          button({ onclick: () => { shellOpenExternal(wf.pasteUrl) } }, 'Go grab forecast')
+        )
+      ))
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
   }
 }

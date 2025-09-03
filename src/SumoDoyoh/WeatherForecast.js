@@ -18,7 +18,12 @@ import { DataDir } from '../DataDir'
 export class WeatherForecast {
   constructor () {
     this.rawData = this.getData()
+    this.location = 'Tokyo'
+    this.pasteUrl = 'https://www.accuweather.com/en/jp/tokyo/226396/daily-weather-forecast/226396'
+    // the data is captured using a browser here in the UK with my local settings
+    this.locale = new Intl.Locale('en-GB')
     this.processedData = this.processData(this.rawData)
+    this.applyDateChecks()
   }
 
   processData (data) {
@@ -63,9 +68,60 @@ export class WeatherForecast {
     return days
   }
 
+  // For each forecast set the range with checks
+  // do this once after the raw data processing
+  // fully qualify the date objects
+  // check the days of the week
+  // TODO enforce the contiguity of the range of days
+  // TODO enforce that the
+  applyDateChecks () {
+    const forecastYearStart = 2025
+    // get the start and end days for the range of forecasts
+    // we have locale-dependent data - but just live with it!
+    this.processedData.forEach(f => {
+      // take the capture date and try to use it to make the days fully specified
+      {
+        // each capture date is a forward looking forecast (naturally! safe assumption)
+        const [yyyy, mm, dd, hh, mmi, ss] = [...f.captured.split('-').map(n => parseInt(n, 10)), 0, 0, 0]
+        if (yyyy !== forecastYearStart) {
+          throw Error(`unexpected forecast year ${yyyy}, need to update code`)
+        }
+        const capDate = new Date(yyyy, parseInt(mm, 10) - 1, dd, hh, mmi, ss)
+        console.log('capture date ' + capDate.toLocaleDateString())
+        f.captureDateObj = capDate
+      }
+      const capUtc = f.captureDateObj.valueOf()
+      let [min, max] = [null, null]
+      f.days.forEach(d => {
+        const [day, month] = d.date.split('/').map(n => parseInt(n, 10))
+        const dd = `${d.dow} ${d.date}`
+        const o = new Date()
+        o.setDate(day)
+        o.setMonth(month - 1) // zero based month
+        console.log(`dd: ${dd} == ${o.toLocaleDateString()}`)
+        d.dateObj = o
+
+        // assert that the weekday matches that in the
+        const dtf = new Intl.DateTimeFormat(this.locale, { weekday: 'short' })
+        console.assert(dtf.format(o) === d.dow)
+        const dms = o.valueOf()
+        if (!min) {
+          max = min = dms
+        }
+        if (min < capUtc) {
+          throw Error(`Forecast day data is less than ${f.captureDateObj.toLocaleDateString()}`)
+        }
+        if (dms > max) {
+          max = dms
+        }
+      })
+      console.log(`Forecast from ${new Date(min).toLocaleDateString()} to ${new Date(max).toLocaleDateString()}`)
+    })
+  }
+
   async tryScrapingDirectly () {
     // I don't think it's worth scraping this data - it's more fun to paste it in manually from the website!
-    const url = 'https://www.accuweather.com/en/jp/tokyo/226396/daily-weather-forecast/226396'
+    const url = this.pasteUrl
     // const ts = new Date().toISOString().substring(0, 19).replace(/[:T]/g, '-')
     const ts = new Date().toISOString().substring(0, 10).replace(/[:T]/g, '-')
     const d = await DataDir.getText(url, { useCache: false, timeout: 15000 })
