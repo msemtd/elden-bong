@@ -76,27 +76,30 @@ game:
   }
 }
 
-class MoveNode {
+export class MoveNode {
   constructor () {
     // each move has a set of next options
     // some may not have been traversed/discovered
     // when we undo we can discard or keep the old tree
     this.moves = []
-    // there's the move and that produces a result - do we save a state?
-    // is this just Redux?
+    this.parent = null
+    this.colour = 'grey'
+    // the tiniest bit of state from the previous to the next - game dependent of course
+    this.moveInfo = {}
+    this.score = 0
   }
 }
 
-export class SpiderAutomation {
+export class MoveTree {
   constructor () {
+    this.seed = 0
+    this.initialState = {}
     this.situation = 'plan'
-    this.moveTree = {
-      // from initial state a node is made
-      rootNode: new MoveNode()
-    }
+    this.moveTree = new MoveNode()
   }
 
-  // strategy for deciding the next move
+  // Strategy for deciding the next move is to rank all possible moves by score.
+  // Score is assigned to each move using the goal of the game.
   // - what do we want?
   // look at the cards just newly dealt
   // find all possible moves and add a new MoveNode to the current node's moves array
