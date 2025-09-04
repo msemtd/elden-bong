@@ -490,7 +490,11 @@ export class SumoDoyoh extends MiniGameBase {
           allDays.add(day.date)
         })
       })
-      const head = Array.from(allDays).sort()
+      const head = Array.from(allDays).sort((a, b) => {
+        const [ad, am] = a.split('/').map(n => parseInt(n, 10))
+        const [bd, bm] = b.split('/').map(n => parseInt(n, 10))
+        return am - bm || ad - bd
+      })
       const tab = fa.map((f) => {
         const row = head.map(d => {
           const df = f.days.find(dd => dd.date === d)
@@ -510,7 +514,7 @@ export class SumoDoyoh extends MiniGameBase {
       const closed = van.state(false)
       van.add(document.body, FloatingWindow(
         { title: `${wf.location} Weather Forecast Trends`, closed, width: 400, height: 300 },
-        div({},
+        div({ style: 'overflow-x:auto;' },
           p(`Weather forecast for ${wf.location}`),
           button({ onclick: () => { shellOpenExternal(wf.pasteUrl) } }, 'Go grab forecast'),
           div({ id: 'weatherForecast' },
