@@ -482,6 +482,29 @@ export class SumoDoyoh extends MiniGameBase {
     try {
       const wf = new WeatherForecast()
       console.log(wf.processedData)
+      const fa = wf.processedData
+      // make columns - find all days in all forecasts
+      const allDays = new Set()
+      fa.forEach(forecast => {
+        forecast.days.forEach(day => {
+          allDays.add(day.date)
+        })
+      })
+      const head = Array.from(allDays).sort()
+      const tab = fa.map((f) => {
+        const row = head.map(d => {
+          const df = f.days.find(dd => dd.date === d)
+          return df?.temperature || '-'
+        })
+        return row
+      })
+      const Table = ({ head, data }) => table(
+        { border: '1px solid black', width: '100%' },
+        head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
+        tbody(data.map(row => tr(
+          row.map(col => td(col))
+        )))
+      )
 
       // let's make a dialog
       const closed = van.state(false)
@@ -489,8 +512,11 @@ export class SumoDoyoh extends MiniGameBase {
         { title: `${wf.location} Weather Forecast Trends`, closed, width: 400, height: 300 },
         div({},
           p(`Weather forecast for ${wf.location}`),
-          div({ id: 'weatherForecast' }),
-          button({ onclick: () => { shellOpenExternal(wf.pasteUrl) } }, 'Go grab forecast')
+          button({ onclick: () => { shellOpenExternal(wf.pasteUrl) } }, 'Go grab forecast'),
+          div({ id: 'weatherForecast' },
+            Table({ head, data: tab })
+          )
+
         )
       ))
     } catch (error) {
