@@ -55,6 +55,7 @@ class CardsDude extends MiniGameBase {
       f.add(this, 'deactivate')
       f.add(this, 'lookAtCardTable')
       f.add(this, 'redoLayout')
+      f.add(this, 'loadHardGameTest')
       {
         const fld = f.addFolder('layout').close()
         fld.add(this.layout, 'verticalSpacingFaceUp')
@@ -74,8 +75,6 @@ class CardsDude extends MiniGameBase {
       f.add(this.gameState, 'dumpHistory')
       this.gameState.addEventListener('update', this.handleGameStateUpdate.bind(this))
       this.screen.addMixer('CardsDude', (delta) => { return this.animate(delta) })
-      // TODO auto-start - can't do this at present because models are not yet created!
-      // this.testCardsDude()
     })
   }
 
@@ -417,6 +416,27 @@ class CardsDude extends MiniGameBase {
     cc.setLookAt(-0.21, -2.49, 3.32, 0.16, -0.26, -0.16, true)
     // cc.fitToSphere(this.group, true)
   }
+
+  // TODO load one of the hard xmsol BigSpider games to play with
+  loadHardGameTest (gameIndex = 1) {
+    const g = toughBigSpiderGames[gameIndex]
+    console.assert(isObject(g))
+    console.assert(isString(g.xmsol))
+    console.assert(Array.isArray(g.dealt))
+    console.assert(Array.isArray(g.stock))
+    // remove header line
+    const stockPile = g.dealt.slice(1).concat(g.stock)
+      .map(x => x.trim()).filter(x => x && !x.startsWith('-'))
+      .join(' ').split(' ')
+    console.assert(stockPile.length === 52 * 3)
+
+    // when dealt we want to assert that the face up cards look like this
+    const checkLast = g.dealt.slice(-1)
+      .map(x => x.trim()).filter(x => x && !x.startsWith('-'))
+      .join(' ').split(' ')
+    console.assert(checkLast.length === 13)
+    // TODO set this stockpile and deal it out then check what we have on the top
+  }
 }
 
 // take items from end of array and move to start
@@ -625,11 +645,11 @@ class GameState extends THREE.EventDispatcher {
   }
 }
 
-const toughBigSpiderGames = [
+export const toughBigSpiderGames = [
   {
     xmsol: '876721932',
-    known: [
-      '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
+    dealt: [
+      '01 02 03 04 05 06 07 08 09 10 11 12 13',
       '--------------------------------------',
       '5h qh 8d ac 7h 4c 9h qh 9h 6c as kc 3d',
       'th 6c jd qc 2c 7s 7d 9c 8s 6h td qc 5d',
@@ -640,7 +660,7 @@ const toughBigSpiderGames = [
       'Kh 5h 5s 8s qd 9s 4d kd 3s 5c 8h kd ks',
     ],
 
-    stack: [
+    stock: [
       '9d 2c as qd 3d 7c 4c 8h 4h kh 3c 7h ah',
       '4s 2d jh td tc ts js kh 6d jd 4c 9c 7s',
       'ad 3d 3h 7s 5c qs ac 9s 8h jc jh 6d js',
@@ -654,7 +674,7 @@ const toughBigSpiderGames = [
     xmsol: '2454013121',
     ts: '2025-09-02-22-24-56',
     comments: 'took me 3 days at least!',
-    known: [
+    dealt: [
       '01 02 03 04 05 06 07 08 09 10 11 12 13 ',
       '--------------------------------------',
       'qh 9h 9c kc 5d qd js 6c kc jh 5c 6d js',
@@ -666,7 +686,7 @@ const toughBigSpiderGames = [
       '3d 7s ac 7c 6d 6s th 3s 5h ks 2h kh qd',
     ],
 
-    stack: [
+    stock: [
       '3h 2d 6s as kd td 4c ks ad kh qd ah ac',
       'qd tc ts 5c 4h 9d ad 5c 7s 8s 5s as th',
       'as 5s 6s kd qc jd qh 8h td 7s 2c jh 2d',
