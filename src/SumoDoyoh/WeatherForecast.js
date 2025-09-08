@@ -3252,6 +3252,778 @@ Wind
 NE 11 km/h
 
         `
+      },
+      {
+        captured: '2025-09-01-12-49-41',
+        pageText:
+`
+Mon
+08/09
+35° /26°
+25%
+Partly cloudy, warm and very humid
+
+RealFeel®
+31°
+
+Cloud Cover
+52%
+
+Wind
+E 11 km/h
+
+Wind Gusts
+19 km/h
+
+Tue
+09/09
+34° /26°
+70%
+A brief shower or two in the morning; otherwise, partly sunny, hot and humid; possible danger of dehydration and heatstroke while doing strenuous activities
+RealFeel®
+40°
+
+RealFeel Shade™
+37°
+
+Max UV Index
+7.0 (Unhealthy (Sensitive))
+
+Wind
+SSE 15 km/h
+
+Wed
+10/09
+32° /25°
+60%
+Very warm and very humid with variable clouds; an afternoon thundery shower
+RealFeel®
+38°
+
+RealFeel Shade™
+36°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+ENE 15 km/h
+
+Thu
+11/09
+29° /23°
+80%
+Considerable cloudiness and very humid; a couple of afternoon thundery showers
+RealFeel®
+33°
+
+RealFeel Shade™
+33°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+ENE 19 km/h
+
+Fri
+12/09
+29° /23°
+60%
+Humid; a passing shower in the morning, then sunny periods in the afternoon
+RealFeel®
+32°
+
+RealFeel Shade™
+32°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+NE 17 km/h
+
+Sat
+13/09
+32° /26°
+25%
+Very humid with broken intervals; breezy in the afternoon
+RealFeel®
+34°
+
+RealFeel Shade™
+34°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+SSE 20 km/h
+
+Sun
+14/09
+32° /25°
+19%
+Windy and humid with clouds followed by a brightening sky
+RealFeel®
+34°
+
+RealFeel Shade™
+34°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+SSW 35 km/h
+
+Mon
+15/09
+30° /23°
+25%
+Very warm and muggy with low clouds
+RealFeel®
+34°
+
+RealFeel Shade™
+34°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+NE 6 km/h
+
+Tue
+16/09
+29° /26°
+6%
+Humid with sunny periods
+RealFeel®
+36°
+
+RealFeel Shade™
+33°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+E 4 km/h
+
+Wed
+17/09
+33° /25°
+18%
+Very warm and muggy with sunny periods
+RealFeel®
+38°
+
+RealFeel Shade™
+36°
+
+Max UV Index
+6.0 (Unhealthy (Sensitive))
+
+Wind
+SSW 9 km/h
+
+Thu
+18/09
+32° /25°
+55%
+Broken intervals and remaining very warm with a shower in spots
+RealFeel®
+33°
+
+RealFeel Shade™
+32°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+ENE 9 km/h
+
+Fri
+19/09
+29° /22°
+55%
+Broken intervals; a morning shower in spots followed by a little rain in the afternoon
+RealFeel®
+31°
+
+RealFeel Shade™
+29°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+ENE 7 km/h
+
+Sat
+20/09
+28° /22°
+60%
+Humid with periods of rain
+RealFeel®
+32°
+
+RealFeel Shade™
+31°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+E 4 km/h
+
+Sun
+21/09
+28° /22°
+20%
+Humid with broken cloud and sunny spells
+RealFeel®
+32°
+
+RealFeel Shade™
+30°
+
+Max UV Index
+6.0 (Unhealthy (Sensitive))
+
+Wind
+SSW 7 km/h
+
+Mon
+22/09
+28° /21°
+5%
+Very humid with spells of sunshine
+RealFeel®
+36°
+
+RealFeel Shade™
+33°
+
+Max UV Index
+6.0 (Unhealthy (Sensitive))
+
+Wind
+NW 4 km/h
+
+Tue
+23/09
+28° /20°
+55%
+Cloudy with a little rain
+RealFeel®
+27°
+
+RealFeel Shade™
+26°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+NE 11 km/h
+
+Wed
+24/09
+24° /19°
+55%
+Cloudy with a little rain
+RealFeel®
+23°
+
+RealFeel Shade™
+23°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 9 km/h
+
+Thu
+25/09
+24° /21°
+58%
+A little rain in the morning; otherwise, cloudy and humid
+RealFeel®
+26°
+
+RealFeel Shade™
+26°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+NNE 4 km/h
+
+Fri
+26/09
+27° /21°
+25%
+Broken intervals and humid
+RealFeel®
+28°
+
+RealFeel Shade™
+28°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+NE 7 km/h
+
+Sat
+27/09
+25° /20°
+25%
+Broken intervals and humid
+RealFeel®
+29°
+
+RealFeel Shade™
+28°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+SSW 9 km/h
+
+Sun
+28/09
+27° /20°
+55%
+Cloudy and very humid; a shower in spots in the morning followed by a thunderstorm in spots in the afternoon
+RealFeel®
+33°
+
+RealFeel Shade™
+32°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+NW 7 km/h
+
+Mon
+29/09
+26° /19°
+55%
+Cloudy with a shower in spots
+RealFeel®
+26°
+
+RealFeel Shade™
+26°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+NNE 7 km/h
+
+Tue
+30/09
+25° /19°
+25%
+Broken intervals
+RealFeel®
+26°
+
+RealFeel Shade™
+25°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 6 km/h
+
+Wed
+01/10
+25° /20°
+65%
+Mostly cloudy and humid; a couple of showers and a thunderstorm in the afternoon
+RealFeel®
+27°
+
+RealFeel Shade™
+26°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+NE 7 km/h
+
+Thu
+02/10
+24° /18°
+59%
+Humid with occasional rain
+RealFeel®
+26°
+
+RealFeel Shade™
+25°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 6 km/h
+
+Fri
+03/10
+23° /16°
+25%
+Broken intervals
+RealFeel®
+24°
+
+RealFeel Shade™
+22°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 6 km/h
+
+Sat
+04/10
+24° /16°
+10%
+Sunny spells
+RealFeel®
+25°
+
+RealFeel Shade™
+23°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+N 13 km/h
+
+Sun
+05/10
+24° /17°
+25%
+Increasing cloud
+RealFeel®
+25°
+
+RealFeel Shade™
+25°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+N 6 km/h
+
+Mon
+06/10
+25° /19°
+20%
+Humid with sunny spells
+RealFeel®
+30°
+
+RealFeel Shade™
+26°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+WNW 4 km/h
+
+Tue
+07/10
+23° /18°
+68%
+Rain
+RealFeel®
+23°
+
+RealFeel Shade™
+22°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 15 km/h
+
+Wed
+08/10
+22° /17°
+25%
+Cloudy
+RealFeel®
+21°
+
+RealFeel Shade™
+21°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 13 km/h
+
+Thu
+09/10
+23° /16°
+20%
+Long sunny spells
+RealFeel®
+24°
+
+RealFeel Shade™
+21°
+
+Max UV Index
+5.0 (Moderate)
+
+Wind
+N 13 km/h
+
+Fri
+10/10
+24° /18°
+55%
+Bright periods with a few showers
+RealFeel®
+23°
+
+RealFeel Shade™
+23°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+N 13 km/h
+
+Sat
+11/10
+24° /18°
+76%
+Overcast; a passing shower in the morning followed by rain in the afternoon
+RealFeel®
+22°
+
+RealFeel Shade™
+22°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+N 11 km/h
+
+Sun
+12/10
+24° /14°
+25%
+Less humid with periods of sunshine
+RealFeel®
+23°
+
+RealFeel Shade™
+23°
+
+Max UV Index
+2.0 (Good)
+
+Wind
+NNW 11 km/h
+
+Mon
+13/10
+21° /13°
+5%
+Long periods of sunshine
+RealFeel®
+23°
+
+RealFeel Shade™
+20°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+NNE 6 km/h
+
+Tue
+14/10
+20° /13°
+25%
+Increasing cloud
+RealFeel®
+21°
+
+RealFeel Shade™
+20°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+NNE 4 km/h
+
+Wed
+15/10
+21° /16°
+25%
+Cloudy
+RealFeel®
+22°
+
+RealFeel Shade™
+22°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+W 4 km/h
+
+Thu
+16/10
+23° /17°
+75%
+Rain ending in the morning; cloudy and humid
+RealFeel®
+24°
+
+RealFeel Shade™
+24°
+
+Max UV Index
+1.0 (Good)
+
+Wind
+SSW 22 km/h
+
+Fri
+17/10
+22° /15°
+2%
+Sunny spells
+RealFeel®
+23°
+
+RealFeel Shade™
+20°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+NE 9 km/h
+
+Sat
+18/10
+22° /16°
+3%
+Long sunny spells
+RealFeel®
+23°
+
+RealFeel Shade™
+21°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+NE 11 km/h
+
+Sun
+19/10
+22° /16°
+25%
+Broken intervals
+RealFeel®
+22°
+
+RealFeel Shade™
+21°
+
+Max UV Index
+3.0 (Moderate)
+
+Wind
+NE 19 km/h
+
+Mon
+20/10
+22° /12°
+7%
+Bright periods
+RealFeel®
+24°
+
+RealFeel Shade™
+22°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+N 6 km/h
+
+Tue
+21/10
+20° /11°
+25%
+Broken cloud and sunny spells
+RealFeel®
+20°
+
+RealFeel Shade™
+18°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+NNW 15 km/h
+
+Wed
+22/10
+20° /12°
+0%
+Spells of sunshine
+RealFeel®
+19°
+
+RealFeel Shade™
+18°
+
+Max UV Index
+4.0 (Moderate)
+
+Wind
+N 22 km/h
+
+`
       }
     ]
   }
