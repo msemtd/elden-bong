@@ -13,6 +13,8 @@ import { Culture } from './Marain/Culture'
 import { Tetris } from './Tetris/Tetris'
 import { MiniGameBase } from './MiniGameBase'
 import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
+import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
+
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -64,6 +66,7 @@ class MiniGames extends THREE.EventDispatcher {
       culture: new Culture(this),
       tetris: new Tetris(this),
       geoRef: new GeoRefMiniGame(this),
+      weatherForecastForecast: new WeatherForecastForecast(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''
@@ -121,7 +124,7 @@ class MiniGames extends THREE.EventDispatcher {
 
   deactivateAll () {
     // visit each game and get it to pause/hide itself
-    for (const [k, v] of Object.entries(this.games)) {
+    for (const [, v] of Object.entries(this.games)) {
       if (v instanceof MiniGameBase) {
         v.deactivate()
       }

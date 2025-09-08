@@ -103,7 +103,6 @@ export class WeatherForecast {
       let [min, max] = [null, null]
       f.days.forEach(d => {
         const [day, month] = d.date.split('/').map(n => parseInt(n, 10))
-        const dd = `${d.dow} ${d.date}`
         const o = new Date()
         o.setDate(day)
         o.setMonth(month - 1) // zero based month
