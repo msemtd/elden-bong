@@ -1,25 +1,54 @@
-import { MiniGameBase } from '../MiniGameBase'
+import path from 'path-browserify'
 import * as THREE from 'three'
+import van from 'vanjs-core/debug'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { MiniGameBase } from '../MiniGameBase'
 import { Dlg } from '../dlg'
 import { shellOpenPath, shellOpenExternal } from '../HandyApi'
 import { filePathToMine } from '../util'
-import path from 'path-browserify'
-import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 import { WeatherForecast } from './WeatherForecast'
+import { DataDir } from '../DataDir'
 
-const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
+const { p, div, button, label, textarea, progress, table, tbody, thead, td, th, tr } = van.tags
 
 export class WeatherForecastForecast extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Forecast')
+    this.dataFolderName = 'WeatherForecast'
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'tokyoWeatherForecast').name('Tokyo Weather')
     })
+  }
+
+  addForecast (captured, text) {
+    try {
+      console.log(captured, text)
+    } catch (error) {
+      Dlg.errorDialog(error)
+    }
+  }
+
+  popNewTextEditor () {
+    console.log('popNewTextEditor')
+    const captured = '2025-09-01-12-49-41' // TODO - generate timestamp
+    const theTextAreaDom = textarea({ id: 'textBox1', rows: 20, cols: 40, style: '' })
+    const closed = van.state(false)
+    const onClickSave = () => {
+      this.addForecast(captured, theTextAreaDom.value)
+      closed.val = true
+    }
+    van.add(document.body, FloatingWindow(
+      { title: `Paste Forecast ${captured}`, closed, width: 400, height: 300 },
+      div({ style: 'overflow-x:auto;' },
+        button({ onclick: onClickSave }, 'Save'),
+        p('paste text here and hit save'),
+        theTextAreaDom
+      )
+    ))
   }
 
   async tokyoWeatherForecast () {
@@ -61,6 +90,7 @@ export class WeatherForecastForecast extends MiniGameBase {
         div({ style: 'overflow-x:auto;' },
           p(`Weather forecast for ${wf.location}`),
           button({ onclick: () => { shellOpenExternal(wf.pasteUrl) } }, 'Go grab forecast'),
+          button({ onclick: () => { this.popNewTextEditor() } }, 'Paste Here'),
           div({ id: 'weatherForecast' },
             Table({ head, data: tab })
           )
