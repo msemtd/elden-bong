@@ -27,6 +27,7 @@ export class WeatherForecastForecast extends MiniGameBase {
   addForecast (captured, text) {
     try {
       console.log(captured, text)
+      // DataDir.putText(path.join(this.dataFolderName, `${captured}.txt`), text)
     } catch (error) {
       Dlg.errorDialog(error)
     }

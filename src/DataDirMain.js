@@ -52,9 +52,88 @@ export class DataDirMain {
    * @property {string =} cacheFile - relative cache file path, optional.
    * @property {boolean = false} noDataJustCache - do not return the data (e.g.
    * if huge), just cache it.
-   * @property {Object =} cacheThisData - kind of a hack right now in place of putJson - just
+   * @property {Object =} cacheThisData - kind of a hack right now in place of put commands - just
    * stick this data in the cache when it doesn't make sense to fetch from a remote URL.
    */
+
+  /**
+   * The idea here is to cover all the common cases of fetching and caching
+   * data in one function. It can be used for JSON, text, binary data.
+   *
+   * It can also be used to just cache some data locally without fetching it.
+   * It can also be used to just fetch data without caching it.
+   * It can also be used to just read cached data without fetching it.
+   * It can also be used to write data to the cache (without fetching it).
+   *
+   * Need options to enable all cases.
+   *
+   * Need unit tests to cover all cases.
+   * empty files are OK
+   * empty data is OK
+   * empty JSON when properly defined is OK
+   * when a fetch fails throw an error
+   * when a write to disk fails throw an error
+   * when a read from disk fails throw an error
+   */
+
+  async doWhatever (fetch = '', dataType = 'binary', cacheFile = '', dataIn = null, returnData = true) {
+    // cf (if set) is going to be read from or written to (maybe both?)
+    const cf = await this.ensureCachePath(cacheFile)
+    let readFromCache = !!cf
+    const writeToCache = !!cf
+    let data = null
+    if (cf && dataIn !== null) {
+      // when dataIn is provided, we just write it to the cache and return no data.
+      data = dataIn
+      fetch = ''
+      readFromCache = false
+      returnData = false
+    }
+    if (readFromCache) {
+      if (await fs.exists(cf)) {
+        // The file is there in the cache - it should read OK
+        if (dataType === 'json') {
+          // NB: fs-extra readJson with throws=false returns null if the data does not parse
+          data = await fs.readJson(cf, { throws: false })
+        } else if (dataType === 'text') {
+          data = await fs.readFile(cf, { encoding: 'utf8' })
+        } else if (dataType === 'binary') {
+          data = await fs.readFile(cf)
+        }
+      }
+      // TODO this is just for the bad JSON case - if it doesn't parse then maybe we want to try fetching it again?
+      if (data !== null) {
+        return data
+      }
+    }
+    if (fetch) {
+      const response = await net.fetch(fetch)
+      if (response.ok) {
+        if (dataType === 'json') {
+          data = await response.json()
+        } else if (dataType === 'text') {
+          data = await response.text()
+        } else if (dataType === 'binary') {
+          const blob = await response.blob()
+          const buf = await blob.arrayBuffer()
+          data = new Uint8Array(buf)
+        }
+      } else {
+        // When fetching fails just throw an error
+        throw new Error(`Fetch failed: ${response.status} ${response.statusText}`)
+      }
+    }
+    if (writeToCache) {
+      if (dataType === 'json') {
+        await fs.writeJson(cf, data)
+      } else if (dataType === 'text') {
+        await fs.outputFile(cf, data, { encoding: 'utf8' })
+      } else if (dataType === 'binary') {
+        await fs.outputFile(cf, data)
+      }
+    }
+    return returnData ? data : null
+  }
 
   /**
    * Get some JSON given a URL and maybe cache it.
