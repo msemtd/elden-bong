@@ -8,7 +8,7 @@ import $ from 'jquery'
 import { Howl } from 'howler'
 // cSpell:ignore yatiac, kanjivg
 import ntc from '@yatiac/name-that-color'
-import { path } from 'path-browserify'
+import path from 'path-browserify'
 
 import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
@@ -102,9 +102,7 @@ class Bong extends THREE.EventDispatcher {
     this.addStats(c)
     this.addCamInfo(c)
     this.fileDrop = new FileDrop()
-    this.fileDrop.init(c.container, (filePaths) => {
-      console.log('file drop: ', filePaths)
-    })
+    this.fileDrop.init(c.container, this.fileDropHandler.bind(this))
     // this.addDemoCube(c)
     this.miniGames = null
     this.makeGui()
@@ -170,7 +168,6 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'trySomeSvg')
       fld.add(this, 'testVanStuff')
       fld.add(this, 'loadTokyo')
-      fld.add(this, 'loadE57')
 
       // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
       // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
@@ -357,16 +354,38 @@ class Bong extends THREE.EventDispatcher {
     })
   }
 
-  async loadE57 () {
-    const fp = await pick()
-    if (!fp) { return }
-    console.log(fp)
-    const info = await window.handy.readE57(fp)
-    console.dir(info)
+  async fileDropHandler (files) {
+    console.log('file drop: ', files)
+    // TODO the job here is to hook into the file importer system with interactive or non-interactive modes.
+    // initially we could register handlers for file types/extensions
+    // when interactive we can ask the user what they want to do with each file
+    // when non-interactive we can just do the default thing for that file type
+    // inspect the file option
+    // We can assume interactive and ask the user about any ambiguous cases
+    const handlers = {
+      '.e57': this.loadE57File.bind(this),
+    }
+    const errors = []
+    for (const f of files) {
+      const fp = window.handy.getPathForFile(f)
+      console.log('eat me: ', f)
+      console.log('path: ', fp)
+      const pp = path.parse(fp)
+      const h = handlers[pp.ext.toLowerCase()]
+      if (h) {
+        await h(fp)
+      } else {
+        errors.push(`no handler for file type ${pp.ext}`)
+      }
+    }
+    if (errors.length) {
+      Dlg.errorDialog(errors.join('\n'))
+    }
   }
 
-  static openExternal (url) {
-    shellOpenExternal(url)
+  async loadE57File (fp) {
+    const info = await window.handy.readE57(fp)
+    console.dir(info)
   }
 
   /**

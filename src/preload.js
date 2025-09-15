@@ -1,6 +1,6 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 const { DataDirPreload } = require('./DataDirPreload.js')
 
 contextBridge.exposeInMainWorld('versions', {
@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('handy', {
   readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
+  // File paths from File Drop API
+  getPathForFile: (file) => webUtils.getPathForFile(file),
 })
 
 contextBridge.exposeInMainWorld('settings', {

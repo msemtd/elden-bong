@@ -42,7 +42,8 @@ class FileDrop {
       const items = getFileDataTransferItems(ev)
       if (!items) { return false }
       // here upon drop (on electron at least) we have access to getAsFile() on items
-      const filePaths = items.map(x => x.getAsFile()).filter(x => !!x).map(x => x.path)
+      const filePaths = items.map(x => x.getAsFile()).filter(x => !!x)
+      // .map(x => x.path)
       if (!filePaths) { return false }
       dropCallback(filePaths)
       return false

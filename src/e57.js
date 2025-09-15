@@ -3,7 +3,8 @@ import fs from 'fs-extra'
 
 import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser'
 
-const dbg = debug('main')
+const dbg = debug('e57')
+dbg.enabled = true
 
 // 6. General File Structure
 // 6.1 E57 files shall use the filename extension “.e57” (note
@@ -40,10 +41,9 @@ const dbg = debug('main')
 class E57 {
   static async readE57 (fp) {
     dbg(`main thread async load e57 file from '${fp}'...`)
-    console.log(`main thread async load e57 file from '${fp}'...`)
     try {
       const stats = await fs.stat(fp, { bigint: true })
-      console.dir(stats)
+      dbg(stats)
       if (stats.size > Number.MAX_SAFE_INTEGER) {
         throw Error(`vast file size not supported: ${stats.size}`)
       }
@@ -51,11 +51,10 @@ class E57 {
       // await E57.checkingPass(fp, Number(stats.size))
       const fh = await fs.open(fp, 'r')
       dbg('file opened OK')
-      console.log('file opened OK')
       const h = await E57.readHeader(fh)
-      console.dir(h)
+      dbg(h)
       const xml = await E57.readXmlSection(fh, h.xmlPhysicalOffset, h.xmlLogicalLength)
-      console.log(`XML of length ${xml.length}`)
+      dbg(`XML of length ${xml.length}`)
       const lines = xml.split('\n')
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -67,8 +66,7 @@ class E57 {
       // Pose and bounds
       // this shows the need to map empty string numerical entries to the default 0 where appropriate
       // we also enforce the e57 standard here and throw errors as appropriate
-
-      console.dir(jObj)
+      dbg(jObj)
       // TODO func to validate header
       if (!jObj.e57Root) {
         throw Error('e57Root not found in XML')
@@ -85,6 +83,8 @@ class E57 {
         throw Error(`e57Root version not 1.0: ${ver}`)
       }
     } catch (error) {
+      // necessary to throw and catch or will it be caught on the other side?
+      // TODO test the theory
       console.error(error)
       return `not too happy with the outcome: ${error}`
     }
