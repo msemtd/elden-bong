@@ -14,6 +14,7 @@ import { Tetris } from './Tetris/Tetris'
 import { MiniGameBase } from './MiniGameBase'
 import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
+import { Matcha } from './Matcha/Matcha'
 
 /**
  * Allow the mini-games wrapper provide a games room
@@ -67,6 +68,7 @@ class MiniGames extends THREE.EventDispatcher {
       tetris: new Tetris(this),
       geoRef: new GeoRefMiniGame(this),
       weatherForecastForecast: new WeatherForecastForecast(this),
+      matcha: new Matcha(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''
