@@ -36,13 +36,7 @@ export class Matcha extends MiniGameBase {
     console.log('Running Matcha test...')
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.activate()
-    const p = {
-      w: 8,
-      h: 8,
-      tileSize: 0.9,
-      tileSpacing: 0.1,
-      tiles: Object.keys(this.tiles),
-    }
+    const p = this.params
     // what fonts have these emoji?
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
