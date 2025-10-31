@@ -151,6 +151,9 @@ class MiniGames extends THREE.EventDispatcher {
     if (this.games.sumoDoyoh.active) {
       return this.games.sumoDoyoh.offerDoubleClick(ev, mousePos, raycaster)
     }
+    if (this.games.matcha.active) {
+      return this.games.matcha.offerDoubleClick(ev, mousePos, raycaster)
+    }
     return false
   }
 

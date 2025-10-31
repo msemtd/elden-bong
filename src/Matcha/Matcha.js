@@ -82,10 +82,9 @@ export class Matcha extends MiniGameBase {
         tile.name = `tile_${k}`
         tile.position.set(x, y, p.tileThickness / 2 + 0.001)
         rack.add(tile)
-        // this.clickable.push(tile)
       }
     }
-
+    this.clickable = rack
     this.redraw()
   }
 
