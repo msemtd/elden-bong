@@ -3,25 +3,37 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
 import { Colours } from '../Colours'
+import tileImageMonkey from './matcha-card-monkey.png'
+import tileImageDog from './matcha-card-dog.png'
+import tileImagePig from './matcha-card-pig.png'
+import tileImageChicken from './matcha-card-chicken.png'
+import tileImageRabbit from './matcha-card-rabbit.png'
+import tileImageRat from './matcha-card-rat.png'
 
 export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
     this.clickable = []
     this.gameState = 'attract' // 'playing', 'paused', 'gameover'
+    // TODO I want to make the tiles from emoji but I can't be sure that the
+    // fonts will be available on the user's system
+    // I'll start with little PNG images
+    // TODO load images
+    // TODO add tile textures from images similar to cards games
     const tiles = {
-      monkey: { t: '🐵', colour: 'grey' },
-      dog: { t: '🐶', colour: 'grey' },
-      pig: { t: '🐷', colour: 'grey' },
-      chicken: { t: '🐔', colour: 'grey' },
-      rabbit: { t: '🐰', colour: 'grey' },
-      rat: { t: '🐭', colour: 'grey' },
+      monkey: { t: '🐵', colour: 'grey', img: tileImageMonkey },
+      dog: { t: '🐶', colour: 'grey', img: tileImageDog },
+      pig: { t: '🐷', colour: 'grey', img: tileImagePig },
+      chicken: { t: '🐔', colour: 'grey', img: tileImageChicken },
+      rabbit: { t: '🐰', colour: 'grey', img: tileImageRabbit },
+      rat: { t: '🐭', colour: 'grey', img: tileImageRat },
     }
     this.params = {
       w: 8,
       h: 8,
-      tileSize: 0.9,
+      tileSize: 0.86,
       tileSpacing: 0.1,
+      tileThickness: 0.1,
       tiles,
     }
     parent.addEventListener('ready', (ev) => {
@@ -44,6 +56,36 @@ export class Matcha extends MiniGameBase {
     )
     backdrop.position.set(0, 0, -0.1)
     this.group.add(backdrop)
+    // create tile prototypes
+    const loader = new THREE.TextureLoader()
+    const m = new THREE.MeshLambertMaterial({ color: Colours.get('green') })
+    const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
+    const meshes = []
+    for (const [k, v] of Object.entries(p.tiles)) {
+      v.mat = new THREE.MeshLambertMaterial({ map: loader.load(v.img) })
+      const mesh = new THREE.Mesh(geometry, [m, m, m, m, v.mat, m])
+      mesh.userData.tileType = k
+      v.mesh = mesh
+      meshes.push(mesh)
+    }
+    // create "rack" for tiles...
+    const rack = new THREE.Group()
+    rack.name = 'rack'
+    rack.position.set(-3.5, -3.5, 0)
+    backdrop.add(rack)
+    // create initial rack full of tiles...
+    for (let y = 0; y < p.h; y++) {
+      for (let x = 0; x < p.w; x++) {
+        const k = `${y}_${x}`
+        const rnd = Math.floor(Math.random() * meshes.length)
+        const tile = meshes[rnd].clone()
+        tile.name = `tile_${k}`
+        tile.position.set(x, y, p.tileThickness / 2 + 0.001)
+        rack.add(tile)
+        // this.clickable.push(tile)
+      }
+    }
+
     this.redraw()
   }
 
