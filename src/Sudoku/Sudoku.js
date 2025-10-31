@@ -401,11 +401,7 @@ export class Sudoku extends MiniGameBase {
       return true
     }
     if (ev.key === 'c' || ev.key === 'C') {
-      const sq = this.playingMode
-      const idx = sq.userData.sqIdx
-
-      // check for problems or completion?
-      return true
+      return this.checkCompletion()
     }
     if (ev.key === 'd' || ev.key === 'D') {
       // Dump state to console
@@ -448,6 +444,23 @@ export class Sudoku extends MiniGameBase {
     }
     this.redraw()
     return true
+  }
+
+  checkCompletion () {
+    // TODO check if the puzzle is correctly completed
+    // TODO also run this after every move?
+    console.log('checkCompletion TODO')
+    // Check if all squares have big numbers
+    const squares = this.group.getObjectByName('squares')
+    for (let i = 0; i < squares.children.length; i++) {
+      const sq = squares.children[i]
+      // the text is a child of the square
+      const ta = sq.children.filter((c) => c instanceof Text)
+      const ba = ta.filter(x => x.userData.hint && !x.userData.small).map(x => x.userData.hint)
+      // TODO probably easier to check fixed numbers first - where are they?
+
+    }
+    return false
   }
 
   promoteOrDemoteHint (sq) {

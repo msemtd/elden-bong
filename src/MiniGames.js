@@ -45,7 +45,8 @@ import { Matcha } from './Matcha/Matcha'
  * Just move camera?
  *
  * TODO: the management of who gets key and cursor events could be dealt with in MiniGames
- * as modes of operation
+ * TODO: common game state changes - pause, resume, reset, game over, win, lose
+ * TODO: common requirements - sound, music, high scores, settings
  */
 class MiniGames extends THREE.EventDispatcher {
   constructor (parent) {
