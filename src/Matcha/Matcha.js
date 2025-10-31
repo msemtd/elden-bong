@@ -14,6 +14,8 @@ export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
     this.clickable = []
+    this.highlighted = null
+    this.highlightObj = null
     this.gameState = 'attract' // 'playing', 'paused', 'gameover'
     // TODO I want to make the tiles from emoji but I can't be sure that the
     // fonts will be available on the user's system
@@ -84,7 +86,15 @@ export class Matcha extends MiniGameBase {
         rack.add(tile)
       }
     }
-    this.clickable = rack
+    this.clickable = [rack]
+    // create a highlight object
+    const highlightGeo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness)
+    const highlightMat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
+    this.highlightObj = new THREE.Mesh(highlightGeo, highlightMat)
+    this.highlightObj.visible = true
+    this.group.add(this.highlightObj)
+    this.highlightObj.position.copy(rack.position)
+
     this.redraw()
   }
 
