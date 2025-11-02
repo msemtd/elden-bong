@@ -75,6 +75,7 @@ export class Matcha extends MiniGameBase {
     rack.name = 'rack'
     rack.position.set(-3.5, -3.5, 0)
     backdrop.add(rack)
+    this.rack = rack
     // create initial rack full of tiles...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
@@ -82,7 +83,7 @@ export class Matcha extends MiniGameBase {
         const rnd = Math.floor(Math.random() * meshes.length)
         const tile = meshes[rnd].clone()
         tile.name = `tile_${k}`
-        tile.position.set(x, y, p.tileThickness / 2 + 0.001)
+        tile.position.set(x, y, (p.tileThickness / 2) + 0.001)
         rack.add(tile)
       }
     }
@@ -94,7 +95,7 @@ export class Matcha extends MiniGameBase {
     this.highlightObj.visible = true
     this.group.add(this.highlightObj)
     this.highlightObj.position.copy(rack.position)
-
+    this.highlightObj.position.z = 0
     this.redraw()
   }
 
@@ -117,10 +118,15 @@ export class Matcha extends MiniGameBase {
   clickableClicked (obj) {
     console.log('clickableClicked', obj)
     this.activate()
+    // TODO -
     // lock camera
     // on escape, pause game, unlock camera
     // start receiving single clicks
+
+    // just move the highlight
+    this.highlightObj.position.copy(this.rack.position)
+    this.highlightObj.position.add(obj.position)
+    this.highlightObj.position.z = 0
     this.redraw()
-    // TODO -
   }
 }
