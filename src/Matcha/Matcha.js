@@ -14,7 +14,6 @@ export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
     this.clickable = []
-    this.highlighted = null
     this.highlightObj = null
     this.gameState = 'attract' // 'playing', 'paused', 'gameover'
     // TODO I want to make the tiles from emoji but I can't be sure that the
@@ -36,6 +35,7 @@ export class Matcha extends MiniGameBase {
       tileSize: 0.86,
       tileSpacing: 0.1,
       tileThickness: 0.1,
+      highlightZ: 0.12,
       tiles,
     }
     parent.addEventListener('ready', (ev) => {
@@ -73,29 +73,27 @@ export class Matcha extends MiniGameBase {
     // create "rack" for tiles...
     const rack = new THREE.Group()
     rack.name = 'rack'
-    rack.position.set(-3.5, -3.5, 0)
+    rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
     // create initial rack full of tiles...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
-        const k = `${y}_${x}`
         const rnd = Math.floor(Math.random() * meshes.length)
         const tile = meshes[rnd].clone()
-        tile.name = `tile_${k}`
-        tile.position.set(x, y, (p.tileThickness / 2) + 0.001)
+        tile.position.set(x, y, 0)
         rack.add(tile)
       }
     }
     this.clickable = [rack]
     // create a highlight object
-    const highlightGeo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness)
-    const highlightMat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
-    this.highlightObj = new THREE.Mesh(highlightGeo, highlightMat)
-    this.highlightObj.visible = true
-    this.group.add(this.highlightObj)
-    this.highlightObj.position.copy(rack.position)
-    this.highlightObj.position.z = 0
+    {
+      const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
+      const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
+      const h = new THREE.Mesh(geo, mat)
+      rack.add(h)
+      this.highlightObj = h
+    }
     this.redraw()
   }
 
@@ -116,17 +114,40 @@ export class Matcha extends MiniGameBase {
    * take focus - activate me, deactivate others, etc
    */
   clickableClicked (obj) {
-    console.log('clickableClicked', obj)
     this.activate()
     // TODO -
     // lock camera
     // on escape, pause game, unlock camera
     // start receiving single clicks
-
-    // just move the highlight
-    this.highlightObj.position.copy(this.rack.position)
-    this.highlightObj.position.add(obj.position)
-    this.highlightObj.position.z = 0
+    this.selectTile(obj)
     this.redraw()
+  }
+
+  selectTile (obj) {
+    if (obj === this.highlightObj) {
+      this.highlightObj.visible = false
+      return
+    }
+    // save old position
+    const [px, py] = [this.highlightObj.position.x, this.highlightObj.position.y]
+    // move the highlight
+    this.highlightObj.position.copy(obj.position)
+    if (!this.highlightObj.visible) {
+      this.highlightObj.visible = true
+      return
+    }
+    // is this adjacent?
+    const [nx, ny] = [this.highlightObj.position.x, this.highlightObj.position.y]
+    if (nx === px && (ny === py + 1 || ny === py - 1)) {
+      console.log('adjacent up-down')
+    }
+    if (ny === py && (nx === px + 1 || nx === px - 1)) {
+      console.log('adjacent left-right')
+    }
+    const adjacent = ((nx === px && (ny === py + 1 || ny === py - 1)) || (ny === py && (nx === px + 1 || nx === px - 1)))
+    if (!adjacent) { return }
+    const [ox, oy] = [Math.abs(nx, px), Math.abs(ny, py)]
+    const [adjHor, adjVrt] = [(ox === 1 && oy === 0), (oy === 1 && ox === 0)]
+    console.log(`adjHor = ${adjHor}, adjVrt = ${adjVrt}`)
   }
 }
