@@ -10,25 +10,42 @@ import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
 
+/**
+ * Matcha mini-game - a tile-matching game I saw on an Air China flight
+ * - the only user input is to select a tile
+ * - selecting a tile highlights it (or de-highlights if already highlighted)
+ * - selecting an adjacent tile swaps them
+ * - if the swap creates a line of 3 or more matching tiles, they disappear
+ * - tiles above fall down to fill the gaps, and new tiles appear at the top
+ * - if no line is created, the swap is reversed
+ *
+ * The tiles sit on a "rack" which allows placement in local coordinates or column and row
+ * - the rack sits in front of a backdrop
+ * - the highlight is a semi-transparent box that sits slightly above the tile
+ * - raycasting for clicks is done against the rack
+ * - because raycasting hits invisible objects we can use layers
+ * - layer 1 will be used for clickable objects
+ * - when making an object invisible and non-clickable just remove it from layer 1
+ *
+ * @extends MiniGameBase
+ */
 export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
     this.clickable = []
     this.highlightObj = null
-    this.gameState = 'attract' // 'playing', 'paused', 'gameover'
+    this.gameState = 'attract' // 'playing', 'paused', 'gameOver'
     // TODO I want to make the tiles from emoji but I can't be sure that the
     // fonts will be available on the user's system
     // I'll start with little PNG images
-    // TODO load images
-    // TODO add tile textures from images similar to cards games
-    const tiles = {
-      monkey: { t: '🐵', colour: 'grey', img: tileImageMonkey },
-      dog: { t: '🐶', colour: 'grey', img: tileImageDog },
-      pig: { t: '🐷', colour: 'grey', img: tileImagePig },
-      chicken: { t: '🐔', colour: 'grey', img: tileImageChicken },
-      rabbit: { t: '🐰', colour: 'grey', img: tileImageRabbit },
-      rat: { t: '🐭', colour: 'grey', img: tileImageRat },
-    }
+    const tileInfo = [
+      { text: '🐵', name: 'monkey', img: tileImageMonkey, mesh: null },
+      { text: '🐶', name: 'dog', img: tileImageDog, mesh: null },
+      { text: '🐷', name: 'pig', img: tileImagePig, mesh: null },
+      { text: '🐔', name: 'chicken', img: tileImageChicken, mesh: null },
+      { text: '🐰', name: 'rabbit', img: tileImageRabbit, mesh: null },
+      { text: '🐭', name: 'rat', img: tileImageRat, mesh: null },
+    ]
     this.params = {
       w: 8,
       h: 8,
@@ -36,7 +53,7 @@ export class Matcha extends MiniGameBase {
       tileSpacing: 0.1,
       tileThickness: 0.1,
       highlightZ: 0.12,
-      tiles,
+      tileInfo,
     }
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -46,42 +63,45 @@ export class Matcha extends MiniGameBase {
     })
   }
 
+  createTileProtoMeshes () {
+    const p = this.params
+    const loader = new THREE.TextureLoader()
+    const m = new THREE.MeshLambertMaterial({ color: Colours.get('green') })
+    const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
+    for (const t of p.tileInfo) {
+      const mat = new THREE.MeshLambertMaterial({ map: loader.load(t.img) })
+      const mesh = new THREE.Mesh(geometry, [m, m, m, m, mat, m])
+      mesh.userData.tileType = t.name
+      t.mesh = mesh
+    }
+  }
+
   runTest () {
     console.log('Running Matcha test...')
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-    this.activate()
+    this.createTileProtoMeshes()
     const p = this.params
-    // what fonts have these emoji?
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
       new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
     )
     backdrop.position.set(0, 0, -0.1)
     this.group.add(backdrop)
-    // create tile prototypes
-    const loader = new THREE.TextureLoader()
-    const m = new THREE.MeshLambertMaterial({ color: Colours.get('green') })
-    const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
-    const meshes = []
-    for (const [k, v] of Object.entries(p.tiles)) {
-      v.mat = new THREE.MeshLambertMaterial({ map: loader.load(v.img) })
-      const mesh = new THREE.Mesh(geometry, [m, m, m, m, v.mat, m])
-      mesh.userData.tileType = k
-      v.mesh = mesh
-      meshes.push(mesh)
-    }
     // create "rack" for tiles...
     const rack = new THREE.Group()
     rack.name = 'rack'
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
+
     // create initial rack full of tiles...
+    const n = p.tileInfo.length
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
-        const rnd = Math.floor(Math.random() * meshes.length)
-        const tile = meshes[rnd].clone()
+        const rnd = Math.floor(Math.random() * n)
+        const tile = p.tileInfo[rnd].mesh.clone()
         tile.position.set(x, y, 0)
+        tile.layers.enable(1) // make clickable
         rack.add(tile)
       }
     }
@@ -91,9 +111,12 @@ export class Matcha extends MiniGameBase {
       const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
       const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
       const h = new THREE.Mesh(geo, mat)
+      h.visible = false
+      h.layers.disable(1) // make clickable
       rack.add(h)
       this.highlightObj = h
     }
+    this.activate()
     this.redraw()
   }
 
@@ -102,7 +125,10 @@ export class Matcha extends MiniGameBase {
    */
   offerDoubleClick (ev, mousePos, raycaster) {
     if (!this.active || ev.button !== 0) { return false }
+    const savedLayers = raycaster.layers.mask
+    raycaster.layers.set(1)
     const hits = raycaster.intersectObjects(this.clickable, true)
+    raycaster.layers.set(savedLayers)
     if (!hits.length) {
       return false
     }
@@ -126,6 +152,7 @@ export class Matcha extends MiniGameBase {
   selectTile (obj) {
     if (obj === this.highlightObj) {
       this.highlightObj.visible = false
+      this.highlightObj.layers.disable(1)
       return
     }
     // save old position
@@ -134,6 +161,7 @@ export class Matcha extends MiniGameBase {
     this.highlightObj.position.copy(obj.position)
     if (!this.highlightObj.visible) {
       this.highlightObj.visible = true
+      this.highlightObj.layers.enable(1)
       return
     }
     // is this adjacent?
