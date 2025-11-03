@@ -55,11 +55,17 @@ export class Matcha extends MiniGameBase {
       highlightZ: 0.12,
       tileInfo,
     }
+    // TODO - these look like we should create them on the fly since w'd need so many different rotated instances!
+    this.tileSwap = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [0, 0, 0, 0.5, 0, 0.25, 1, 0, 0])
+    this.tileSwapClip = new THREE.AnimationClip('tileSwap', 2, [this.tileSwap])
+    // TODO - but which of these are lightweight and reusable? Just do something and if it's not horrible performance-wise, leave it?
+
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.screen.addMixer('Matcha', (delta) => { return this.animate(delta) })
     })
   }
 
@@ -166,16 +172,48 @@ export class Matcha extends MiniGameBase {
     }
     // is this adjacent?
     const [nx, ny] = [this.highlightObj.position.x, this.highlightObj.position.y]
-    if (nx === px && (ny === py + 1 || ny === py - 1)) {
-      console.log('adjacent up-down')
-    }
-    if (ny === py && (nx === px + 1 || nx === px - 1)) {
-      console.log('adjacent left-right')
-    }
-    const adjacent = ((nx === px && (ny === py + 1 || ny === py - 1)) || (ny === py && (nx === px + 1 || nx === px - 1)))
-    if (!adjacent) { return }
+    // if (nx === px && (ny === py + 1 || ny === py - 1)) {
+    //   console.log('adjacent up-down')
+    // }
+    // if (ny === py && (nx === px + 1 || nx === px - 1)) {
+    //   console.log('adjacent left-right')
+    // }
+    // const adjacent = ((nx === px && (ny === py + 1 || ny === py - 1)) || (ny === py && (nx === px + 1 || nx === px - 1)))
+    // if (!adjacent) { return }
     const [ox, oy] = [Math.abs(nx, px), Math.abs(ny, py)]
     const [adjHor, adjVrt] = [(ox === 1 && oy === 0), (oy === 1 && ox === 0)]
+    // NB: both will not be true
     console.log(`adjHor = ${adjHor}, adjVrt = ${adjVrt}`)
+    // something like...
+    // create animation things on the fly?
+    // this.startTileSwapAnimation(a, b).then(checkSwapConsequences)
+    //
+    // could check consequences first - could write code for that later once we
+    // have a good animation system
+  }
+
+  /**
+   * For animation:
+   * - the 'gsap' animation library is proving annoying in other mini-games and
+   *   not acting intuitively so I want to just use three.js built-in animation
+   *   features. In the process I might discover what I'm doing wrong in 'gsap'.
+   * - hand-crafted too: https://threejs.org/examples/?q=keys#misc_animation_keys
+   *   https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
+   *
+   * TODO - an animation sequence to swap two tiles can come first
+   * have user settings for animation durations
+   * 
+   * 
+   * 
+   * 
+   * @returns {boolean} whether a redraw is required
+   */
+  animate (delta) {
+    if (!this.active) { return false }
+    // anything on the timeline?
+    // could animate multiple things at once but some things need to be sequential
+    // - tiles swapping, tiles falling, new tiles appearing
+    // - sounds too
+    return false
   }
 }
