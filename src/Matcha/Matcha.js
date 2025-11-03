@@ -156,34 +156,41 @@ export class Matcha extends MiniGameBase {
   }
 
   selectTile (obj) {
-    if (obj === this.highlightObj) {
-      this.highlightObj.visible = false
-      this.highlightObj.layers.disable(1)
+    const h = this.highlightObj
+    // if highlight selected, hide it and quit
+    if (obj === h) {
+      h.visible = false
+      h.layers.disable(1)
       return
     }
     // save old position
-    const [px, py] = [this.highlightObj.position.x, this.highlightObj.position.y]
-    // move the highlight
-    this.highlightObj.position.copy(obj.position)
-    if (!this.highlightObj.visible) {
-      this.highlightObj.visible = true
-      this.highlightObj.layers.enable(1)
+    const p1 = h.position.clone()
+    // move the highlight to new obj position
+    h.position.copy(obj.position)
+    // if highlight not shown, show it and quit
+    if (!h.visible) {
+      h.visible = true
+      h.layers.enable(1)
       return
     }
-    // is this adjacent?
-    const [nx, ny] = [this.highlightObj.position.x, this.highlightObj.position.y]
-    // if (nx === px && (ny === py + 1 || ny === py - 1)) {
-    //   console.log('adjacent up-down')
-    // }
-    // if (ny === py && (nx === px + 1 || nx === px - 1)) {
-    //   console.log('adjacent left-right')
-    // }
-    // const adjacent = ((nx === px && (ny === py + 1 || ny === py - 1)) || (ny === py && (nx === px + 1 || nx === px - 1)))
-    // if (!adjacent) { return }
-    const [ox, oy] = [Math.abs(nx, px), Math.abs(ny, py)]
-    const [adjHor, adjVrt] = [(ox === 1 && oy === 0), (oy === 1 && ox === 0)]
-    // NB: both will not be true
-    console.log(`adjHor = ${adjHor}, adjVrt = ${adjVrt}`)
+    // is new position adjacent?
+    const p2 = h.position.clone()
+    if (p2.distanceToSquared(p1) !== 1.0) {
+      return
+    }
+    console.log(`adjacent ${p1.x},${p1.y} <==> ${p2.x},${p2.y}`)
+    const otherTile = this.rack.children.find(o => o !== h && o.position.equals(p1))
+    if (!otherTile) {
+      console.error('something not right with rack contents - debug this')
+      return
+    }
+    this.swapTiles(obj, p2, otherTile, p1)
+  }
+
+  swapTiles (obj, p2, otherTile, p1) {
+    // non-animated version - boring
+    otherTile.position.copy(p2)
+    obj.position.copy(p1)
     // something like...
     // create animation things on the fly?
     // this.startTileSwapAnimation(a, b).then(checkSwapConsequences)
@@ -202,10 +209,10 @@ export class Matcha extends MiniGameBase {
    *
    * TODO - an animation sequence to swap two tiles can come first
    * have user settings for animation durations
-   * 
-   * 
-   * 
-   * 
+   *
+   *
+   *
+   *
    * @returns {boolean} whether a redraw is required
    */
   animate (delta) {
@@ -214,6 +221,7 @@ export class Matcha extends MiniGameBase {
     // could animate multiple things at once but some things need to be sequential
     // - tiles swapping, tiles falling, new tiles appearing
     // - sounds too
+    // queue of things?
     return false
   }
 }
