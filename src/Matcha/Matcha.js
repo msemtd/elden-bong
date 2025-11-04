@@ -187,12 +187,35 @@ export class Matcha extends MiniGameBase {
     this.swapTiles(obj, p2, otherTile, p1)
   }
 
-  swapTiles (obj, p2, otherTile, p1) {
+  swapTiles (obj, p2, otherTile, p1, animated = true) {
     // non-animated version - boring
-    otherTile.position.copy(p2)
-    obj.position.copy(p1)
-    // something like...
+    if (!animated) {
+      otherTile.position.copy(p2)
+      obj.position.copy(p1)
+      return
+    }
+
+    // TODO completely untested animation version!
     // create animation things on the fly?
+    // this seems rather excessive - I'm probably doing this wrong
+    const duration = 1.5 // seconds
+    const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
+    const m1 = mid.clone()
+    const m2 = mid.clone()
+    m1.z += 0.25
+    m2.z -= 0.25
+    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
+    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
+    const clip1 = new THREE.AnimationClip('Action', duration, [kf1])
+    const clip2 = new THREE.AnimationClip('Action', duration, [kf2])
+    const mixer1 = new THREE.AnimationMixer(otherTile)
+    const mixer2 = new THREE.AnimationMixer(obj)
+    const clipAction1 = mixer1.clipAction(clip1)
+    const clipAction2 = mixer2.clipAction(clip2)
+    clipAction1.play()
+    clipAction2.play()
+    // TODO these need to be managed in the the mini game "mixer"
+
     // this.startTileSwapAnimation(a, b).then(checkSwapConsequences)
     //
     // could check consequences first - could write code for that later once we
