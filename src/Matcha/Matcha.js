@@ -55,11 +55,7 @@ export class Matcha extends MiniGameBase {
       highlightZ: 0.12,
       tileInfo,
     }
-    // TODO - these look like we should create them on the fly since w'd need so many different rotated instances!
-    this.tileSwap = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [0, 0, 0, 0.5, 0, 0.25, 1, 0, 0])
-    this.tileSwapClip = new THREE.AnimationClip('tileSwap', 2, [this.tileSwap])
-    // TODO - but which of these are lightweight and reusable? Just do something and if it's not horrible performance-wise, leave it?
-
+    this.animationQueue = []
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -184,6 +180,8 @@ export class Matcha extends MiniGameBase {
       console.error('something not right with rack contents - debug this')
       return
     }
+    h.visible = false
+    h.layers.disable(1)
     this.swapTiles(obj, p2, otherTile, p1)
   }
 
@@ -198,28 +196,24 @@ export class Matcha extends MiniGameBase {
     // TODO completely untested animation version!
     // create animation things on the fly?
     // this seems rather excessive - I'm probably doing this wrong
-    const duration = 1.5 // seconds
     const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
     const m1 = mid.clone()
     const m2 = mid.clone()
-    m1.z += 0.25
-    m2.z -= 0.25
-    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
-    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 1, 2], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
-    const clip1 = new THREE.AnimationClip('Action', duration, [kf1])
-    const clip2 = new THREE.AnimationClip('Action', duration, [kf2])
+    m1.z += 0.45
+    m2.z += 0.25
+    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.7, 1.4], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
+    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.7, 1.4], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
+    const clip1 = new THREE.AnimationClip('Action', -1, [kf1])
+    const clip2 = new THREE.AnimationClip('Action', -1, [kf2])
     const mixer1 = new THREE.AnimationMixer(otherTile)
     const mixer2 = new THREE.AnimationMixer(obj)
-    const clipAction1 = mixer1.clipAction(clip1)
-    const clipAction2 = mixer2.clipAction(clip2)
-    clipAction1.play()
-    clipAction2.play()
-    // TODO these need to be managed in the the mini game "mixer"
-
-    // this.startTileSwapAnimation(a, b).then(checkSwapConsequences)
-    //
-    // could check consequences first - could write code for that later once we
-    // have a good animation system
+    const action1 = mixer1.clipAction(clip1)
+    const action2 = mixer2.clipAction(clip2)
+    action1.loop = action2.loop = THREE.LoopOnce
+    action1.clampWhenFinished = action2.clampWhenFinished = true
+    action1.play()
+    action2.play()
+    this.animationQueue.push(action1, action2)
   }
 
   /**
@@ -249,6 +243,10 @@ export class Matcha extends MiniGameBase {
     // - tiles swapping, tiles falling, new tiles appearing
     // - sounds too
     // queue of things?
-    return false
+    for (const action of this.animationQueue) {
+      action.getMixer().update(delta)
+    }
+    this.animationQueue = this.animationQueue.filter(f => f.isRunning())
+    return (this.animationQueue.length > 0)
   }
 }
