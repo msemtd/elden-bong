@@ -204,14 +204,18 @@ export class Matcha extends MiniGameBase {
    * - the 'gsap' animation library is proving annoying in other mini-games and
    *   not acting intuitively so I want to just use three.js built-in animation
    *   features. In the process I might discover what I'm doing wrong in 'gsap'.
-   * - hand-crafted too: https://threejs.org/examples/?q=keys#misc_animation_keys
-   *   https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
+   *
+   * https://threejs.org/manual/#en/animation-system
+   * simplest example: https://threejs.org/examples/?q=keys#misc_animation_keys
+   * example code: https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
    *
    * TODO - an animation sequence to swap two tiles can come first
    * have user settings for animation durations
-   *
-   *
-   *
+   * Class relationships for the system
+   * AnimationAction drives
+   * AnimationMixer controlling
+   * AnimationClip has
+   * KeyframeTrack
    *
    * @returns {boolean} whether a redraw is required
    */
