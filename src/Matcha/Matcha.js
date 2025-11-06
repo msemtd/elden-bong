@@ -46,7 +46,7 @@ export class Matcha extends MiniGameBase {
       { text: '🐰', name: 'rabbit', img: tileImageRabbit, mesh: null },
       { text: '🐭', name: 'rat', img: tileImageRat, mesh: null },
     ]
-    this.params = {
+    const p = this.params = {
       w: 8,
       h: 8,
       tileSize: 0.86,
@@ -56,6 +56,14 @@ export class Matcha extends MiniGameBase {
       tileInfo,
     }
     this.animationQueue = []
+    this.textData = Array.from(Array(p.h), () => new Array(p.w).fill('-'))
+    // regex to match sequences of 3 or more consecutive matching digits...
+    this.rx = /(\d)\1{2,}/g
+    // regex testing...
+    ;['---33-----', '123455555678', '000111333'].forEach(row => {
+      console.log(`row '${row}' matches ${row.match(this.rx)}`)
+    })
+
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -80,9 +88,10 @@ export class Matcha extends MiniGameBase {
 
   runTest () {
     console.log('Running Matcha test...')
+    const p = this.params
+    const t = this.textData
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.createTileProtoMeshes()
-    const p = this.params
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
       new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
@@ -95,18 +104,21 @@ export class Matcha extends MiniGameBase {
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
-
     // create initial rack full of tiles...
     const n = p.tileInfo.length
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
         const rnd = Math.floor(Math.random() * n)
+        // TODO when adding tiles ensure that we don't make a winning line
+        t[y][x] = `${rnd}`
+        // t[y][x] = `${p.tileInfo[rnd].text}`
         const tile = p.tileInfo[rnd].mesh.clone()
         tile.position.set(x, y, 0)
         tile.layers.enable(1) // make clickable
         rack.add(tile)
       }
     }
+    // console.table(t)
     this.clickable = [rack]
     // create a highlight object
     {
