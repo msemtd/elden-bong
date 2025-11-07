@@ -56,12 +56,12 @@ export class Matcha extends MiniGameBase {
       tileInfo,
     }
     this.animationQueue = []
-    this.textData = Array.from(Array(p.h), () => new Array(p.w).fill('-'))
+    this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
     // regex to match sequences of 3 or more consecutive matching digits...
     this.rx = /(\d)\1{2,}/g
     // regex testing...
-    ;['---33-----', '123455555678', '000111333'].forEach(row => {
-      console.log(`row '${row}' matches ${row.match(this.rx)}`)
+    ;['---33-----', '123455555678', '000111333'].forEach(s => {
+      console.log(`string '${s}' matches ${s.match(this.rx)}`)
     })
 
     parent.addEventListener('ready', (ev) => {
@@ -71,6 +71,24 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.screen.addMixer('Matcha', (delta) => { return this.animate(delta) })
     })
+  }
+
+  /**
+   * pure function to create 2D array of random text digits
+   * @param {number} w width
+   * @param {number} h height
+   * @param {number} n number of different digits (0 to n-1)
+   * @returns {string[][]} 2D array of text digits
+   */
+  createTextRack (w, h, n) {
+    const r = Array.from(Array(h), () => new Array(w).fill('-'))
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const rnd = Math.floor(Math.random() * n)
+        r[y][x] = `${rnd}`
+      }
+    }
+    return r
   }
 
   createTileProtoMeshes () {
@@ -92,6 +110,7 @@ export class Matcha extends MiniGameBase {
     const t = this.textData
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.createTileProtoMeshes()
+    this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
       new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
@@ -104,21 +123,15 @@ export class Matcha extends MiniGameBase {
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
-    // create initial rack full of tiles...
-    const n = p.tileInfo.length
+    // create 3D rack of tile objects from prototype meshes...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
-        const rnd = Math.floor(Math.random() * n)
-        // TODO when adding tiles ensure that we don't make a winning line
-        t[y][x] = `${rnd}`
-        // t[y][x] = `${p.tileInfo[rnd].text}`
-        const tile = p.tileInfo[rnd].mesh.clone()
+        const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
         tile.position.set(x, y, 0)
         tile.layers.enable(1) // make clickable
         rack.add(tile)
       }
     }
-    // console.table(t)
     this.clickable = [rack]
     // create a highlight object
     {
