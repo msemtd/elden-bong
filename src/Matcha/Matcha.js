@@ -58,11 +58,13 @@ export class Matcha extends MiniGameBase {
     this.animationQueue = []
     this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
     // regex to match sequences of 3 or more consecutive matching digits...
-    this.rx = /(\d)\1{2,}/g
+    this.rx = /(\d)\1{2,}/gd
     // regex testing...
     ;['---33-----', '123455555678', '000111333'].forEach(s => {
       console.log(`string '${s}' matches ${s.match(this.rx)}`)
+      console.log(`....or '${s}' matches ${this.rx.exec(s)}`)
     })
+    this.deScoreTextRack()
 
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -89,6 +91,32 @@ export class Matcha extends MiniGameBase {
       }
     }
     return r
+  }
+
+  getColumnData (x, h, textData) {
+    const col = []
+    for (let y = 0; y < h; y++) {
+      col.push(textData[y][x])
+    }
+    return col
+  }
+
+  deScoreTextRack () {
+    const p = this.params
+    const t = this.textData
+    // look at the rows first...
+    for (let y = 0; y < p.h; y++) {
+      const s = t[y].join('')
+      const ma = this.rx.exec(s)
+      // getting more from the regex with the 'd' flag
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
+      if (!ma) { continue }
+      console.log(`r(${y}) = '${s}' matches: ${ma}`)
+      // replace one of the tiles in each match with a different random tile
+      for (const m of ma) {
+        const idx = s.indexOf(m)
+      }
+    }
   }
 
   createTileProtoMeshes () {
