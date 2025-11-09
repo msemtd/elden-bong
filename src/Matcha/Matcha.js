@@ -32,6 +32,8 @@ import tileImageRat from './matcha-card-rat.png'
 export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
+    // regex to match sequences of 3 or more consecutive matching digits...
+    this.rx = /(\d)\1{2,}/gd
     this.clickable = []
     this.highlightObj = null
     this.gameState = 'attract' // 'playing', 'paused', 'gameOver'
@@ -56,16 +58,7 @@ export class Matcha extends MiniGameBase {
       tileInfo,
     }
     this.animationQueue = []
-    this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
-    // regex to match sequences of 3 or more consecutive matching digits...
-    this.rx = /(\d)\1{2,}/gd
-    // regex testing...
-    ;['---33-----', '123455555678', '000111333'].forEach(s => {
-      console.log(`string '${s}' matches ${s.match(this.rx)}`)
-      console.log(`....or '${s}' matches ${this.rx.exec(s)}`)
-    })
-    this.deScoreTextRack()
-
+    this.textData = null
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -73,6 +66,77 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.screen.addMixer('Matcha', (delta) => { return this.animate(delta) })
     })
+  }
+
+  runTest () {
+    this.matchaLaunch()
+    // this.test1()
+  }
+
+  test1 () {
+    // regex testing...
+    // ;['---33-----', '123455555678', '000111333'].forEach(s => {
+    //   console.log(`string '${s}' matches ${s.match(this.rx)}`)
+    //   console.log(`....or '${s}' matches ${this.rx.exec(s)}`)
+    // })
+
+    const str1 = 'foo bar foo'
+    const regex1 = /foo/dg
+    console.log(regex1.hasIndices) // true
+    console.log(regex1.exec(str1).indices[0]) // [0, 3]
+    console.log(regex1.exec(str1).indices[0]) // [8, 11]
+    const str2 = 'foo bar foo'
+    const regex2 = /foo/
+    console.log(regex2.hasIndices) // false
+    console.log(regex2.exec(str2).indices) // undefined
+  }
+
+  rackToString (r) {
+    return r.flat(Infinity).join('')
+  }
+
+  matchaLaunch () {
+    console.log('Running Matcha test...')
+    const p = this.params
+    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
+    this.createTileProtoMeshes()
+    const t = this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
+    console.log(this.rackToString(this.textData))
+    this.deScoreTextRack()
+    const backdrop = new THREE.Mesh(
+      new THREE.PlaneGeometry(p.w, p.h),
+      new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
+    )
+    backdrop.position.set(0, 0, -0.1)
+    this.group.add(backdrop)
+    // create "rack" for tiles...
+    const rack = new THREE.Group()
+    rack.name = 'rack'
+    rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
+    backdrop.add(rack)
+    this.rack = rack
+    // create 3D rack of tile objects from prototype meshes...
+    for (let y = 0; y < p.h; y++) {
+      for (let x = 0; x < p.w; x++) {
+        const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
+        tile.position.set(x, y, 0)
+        tile.layers.enable(1) // make clickable
+        rack.add(tile)
+      }
+    }
+    this.clickable = [rack]
+    // create a highlight object
+    {
+      const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
+      const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
+      const h = new THREE.Mesh(geo, mat)
+      h.visible = false
+      h.layers.disable(1) // make clickable
+      rack.add(h)
+      this.highlightObj = h
+    }
+    this.activate()
+    this.redraw()
   }
 
   /**
@@ -112,9 +176,9 @@ export class Matcha extends MiniGameBase {
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
       if (!ma) { continue }
       console.log(`r(${y}) = '${s}' matches: ${ma}`)
-      // replace one of the tiles in each match with a different random tile
+      // replace one of the tiles in each match with a different tile ensuring it doesn't create a problem in the vertical
       for (const m of ma) {
-        const idx = s.indexOf(m)
+        console.dir(m)
       }
     }
   }
@@ -130,49 +194,6 @@ export class Matcha extends MiniGameBase {
       mesh.userData.tileType = t.name
       t.mesh = mesh
     }
-  }
-
-  runTest () {
-    console.log('Running Matcha test...')
-    const p = this.params
-    const t = this.textData
-    depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-    this.createTileProtoMeshes()
-    this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
-    const backdrop = new THREE.Mesh(
-      new THREE.PlaneGeometry(p.w, p.h),
-      new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
-    )
-    backdrop.position.set(0, 0, -0.1)
-    this.group.add(backdrop)
-    // create "rack" for tiles...
-    const rack = new THREE.Group()
-    rack.name = 'rack'
-    rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
-    backdrop.add(rack)
-    this.rack = rack
-    // create 3D rack of tile objects from prototype meshes...
-    for (let y = 0; y < p.h; y++) {
-      for (let x = 0; x < p.w; x++) {
-        const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
-        tile.position.set(x, y, 0)
-        tile.layers.enable(1) // make clickable
-        rack.add(tile)
-      }
-    }
-    this.clickable = [rack]
-    // create a highlight object
-    {
-      const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
-      const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
-      const h = new THREE.Mesh(geo, mat)
-      h.visible = false
-      h.layers.disable(1) // make clickable
-      rack.add(h)
-      this.highlightObj = h
-    }
-    this.activate()
-    this.redraw()
   }
 
   /**
