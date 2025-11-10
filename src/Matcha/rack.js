@@ -50,13 +50,13 @@ export function getColumnString (x, h, rack) {
   for (let y = 0; y < h; y++) {
     col.push(rack[y][x])
   }
-  return col
+  return col.join('')
 }
 
 export function getRowString (y, w, rack) {
-  const col = []
+  const row = []
   for (let x = 0; x < w; x++) {
-    col.push(rack[y][x])
+    row.push(rack[y][x])
   }
-  return col
+  return row.join('')
 }

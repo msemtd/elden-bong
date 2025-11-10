@@ -9,7 +9,9 @@ import tileImagePig from './matcha-card-pig.png'
 import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
-import { rackToString, createRack, stringToRack } from './rack.js'
+import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack.js'
+
+const CLICKABLE_LAYER = 1
 
 /**
  * Matcha mini-game - a tile-matching game I saw on an Air China flight
@@ -25,7 +27,7 @@ import { rackToString, createRack, stringToRack } from './rack.js'
  * - the highlight is a semi-transparent box that sits slightly above the tile
  * - raycasting for clicks is done against the rack
  * - because raycasting hits invisible objects we can use layers
- * - layer 1 will be used for clickable objects
+ * - layer 1 (CLICKABLE_LAYER) will be used for clickable objects
  * - when making an object invisible and non-clickable just remove it from layer 1
  *
  * @extends MiniGameBase
@@ -73,19 +75,11 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
-    this.test1()
+    this.rackSetup()
     this.matchaLaunch()
   }
 
-  test1 () {
-    // -------------------------------------------------------------------------
-    // regex testing...
-    // ;['---33-----', '123455555678', '000111333'].forEach(s => {
-    //   console.log(`string.match    '${s}' matches ${s.match(this.rx)}`)
-    //   console.log(`rx.exec         '${s}' matches ${this.rx.exec(s)}`)
-    //   console.log(`string.matchAll '${s}' matches ${this.rx.exec(s)}`)
-    // })
-    // -------------------------------------------------------------------------
+  rackSetup () {
     const p = this.params
     if (this.testing) {
       // Load a known rack for testing...
@@ -95,7 +89,36 @@ export class Matcha extends MiniGameBase {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length)
     }
     // score matching rows and columns
-    this.detectScores()
+    // the detection method can be general and do various things:
+    // - highlight scores
+    // - patch a grid of tiles to be non-winning
+    // Be aware that the data2D may be changing as part of the callback but it
+    // is being scanned by row first and by column next
+    // each callback should only alter the scoring line it has been handed!
+    const patchingFunc = (rowOrCol, rcIndex, pos, line) => {
+      const len = line.length
+      const tileId = line[0]
+      const tileType = p.tileInfo[Number(tileId)].name
+      console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
+      const t = this.data2D
+      if (rowOrCol === 'row') {
+        // the horizontal rows pass - rcIndex is y, pos is start x
+        const row = rcIndex
+        const col = pos
+        // find columns to break up a row match...
+        // will need to replace every third tile in the match with a new random tile to cover the long match case
+        // avoid changing the end tiles to reduce chance of new matches
+        // could start at 1 (skips 0) and target every third tile until the last tile - if last tile is reached exactly, replace the previous one instead
+        const cut = col + Math.ceil(line.length / 2.0)
+        console.assert(t[row][cut] === tileId, 'data2D and match mismatch')
+        console.log(` - breaking horizontal match at row ${row}, column ${cut} ???`)
+        // what tile to use instead?
+      } else if (rowOrCol === 'col') {
+        const col = rcIndex
+        const row = pos
+      }
+    }
+    this.detectScores(patchingFunc)
     const fixedRack = rackToString(this.data2D)
     console.log(`fixedRack: ${fixedRack}`)
     // score matching rows and columns
@@ -103,7 +126,6 @@ export class Matcha extends MiniGameBase {
   }
 
   matchaLaunch () {
-    console.log('Running Matcha test...')
     const p = this.params
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.createTileProtoMeshes()
@@ -129,7 +151,7 @@ export class Matcha extends MiniGameBase {
       for (let x = 0; x < p.w; x++) {
         const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
         tile.position.set(x, y, 0)
-        tile.layers.enable(1) // make clickable
+        tile.layers.enable(CLICKABLE_LAYER) // make clickable
         rack.add(tile)
       }
     }
@@ -140,7 +162,7 @@ export class Matcha extends MiniGameBase {
       const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
       const h = new THREE.Mesh(geo, mat)
       h.visible = false
-      h.layers.disable(1) // make clickable
+      h.layers.disable(CLICKABLE_LAYER) // make clickable
       rack.add(h)
       this.highlightObj = h
     }
@@ -149,16 +171,17 @@ export class Matcha extends MiniGameBase {
   }
 
   // the idea here is to find all scoring portions of the rack
-  detectScores (callback) {
+  detectScores (matchHandler = null) {
     const p = this.params
     const t = this.data2D
     // look at the rows first...
     for (let y = 0; y < p.h; y++) {
-      const s = t[y].join('')
+      const s = getRowString(y, p.w, t)
       const ma = s.matchAll(this.rx)
       for (const m of ma) {
-        console.log(`r(${y}) = '${s}' matches: ${ma}`)
-        console.dir(m)
+        if (typeof matchHandler === 'function') {
+          matchHandler('row', y, m.index, m[0])
+        }
       }
     }
   }
@@ -182,7 +205,7 @@ export class Matcha extends MiniGameBase {
   offerDoubleClick (ev, mousePos, raycaster) {
     if (!this.active || ev.button !== 0) { return false }
     const savedLayers = raycaster.layers.mask
-    raycaster.layers.set(1)
+    raycaster.layers.set(CLICKABLE_LAYER)
     const hits = raycaster.intersectObjects(this.clickable, true)
     raycaster.layers.set(savedLayers)
     if (!hits.length) {
@@ -210,7 +233,7 @@ export class Matcha extends MiniGameBase {
     // if highlight selected, hide it and quit
     if (obj === h) {
       h.visible = false
-      h.layers.disable(1)
+      h.layers.disable(CLICKABLE_LAYER)
       return
     }
     // save old position
@@ -220,7 +243,7 @@ export class Matcha extends MiniGameBase {
     // if highlight not shown, show it and quit
     if (!h.visible) {
       h.visible = true
-      h.layers.enable(1)
+      h.layers.enable(CLICKABLE_LAYER)
       return
     }
     // is new position adjacent?
@@ -235,7 +258,7 @@ export class Matcha extends MiniGameBase {
       return
     }
     h.visible = false
-    h.layers.disable(1)
+    h.layers.disable(CLICKABLE_LAYER)
     this.swapTiles(obj, p2, otherTile, p1)
   }
 
