@@ -9,6 +9,7 @@ import tileImagePig from './matcha-card-pig.png'
 import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
+import { rackToString, createRack, stringToRack } from './rack.js'
 
 /**
  * Matcha mini-game - a tile-matching game I saw on an Air China flight
@@ -33,6 +34,8 @@ export class Matcha extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Matcha')
     // regex to match sequences of 3 or more consecutive matching digits...
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
+    // getting more from the regex with the 'd' flag
     this.rx = /(\d)\1{2,}/gd
     this.clickable = []
     this.highlightObj = null
@@ -48,7 +51,7 @@ export class Matcha extends MiniGameBase {
       { text: '🐰', name: 'rabbit', img: tileImageRabbit, mesh: null },
       { text: '🐭', name: 'rat', img: tileImageRat, mesh: null },
     ]
-    const p = this.params = {
+    this.params = {
       w: 8,
       h: 8,
       tileSize: 0.86,
@@ -58,7 +61,8 @@ export class Matcha extends MiniGameBase {
       tileInfo,
     }
     this.animationQueue = []
-    this.textData = null
+    this.data2D = null
+    this.testing = true
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -69,30 +73,33 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
+    this.test1()
     this.matchaLaunch()
-    // this.test1()
   }
 
   test1 () {
+    // -------------------------------------------------------------------------
     // regex testing...
     // ;['---33-----', '123455555678', '000111333'].forEach(s => {
-    //   console.log(`string '${s}' matches ${s.match(this.rx)}`)
-    //   console.log(`....or '${s}' matches ${this.rx.exec(s)}`)
+    //   console.log(`string.match    '${s}' matches ${s.match(this.rx)}`)
+    //   console.log(`rx.exec         '${s}' matches ${this.rx.exec(s)}`)
+    //   console.log(`string.matchAll '${s}' matches ${this.rx.exec(s)}`)
     // })
-
-    const str1 = 'foo bar foo'
-    const regex1 = /foo/dg
-    console.log(regex1.hasIndices) // true
-    console.log(regex1.exec(str1).indices[0]) // [0, 3]
-    console.log(regex1.exec(str1).indices[0]) // [8, 11]
-    const str2 = 'foo bar foo'
-    const regex2 = /foo/
-    console.log(regex2.hasIndices) // false
-    console.log(regex2.exec(str2).indices) // undefined
-  }
-
-  rackToString (r) {
-    return r.flat(Infinity).join('')
+    // -------------------------------------------------------------------------
+    const p = this.params
+    if (this.testing) {
+      // Load a known rack for testing...
+      const s = '5202002312024022501431520453331444031444103022542140045541311342'
+      this.data2D = stringToRack(s, p.w, p.h)
+    } else {
+      this.data2D = createRack(p.w, p.h, p.tileInfo.length)
+    }
+    // score matching rows and columns
+    this.detectScores()
+    const fixedRack = rackToString(this.data2D)
+    console.log(`fixedRack: ${fixedRack}`)
+    // score matching rows and columns
+    // gfx - score highlighting
   }
 
   matchaLaunch () {
@@ -100,9 +107,7 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.createTileProtoMeshes()
-    const t = this.textData = this.createTextRack(p.w, p.h, p.tileInfo.length)
-    console.log(this.rackToString(this.textData))
-    this.deScoreTextRack()
+    const t = this.data2D
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
       new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
@@ -115,6 +120,10 @@ export class Matcha extends MiniGameBase {
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
+    const rack2 = rack.clone(false)
+    rack2.name = 'rack2'
+    backdrop.add(rack2)
+    this.rack2 = rack2
     // create 3D rack of tile objects from prototype meshes...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
@@ -139,45 +148,16 @@ export class Matcha extends MiniGameBase {
     this.redraw()
   }
 
-  /**
-   * pure function to create 2D array of random text digits
-   * @param {number} w width
-   * @param {number} h height
-   * @param {number} n number of different digits (0 to n-1)
-   * @returns {string[][]} 2D array of text digits
-   */
-  createTextRack (w, h, n) {
-    const r = Array.from(Array(h), () => new Array(w).fill('-'))
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const rnd = Math.floor(Math.random() * n)
-        r[y][x] = `${rnd}`
-      }
-    }
-    return r
-  }
-
-  getColumnData (x, h, textData) {
-    const col = []
-    for (let y = 0; y < h; y++) {
-      col.push(textData[y][x])
-    }
-    return col
-  }
-
-  deScoreTextRack () {
+  // the idea here is to find all scoring portions of the rack
+  detectScores (callback) {
     const p = this.params
-    const t = this.textData
+    const t = this.data2D
     // look at the rows first...
     for (let y = 0; y < p.h; y++) {
       const s = t[y].join('')
-      const ma = this.rx.exec(s)
-      // getting more from the regex with the 'd' flag
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
-      if (!ma) { continue }
-      console.log(`r(${y}) = '${s}' matches: ${ma}`)
-      // replace one of the tiles in each match with a different tile ensuring it doesn't create a problem in the vertical
+      const ma = s.matchAll(this.rx)
       for (const m of ma) {
+        console.log(`r(${y}) = '${s}' matches: ${ma}`)
         console.dir(m)
       }
     }
