@@ -5,7 +5,7 @@ import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke, Rikishi } from './Banzuke'
 import { Dlg } from '../dlg'
-import { shellOpenPath } from '../HandyApi'
+import { shellOpenPath, shellOpenExternal } from '../HandyApi'
 import { filePathToMine } from '../util'
 import path from 'path-browserify'
 import { Text } from 'troika-three-text'
@@ -59,7 +59,13 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'allBobbleHeads')
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
       this.gui.add(this, 'isThereNewBanzuke').name('New Banzuke?')
+      this.gui.add(this, 'urlOfficialMatchVideos').name('Official Match Videos')
     })
+  }
+
+  urlOfficialMatchVideos () {
+    const url = 'https://www.youtube.com/@sumo-video/videos'
+    shellOpenExternal(url)
   }
 
   /**
