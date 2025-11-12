@@ -14,22 +14,37 @@ import { rackToString, createRack, stringToRack, getRowString, getColumnString }
 const CLICKABLE_LAYER = 1
 
 /**
- * Matcha mini-game - a tile-matching game I saw on an Air China flight
+ * Matcha mini-game - a tile-matching game I saw on an Air China flight.
+ *
+ * The basic rules of the game are:
  * - the only user input is to select a tile
  * - selecting a tile highlights it (or de-highlights if already highlighted)
  * - selecting an adjacent tile swaps them
- * - if the swap creates a line of 3 or more matching tiles, they disappear
+ * - if the swap creates a line of 3 or more matching tiles, they will disappear
+ *   and points are scored
  * - tiles above fall down to fill the gaps, and new tiles appear at the top
- * - if no line is created, the swap is reversed
+ * - this can create further scoring lines and generate "combos"
+ * - if the swap does not score anything, the swap is reversed
  *
- * The tiles sit on a "rack" which allows placement in local coordinates or column and row
+ * The graphical side of things:
+ * - we create "prototype" 3D tile meshes from small PNG images
+ * - cloned instances of the tiles are placed on a "rack" in the simplest local
+ *   coordinate system of 1 meter spaced column and row
  * - the rack sits in front of a backdrop
- * - the highlight is a semi-transparent box that sits slightly above the tile
+ * - the "highlight" is a semi-transparent box that sits slightly above a picked tile
  * - raycasting for clicks is done against the rack
  * - because raycasting hits invisible objects we can use layers
  * - layer 1 (CLICKABLE_LAYER) will be used for clickable objects
  * - when making an object invisible and non-clickable just remove it from layer 1
  *
+ * A non-graphical data is convenient to hold the initial or current state of the rack
+ * - this is a 2D array of text digits representing tile types
+ * - functions to create, convert, and access the data are in rack.js
+ * - we want to look at the data in rows and columns for scoring and to detect
+ *   scoring lines we can use a regex on a text representation of the rows/columns
+ *
+ *
+ * @class Matcha
  * @extends MiniGameBase
  */
 export class Matcha extends MiniGameBase {
@@ -76,14 +91,29 @@ export class Matcha extends MiniGameBase {
 
   runTest () {
     this.rackSetup()
-    this.matchaLaunch()
+    this.freshGfx()
+    this.detectScores(() => {
+      console.warn('detected a score in initial state!')
+    })
   }
 
   rackSetup () {
     const p = this.params
     if (this.testing) {
       // Load a known rack for testing...
-      const s = '5202002312024022501431520453331444031444103022542140045541311342'
+      // const s = '5202002312024022501431520453331444031444103022542140045541311342'
+      const s = `
+
+        5 2 0 2 0 0 2 3
+        1 2 0 2 4 0 2 2
+        5 0 1 4 3 1 5 2
+        0 4 5 3 3 3 1 4
+        4 4 0 3 1 4 4 4
+        1 0 3 0 2 2 5 4
+        2 1 4 0 0 4 5 5
+        4 1 3 1 1 3 4 2
+
+      `
       this.data2D = stringToRack(s, p.w, p.h)
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length)
@@ -96,6 +126,7 @@ export class Matcha extends MiniGameBase {
     // is being scanned by row first and by column next
     // each callback should only alter the scoring line it has been handed!
     const patchingFunc = (rowOrCol, rcIndex, pos, line) => {
+      const p = this.params
       const len = line.length
       const tileId = line[0]
       const tileType = p.tileInfo[Number(tileId)].name
@@ -125,7 +156,7 @@ export class Matcha extends MiniGameBase {
     // gfx - score highlighting
   }
 
-  matchaLaunch () {
+  freshGfx () {
     const p = this.params
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     this.createTileProtoMeshes()
@@ -170,7 +201,15 @@ export class Matcha extends MiniGameBase {
     this.redraw()
   }
 
-  // the idea here is to find all scoring portions of the rack
+  /**
+   * Detect all scoring "lines" in the 2D rack data (all regex matches)
+   * The handler function can do whatever it wants with the info including
+   * changing the data! This is less concerning that it sounds because
+   * each row or column can be handled with consideration of its neighbours.
+   *
+   * @returns {void}
+   * @param {function} matchHandler function called on each match found
+   */
   detectScores (matchHandler = null) {
     const p = this.params
     const t = this.data2D
@@ -181,6 +220,16 @@ export class Matcha extends MiniGameBase {
       for (const m of ma) {
         if (typeof matchHandler === 'function') {
           matchHandler('row', y, m.index, m[0])
+        }
+      }
+    }
+    // look at the columns next...
+    for (let x = 0; x < p.w; x++) {
+      const s = getColumnString(x, p.h, t)
+      const ma = s.matchAll(this.rx)
+      for (const m of ma) {
+        if (typeof matchHandler === 'function') {
+          matchHandler('col', x, m.index, m[0])
         }
       }
     }

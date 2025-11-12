@@ -30,7 +30,11 @@ export function rackToString (r) {
   return r.flat(Infinity).join('')
 }
 
-export function stringToRack (s, w, h) {
+export function stringToRack (sIn, w, h) {
+  // Accept any whitespace - just remove it with a regex...
+  const s = sIn.replaceAll(/\s/gm, '')
+  // NB: this makes the function non-reversible! If you want to use it in a
+  // reversible manner then remove the whitespace before use.
   if (s.length !== w * h) {
     throw new Error('stringToRack: string length does not match dimensions')
   }
