@@ -9,7 +9,8 @@ import tileImagePig from './matcha-card-pig.png'
 import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
-import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack.js'
+import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack'
+import { Bong } from '../bong'
 
 const CLICKABLE_LAYER = 1
 
@@ -76,17 +77,67 @@ export class Matcha extends MiniGameBase {
       tileThickness: 0.1,
       highlightZ: 0.12,
       tileInfo,
+      gameTransform: {
+        position: {
+          x: 0, y: 0, z: 0
+        },
+        rotation: {
+          x: 0, y: 0, z: 0
+        },
+        scale: 1.0,
+      },
+      colours: {
+        backdrop: Colours.get('camouflage green'),
+        highlight: Colours.get('cyan'),
+      },
     }
     this.animationQueue = []
     this.data2D = null
     this.testing = true
+    this.loadSettings()
+    // load settings from parent
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      {
+        const fld = this.gui.addFolder('transform').onChange((v) => {
+          this.redraw()
+        })
+        const t = this.params.gameTransform
+        fld.add(t, 'scale', 0.01, 4.0, 0.01).onChange((v) => {
+          this.group.scale.setScalar(v)
+        })
+        fld.add(t.position, 'x', -50, 50, 0.2).onChange((v) => {
+          this.group.position.x = v
+        })
+        fld.add(t.position, 'y', -50, 50, 0.2).onChange((v) => {
+          this.group.position.y = v
+        })
+        fld.add(t.position, 'z', -50, 50, 0.2).onChange((v) => {
+          this.group.position.z = v
+        })
+        fld.add(t.rotation, 'x', 0, 360, 22.5).onChange((v) => {
+          this.group.rotation.x = THREE.MathUtils.degToRad(v)
+        })
+        fld.add(t.rotation, 'y', 0, 360, 22.5).onChange((v) => {
+          this.group.rotation.y = THREE.MathUtils.degToRad(v)
+        })
+        fld.add(t.rotation, 'z', 0, 360, 22.5).onChange((v) => {
+          this.group.rotation.z = THREE.MathUtils.degToRad(v)
+        })
+      }
       this.screen.addMixer('Matcha', (delta) => { return this.animate(delta) })
     })
+  }
+
+  loadSettings () {
+    if (this.parent instanceof MiniGameBase && this.parent.parent instanceof Bong) {
+      const bong = this.parent.parent
+      const settings = bong.settings.matchaGame || {}
+      // apply settings to me...
+    }
   }
 
   runTest () {
@@ -118,20 +169,17 @@ export class Matcha extends MiniGameBase {
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length)
     }
-    // score matching rows and columns
-    // the detection method can be general and do various things:
-    // - highlight scores
-    // - patch a grid of tiles to be non-winning
-    // Be aware that the data2D may be changing as part of the callback but it
-    // is being scanned by row first and by column next
-    // each callback should only alter the scoring line it has been handed!
+    // patch tiles to be non-winning!
     const patchingFunc = (rowOrCol, rcIndex, pos, line) => {
       const p = this.params
-      const len = line.length
-      const tileId = line[0]
-      const tileType = p.tileInfo[Number(tileId)].name
-      console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
+      const nTiles = p.tileInfo.length
       const t = this.data2D
+      const len = line.length
+      const tileId = Number(line[0])
+      // assert range of tileId
+      console.assert(tileId >= 0 && tileId < nTiles, 'tileId out of range')
+      const tileType = p.tileInfo[tileId].name
+      console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
       if (rowOrCol === 'row') {
         // the horizontal rows pass - rcIndex is y, pos is start x
         const row = rcIndex
@@ -139,11 +187,41 @@ export class Matcha extends MiniGameBase {
         // find columns to break up a row match...
         // will need to replace every third tile in the match with a new random tile to cover the long match case
         // avoid changing the end tiles to reduce chance of new matches
-        // could start at 1 (skips 0) and target every third tile until the last tile - if last tile is reached exactly, replace the previous one instead
         const cut = col + Math.ceil(line.length / 2.0)
-        console.assert(t[row][cut] === tileId, 'data2D and match mismatch')
+        console.assert(t[row][cut] === `${tileId}`, 'data2D and match mismatch')
         console.log(` - breaking horizontal match at row ${row}, column ${cut} ???`)
         // what tile to use instead?
+        // STRATEGY: break up the scoring line.
+        // Start at index 1 of the scoring line (skip 0)
+        // and alter every third tile until the last tile - if last tile is reached exactly, replace the previous one instead?
+        for (let i = 1; i < line.length; i += 3) {
+          // we know that the tile at (row, col + i) is part of the match and thus equal to tileId but let's assert it
+          console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop')
+          console.log(` - patching tile at row ${row}, column ${col + i}`)
+          // pick next suitable image - loop through until all is good or we run out of options...
+          let foundGoodReplacement = null
+          for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
+            // would changing this tile to the new id create a new match in its column?
+            // look "above"...
+            if (row + 1 < t.length && t[row + 1][col + i] === `${id}`) {
+              console.log(` - oo-er found matching tile for ${id} "above" at ${row + 1}, ${col + i}`)
+              continue
+            }
+            if (row - 1 >= 0 && t[row - 1][col + i] === `${id}`) {
+              console.log(` - oo-er found matching tile for ${id} "below" at ${row - 1}, ${col + i}`)
+              continue
+            }
+            foundGoodReplacement = id
+            break
+          }
+          if (foundGoodReplacement === null) {
+            console.error('unable to find non-matching replacement tile - theoretically impossible on a 6 tile set?')
+            continue
+          }
+          // actually alter the data2D
+          console.log(` - patching tile at row ${row}, column ${col + i} to ${foundGoodReplacement}`)
+          t[row][col + i] = `${foundGoodReplacement}`
+        }
       } else if (rowOrCol === 'col') {
         const col = rcIndex
         const row = pos
@@ -163,8 +241,9 @@ export class Matcha extends MiniGameBase {
     const t = this.data2D
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
-      new THREE.MeshBasicMaterial({ color: Colours.get('purple'), side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: p.colours.backdrop, side: THREE.DoubleSide })
     )
+    backdrop.name = 'backdrop'
     backdrop.position.set(0, 0, -0.1)
     this.group.add(backdrop)
     // create "rack" for tiles...
