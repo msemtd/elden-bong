@@ -169,69 +169,111 @@ export class Matcha extends MiniGameBase {
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length)
     }
-    // patch tiles to be non-winning!
-    const patchingFunc = (rowOrCol, rcIndex, pos, line) => {
-      const p = this.params
-      const nTiles = p.tileInfo.length
-      const t = this.data2D
-      const len = line.length
-      const tileId = Number(line[0])
-      // assert range of tileId
-      console.assert(tileId >= 0 && tileId < nTiles, 'tileId out of range')
-      const tileType = p.tileInfo[tileId].name
-      console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
-      if (rowOrCol === 'row') {
-        // the horizontal rows pass - rcIndex is y, pos is start x
-        const row = rcIndex
-        const col = pos
-        // find columns to break up a row match...
-        // will need to replace every third tile in the match with a new random tile to cover the long match case
-        // avoid changing the end tiles to reduce chance of new matches
-        const cut = col + Math.ceil(line.length / 2.0)
-        console.assert(t[row][cut] === `${tileId}`, 'data2D and match mismatch')
-        console.log(` - breaking horizontal match at row ${row}, column ${cut} ???`)
-        // what tile to use instead?
-        // STRATEGY: break up the scoring line.
-        // Start at index 1 of the scoring line (skip 0)
-        // and alter every third tile until the last tile - if last tile is reached exactly, replace the previous one instead?
-        for (let i = 1; i < line.length; i += 3) {
-          // we know that the tile at (row, col + i) is part of the match and thus equal to tileId but let's assert it
-          console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop')
-          console.log(` - patching tile at row ${row}, column ${col + i}`)
-          // pick next suitable image - loop through until all is good or we run out of options...
-          let foundGoodReplacement = null
-          for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
-            // would changing this tile to the new id create a new match in its column?
-            // look "above"...
-            if (row + 1 < t.length && t[row + 1][col + i] === `${id}`) {
-              console.log(` - oo-er found matching tile for ${id} "above" at ${row + 1}, ${col + i}`)
-              continue
-            }
-            if (row - 1 >= 0 && t[row - 1][col + i] === `${id}`) {
-              console.log(` - oo-er found matching tile for ${id} "below" at ${row - 1}, ${col + i}`)
-              continue
-            }
-            foundGoodReplacement = id
-            break
-          }
-          if (foundGoodReplacement === null) {
-            console.error('unable to find non-matching replacement tile - theoretically impossible on a 6 tile set?')
-            continue
-          }
-          // actually alter the data2D
-          console.log(` - patching tile at row ${row}, column ${col + i} to ${foundGoodReplacement}`)
-          t[row][col + i] = `${foundGoodReplacement}`
-        }
-      } else if (rowOrCol === 'col') {
-        const col = rcIndex
-        const row = pos
-      }
-    }
-    this.detectScores(patchingFunc)
+    this.detectScores(this.rackPatcher.bind(this))
+    this.detectScores(() => {
+      console.error('still detected a score after patching - rackPatcher failed!')
+    })
     const fixedRack = rackToString(this.data2D)
     console.log(`fixedRack: ${fixedRack}`)
     // score matching rows and columns
     // gfx - score highlighting
+  }
+
+  /**
+   * Callback for detectScores that patches winning lines on rows and columns
+   * to be non-winning
+   * @returns {void}
+   * @param {string} rowOrCol 'row' or 'col'
+   * @param {number} rcIndex row or column index
+   * @param {number} pos starting position of the match
+   * @param {string} line the matched line string
+   */
+  rackPatcher (rowOrCol, rcIndex, pos, line) {
+    const p = this.params
+    const nTiles = p.tileInfo.length
+    const t = this.data2D
+    console.assert(t.length === p.h, 'data2D height mismatch')
+    for (const r of t) {
+      console.assert(r.length === p.w, 'data2D width mismatch')
+    }
+    const len = line.length
+    const tileId = Number(line[0])
+    // assert range of tileId
+    console.assert(tileId >= 0 && tileId < nTiles, 'tileId out of range')
+    const tileType = p.tileInfo[tileId].name
+    console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
+    if (rowOrCol === 'row') {
+      // the horizontal rows pass - rcIndex is y, pos is start x
+      const row = rcIndex
+      const col = pos
+      // what tile to use instead?
+      // STRATEGY: break up the scoring line.
+      // Start at index 1 of the scoring line (skip 0)
+      // and alter every third tile until the last tile - if last tile is reached exactly, replace the previous one instead?
+      for (let i = 1; i < line.length; i += 3) {
+        // we know that the tile at (row, col + i) is part of the match and thus equal to tileId but let's assert it
+        console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop')
+        console.log(` - patching tile at row ${row}, column ${col + i}`)
+        // pick next suitable image - loop through until all is good or we run out of options...
+        let foundGoodReplacement = null
+        for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
+          // would changing this tile to the new id create a new match in its column?
+          // look "above"...
+          if (row + 1 < p.h && t[row + 1][col + i] === `${id}`) {
+            console.log(` - oo-er found matching tile for ${id} "above" at ${row + 1}, ${col + i}`)
+            continue
+          }
+          // look "below"...
+          if (row - 1 >= 0 && t[row - 1][col + i] === `${id}`) {
+            console.log(` - oo-er found matching tile for ${id} "below" at ${row - 1}, ${col + i}`)
+            continue
+          }
+          foundGoodReplacement = id
+          break
+        }
+        if (foundGoodReplacement === null) {
+          console.error('unable to find non-matching replacement tile - theoretically impossible on a 6 tile set?')
+          continue
+        }
+        // actually alter the data2D
+        console.log(` - patching tile at row ${row}, column ${col + i} to ${foundGoodReplacement}`)
+        t[row][col + i] = `${foundGoodReplacement}`
+      }
+    } else if (rowOrCol === 'col') {
+      const col = rcIndex
+      const row = pos
+      // does the column case require more mental gymnastics?
+      // we still need to look along the vertical scoring line and alter it to be non-scoring
+      // the index along the line is the increasing row number
+      for (let i = 1; i < line.length; i += 3) {
+        console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop (col)')
+        console.log(` - patching tile at row ${row + i}, column ${col}`)
+        // pick next suitable image - loop through until all is good or we run out of options...
+        let foundGoodReplacement = null
+        for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
+          // would changing this tile to the new id create a new match in its row?
+          // look to the column on the "right"...
+          if (col + 1 < p.w && t[row + i][col + 1] === `${id}`) {
+            console.log(` - oo-er found matching tile for ${id} "right" at ${row + i}, ${col + 1}`)
+            continue
+          }
+          // look "left"...
+          if (col - 1 >= 0 && t[row + i][col - 1] === `${id}`) {
+            console.log(` - oo-er found matching tile for ${id} "left" at ${row + i}, ${col - 1}`)
+            continue
+          }
+          foundGoodReplacement = id
+          break
+        }
+        if (foundGoodReplacement === null) {
+          console.error('unable to find non-matching replacement tile - theoretically impossible on a 6 tile set?')
+          continue
+        }
+        // actually alter the data2D
+        console.log(` - patching tile at row ${row + i}, column ${col} to ${foundGoodReplacement}`)
+        t[row + i][col] = `${foundGoodReplacement}`
+      }
+    }
   }
 
   freshGfx () {
