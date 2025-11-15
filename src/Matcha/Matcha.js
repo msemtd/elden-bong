@@ -334,11 +334,13 @@ export class Matcha extends MiniGameBase {
   detectScores (matchHandler = null) {
     const p = this.params
     const t = this.data2D
+    let score = 0
     // look at the rows first...
     for (let y = 0; y < p.h; y++) {
       const s = getRowString(y, p.w, t)
       const ma = s.matchAll(this.rx)
       for (const m of ma) {
+        score++
         if (typeof matchHandler === 'function') {
           matchHandler('row', y, m.index, m[0])
         }
@@ -349,11 +351,13 @@ export class Matcha extends MiniGameBase {
       const s = getColumnString(x, p.h, t)
       const ma = s.matchAll(this.rx)
       for (const m of ma) {
+        score++
         if (typeof matchHandler === 'function') {
           matchHandler('col', x, m.index, m[0])
         }
       }
     }
+    return score
   }
 
   createTileProtoMeshes () {
@@ -432,16 +436,30 @@ export class Matcha extends MiniGameBase {
     this.swapTiles(obj, p2, otherTile, p1)
   }
 
+  swapData2D (r1, c1, r2, c2) {
+    const t = this.data2D
+    const temp = t[r1][c1]
+    t[r1][c1] = t[r2][c2]
+    t[r2][c2] = temp
+  }
+
   swapTiles (obj, p2, otherTile, p1, animated = true) {
-    // non-animated version - boring
-    if (!animated) {
-      otherTile.position.copy(p2)
-      obj.position.copy(p1)
-      return
+    // does this change make a score?
+    // swap the tiles in the 2D data...
+    this.swapData2D(p1.y, p1.x, p2.y, p2.x)
+    const score = this.detectScores()
+    if (!score) {
+      this.swapData2D(p2.y, p2.x, p1.y, p1.x)
+    }
+    const afterSwap = async () => {
+      if (score) {
+        // TODO animate remove scoring tiles procedure
+      } else {
+        // TODO animate no match
+      }
     }
 
-    // TODO completely untested animation version!
-    // create animation things on the fly?
+    // Hand crafted animation things in Three JS
     // this seems rather excessive - I'm probably doing this wrong
     const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
     const m1 = mid.clone()
@@ -457,9 +475,13 @@ export class Matcha extends MiniGameBase {
     const action1 = mixer1.clipAction(clip1)
     const action2 = mixer2.clipAction(clip2)
     action1.loop = action2.loop = THREE.LoopOnce
+    // TODO if no score then ping-pong to swap back and maybe do it faster
     action1.clampWhenFinished = action2.clampWhenFinished = true
     action1.play()
     action2.play()
+    // TODO - push an object with animation actions and an onFinished callback
+    // NO! just pass a single animation callback that takes a delta!
+    // and then does cool stuff and fire of a setTimeout to execute a promise in the "main thead" outside the animation frame loop
     this.animationQueue.push(action1, action2)
   }
 
