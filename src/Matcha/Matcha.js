@@ -527,9 +527,9 @@ export class Matcha extends MiniGameBase {
     const mat = new THREE.MeshBasicMaterial({ color: p.colours.lineWin, wireframe: false, transparent: true, opacity: 0.7 })
     const m = new THREE.Mesh(geo, mat)
     // position box centre
-    const mid = (rcIndex + ((w - 1) / 2))
-    const y = isRow ? mid : pos
-    const x = isRow ? pos : mid
+    const mid = ((line.length - 1) / 2)
+    const x = isRow ? pos + mid : rcIndex
+    const y = isRow ? rcIndex : pos + mid
     m.position.set(x, y, 0)
     m.visible = true
     m.layers.disable(CLICKABLE_LAYER) // make clickable
