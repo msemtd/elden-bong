@@ -516,7 +516,6 @@ class Bong extends THREE.EventDispatcher {
       return
     }
     const urls = await window.handy.getSkyBoxMineUrlList(v)
-    console.log(urls)
     new THREE.CubeTextureLoader().load(urls, (textureCube) => {
       scene.background = textureCube
       // set the default skybox rotation here...

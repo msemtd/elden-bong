@@ -44,6 +44,19 @@ const CLICKABLE_LAYER = 1
  * - we want to look at the data in rows and columns for scoring and to detect
  *   scoring lines we can use a regex on a text representation of the rows/columns
  *
+ * For animation:
+ * - the 'gsap' animation library is proving annoying in other mini-games and
+ *   not acting intuitively so I want to just use three.js built-in animation
+ *   features. In the process I might discover what I'm doing wrong in 'gsap'.
+ *
+ * https://threejs.org/manual/#en/animation-system
+ * simplest example: https://threejs.org/examples/?q=keys#misc_animation_keys
+ * example code: https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
+ * Class relationships for the system
+ * AnimationAction drives
+ * AnimationMixer controlling
+ * AnimationClip has
+ * KeyframeTrack
  *
  * @class Matcha
  * @extends MiniGameBase
@@ -89,6 +102,7 @@ export class Matcha extends MiniGameBase {
       colours: {
         backdrop: Colours.get('camouflage green'),
         highlight: Colours.get('cyan'),
+        lineWin: Colours.get('custard')
       },
     }
     this.animationQueue = []
@@ -314,7 +328,7 @@ export class Matcha extends MiniGameBase {
       const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
       const h = new THREE.Mesh(geo, mat)
       h.visible = false
-      h.layers.disable(CLICKABLE_LAYER) // make clickable
+      h.layers.disable(CLICKABLE_LAYER) // make unclickable
       rack.add(h)
       this.highlightObj = h
     }
@@ -467,17 +481,13 @@ export class Matcha extends MiniGameBase {
     const mixer2 = new THREE.AnimationMixer(obj)
     const action1 = mixer1.clipAction(clip1)
     const action2 = mixer2.clipAction(clip2)
+    // TODO if no score then ping-pong to swap back and maybe do it faster
     const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
     action1.setLoop(loopStyle, 1)
     action2.setLoop(loopStyle, 1)
-    // TODO if no score then ping-pong to swap back and maybe do it faster
     action1.clampWhenFinished = action2.clampWhenFinished = true
     action1.play()
     action2.play()
-    // TODO - push an object with animation actions and an onFinished callback
-    // NO! just pass a single animation callback that takes a delta!
-    // and then does cool stuff and fire of a setTimeout to execute a promise in the "main thead" outside the animation frame loop
-
     // this animation will be called from the renderer until it returns false upon which it will be removed from the animation queue
     const swapAnimation = (delta) => {
       action1.getMixer().update(delta)
@@ -485,40 +495,58 @@ export class Matcha extends MiniGameBase {
       const stillRunning = action1.isRunning() || action2.isRunning()
       if (score && !stillRunning) {
         setTimeout(() => { this.runScoreTileFalling() })
-      } else {
-        // TODO animate no match
       }
       return stillRunning
     }
     this.animationQueue.push(swapAnimation)
   }
 
-  runScoreTileFalling() {
+  runScoreTileFalling () {
     console.log('runScoreTileFalling')
+    // decide on scoring:
+    // 3x = 100
+    // 4x = 200
+    // 5x = 400 (theoretical max surely unless random drops are weird)
+    // combo multipliers
+    // highlight the scoring blocks and remove them all (with animations!)
+    // Do drop of all tiles into the available space
+    // choose the animation for block disappearance
+    //
+    const sc = this.detectScores(this.boom.bind(this))
+    console.assert(sc, 'should have scored here!')
+  }
+
+  boom (rowOrCol, rcIndex, pos, line) {
+    const t = this.data2D
+    const p = this.params
+    // let's start with highlighting a line
+    const isRow = (rowOrCol === 'row')
+    const w = isRow ? line.length : 1
+    const h = isRow ? 1 : line.length
+    const geo = new THREE.BoxGeometry(w + p.tileSpacing, h + p.tileSpacing, p.tileThickness * 1.2)
+    const mat = new THREE.MeshBasicMaterial({ color: p.colours.lineWin, wireframe: false, transparent: true, opacity: 0.7 })
+    const m = new THREE.Mesh(geo, mat)
+    // position box centre
+    const mid = (rcIndex + ((w - 1) / 2))
+    const y = isRow ? mid : pos
+    const x = isRow ? pos : mid
+    m.position.set(x, y, 0)
+    m.visible = true
+    m.layers.disable(CLICKABLE_LAYER) // make clickable
+    this.rack.add(m)
+
+    // TODO little animation of a single tile exploding
+
+    this.redraw()
   }
 
   /**
-   * For animation:
-   * - the 'gsap' animation library is proving annoying in other mini-games and
-   *   not acting intuitively so I want to just use three.js built-in animation
-   *   features. In the process I might discover what I'm doing wrong in 'gsap'.
-   *
-   * https://threejs.org/manual/#en/animation-system
-   * simplest example: https://threejs.org/examples/?q=keys#misc_animation_keys
-   * example code: https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
-   *
-   * TODO - an animation sequence to swap two tiles can come first
-   * have user settings for animation durations
-   * Class relationships for the system
-   * AnimationAction drives
-   * AnimationMixer controlling
-   * AnimationClip has
-   * KeyframeTrack
+   * Called by the Screen animation mixer.
    *
    * @returns {boolean} whether a redraw is required
    */
   animate (delta) {
-    // anything on the timeline?
+    // anything in the queue to animate?
     if (!this.active || this.animationQueue.length === 0) { return false }
     const keep = []
     for (const func of this.animationQueue) {
