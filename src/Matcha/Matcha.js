@@ -451,13 +451,6 @@ export class Matcha extends MiniGameBase {
     if (!score) {
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
-    const afterSwap = async () => {
-      if (score) {
-        // TODO animate remove scoring tiles procedure
-      } else {
-        // TODO animate no match
-      }
-    }
 
     // Hand crafted animation things in Three JS
     // this seems rather excessive - I'm probably doing this wrong
@@ -474,7 +467,9 @@ export class Matcha extends MiniGameBase {
     const mixer2 = new THREE.AnimationMixer(obj)
     const action1 = mixer1.clipAction(clip1)
     const action2 = mixer2.clipAction(clip2)
-    action1.loop = action2.loop = THREE.LoopOnce
+    const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
+    action1.setLoop(loopStyle, 1)
+    action2.setLoop(loopStyle, 1)
     // TODO if no score then ping-pong to swap back and maybe do it faster
     action1.clampWhenFinished = action2.clampWhenFinished = true
     action1.play()
@@ -482,7 +477,24 @@ export class Matcha extends MiniGameBase {
     // TODO - push an object with animation actions and an onFinished callback
     // NO! just pass a single animation callback that takes a delta!
     // and then does cool stuff and fire of a setTimeout to execute a promise in the "main thead" outside the animation frame loop
-    this.animationQueue.push(action1, action2)
+
+    // this animation will be called from the renderer until it returns false upon which it will be removed from the animation queue
+    const swapAnimation = (delta) => {
+      action1.getMixer().update(delta)
+      action2.getMixer().update(delta)
+      const stillRunning = action1.isRunning() || action2.isRunning()
+      if (score && !stillRunning) {
+        setTimeout(() => { this.runScoreTileFalling() })
+      } else {
+        // TODO animate no match
+      }
+      return stillRunning
+    }
+    this.animationQueue.push(swapAnimation)
+  }
+
+  runScoreTileFalling() {
+    console.log('runScoreTileFalling')
   }
 
   /**
@@ -506,16 +518,16 @@ export class Matcha extends MiniGameBase {
    * @returns {boolean} whether a redraw is required
    */
   animate (delta) {
-    if (!this.active) { return false }
     // anything on the timeline?
-    // could animate multiple things at once but some things need to be sequential
-    // - tiles swapping, tiles falling, new tiles appearing
-    // - sounds too
-    // queue of things?
-    for (const action of this.animationQueue) {
-      action.getMixer().update(delta)
+    if (!this.active || this.animationQueue.length === 0) { return false }
+    const keep = []
+    for (const func of this.animationQueue) {
+      if (func(delta)) {
+        keep.push(func)
+      }
     }
-    this.animationQueue = this.animationQueue.filter(f => f.isRunning())
-    return (this.animationQueue.length > 0)
+    this.animationQueue = keep
+    // return that we need to redraw...
+    return true
   }
 }
