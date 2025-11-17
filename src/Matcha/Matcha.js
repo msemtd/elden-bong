@@ -473,8 +473,8 @@ export class Matcha extends MiniGameBase {
     const m2 = mid.clone()
     m1.z += 0.45
     m2.z += 0.25
-    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.7, 1.4], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
-    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.7, 1.4], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
+    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
+    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
     const clip1 = new THREE.AnimationClip('Action', -1, [kf1])
     const clip2 = new THREE.AnimationClip('Action', -1, [kf2])
     const mixer1 = new THREE.AnimationMixer(otherTile)
@@ -483,8 +483,9 @@ export class Matcha extends MiniGameBase {
     const action2 = mixer2.clipAction(clip2)
     // TODO if no score then ping-pong to swap back and maybe do it faster
     const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
-    action1.setLoop(loopStyle, 1)
-    action2.setLoop(loopStyle, 1)
+    const loopTimes = score ? 1 : 2
+    action1.setLoop(loopStyle, loopTimes)
+    action2.setLoop(loopStyle, loopTimes)
     action1.clampWhenFinished = action2.clampWhenFinished = true
     action1.play()
     action2.play()
