@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import * as TWEEN from 'three/addons/libs/tween.module.js'
+
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
 import { Colours } from '../Colours'
@@ -457,7 +459,7 @@ export class Matcha extends MiniGameBase {
     t[r2][c2] = temp
   }
 
-  swapTiles (obj, p2, otherTile, p1, animated = true) {
+  swapTiles (obj, p2, otherTile, p1, useTween = true) {
     // does this change make a score?
     // swap the tiles in the 2D data...
     this.swapData2D(p1.y, p1.x, p2.y, p2.x)
@@ -466,40 +468,59 @@ export class Matcha extends MiniGameBase {
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
 
+    if (useTween) {
+      // let's try to use tween lib properly
+      const obj1 = otherTile
+      const obj2 = obj
+      const dur = 1000
+      const midPoint = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
+      const [m1, m2] = [midPoint.clone(), midPoint.clone()]
+      m1.z += 0.45
+      m2.z += 0.25
+      const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, m1.x, p2.x], y: [p1.y, m1.y, p2.y], z: [p1.z, m1.z, p2.z] }, dur).start()
+      const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, m2.x, p1.x], y: [p2.y, m2.y, p1.y], z: [p2.z, m2.z, p1.z] }, dur).start()
+      // again submit an animation function to the queue
+      this.animationQueue.push((delta) => {
+        t1.update(delta)
+        t2.update(delta)
+        return (t1.isPlaying() || t2.isPlaying())
+      })
+    } else {
     // Hand crafted animation things in Three JS
     // this seems rather excessive - I'm probably doing this wrong
-    const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
-    const m1 = mid.clone()
-    const m2 = mid.clone()
-    m1.z += 0.45
-    m2.z += 0.25
-    const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
-    const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
-    const clip1 = new THREE.AnimationClip('Action', -1, [kf1])
-    const clip2 = new THREE.AnimationClip('Action', -1, [kf2])
-    const mixer1 = new THREE.AnimationMixer(otherTile)
-    const mixer2 = new THREE.AnimationMixer(obj)
-    const action1 = mixer1.clipAction(clip1)
-    const action2 = mixer2.clipAction(clip2)
-    // TODO if no score then ping-pong to swap back and maybe do it faster
-    const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
-    const loopTimes = score ? 1 : 2
-    action1.setLoop(loopStyle, loopTimes)
-    action2.setLoop(loopStyle, loopTimes)
-    action1.clampWhenFinished = action2.clampWhenFinished = true
-    action1.play()
-    action2.play()
-    // this animation will be called from the renderer until it returns false upon which it will be removed from the animation queue
-    const swapAnimation = (delta) => {
-      action1.getMixer().update(delta)
-      action2.getMixer().update(delta)
-      const stillRunning = action1.isRunning() || action2.isRunning()
-      if (score && !stillRunning) {
-        setTimeout(() => { this.runScoreTileFalling() })
+      const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
+      const m1 = mid.clone()
+      const m2 = mid.clone()
+      m1.z += 0.45
+      m2.z += 0.25
+      const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
+      const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
+      const clip1 = new THREE.AnimationClip('Action', -1, [kf1])
+      const clip2 = new THREE.AnimationClip('Action', -1, [kf2])
+      const mixer1 = new THREE.AnimationMixer(otherTile)
+      const mixer2 = new THREE.AnimationMixer(obj)
+      const action1 = mixer1.clipAction(clip1)
+      const action2 = mixer2.clipAction(clip2)
+      // TODO if no score then ping-pong to swap back and maybe do it faster
+      const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
+      const loopTimes = score ? 1 : 2
+      action1.setLoop(loopStyle, loopTimes)
+      action2.setLoop(loopStyle, loopTimes)
+      action1.clampWhenFinished = action2.clampWhenFinished = true
+      action1.play()
+      action2.play()
+      // this animation will be called from the renderer until it returns false upon which it will be removed from the animation queue
+      const swapAnimation = (delta) => {
+        action1.getMixer().update(delta)
+        action2.getMixer().update(delta)
+        const stillRunning = action1.isRunning() || action2.isRunning()
+        if (score && !stillRunning) {
+          setTimeout(() => { this.runScoreTileFalling() })
+        }
+        return stillRunning
       }
-      return stillRunning
+      this.animationQueue.push(swapAnimation)
     }
-    this.animationQueue.push(swapAnimation)
   }
 
   runScoreTileFalling () {
@@ -551,6 +572,7 @@ export class Matcha extends MiniGameBase {
     if (!this.active || this.animationQueue.length === 0) { return false }
     const keep = []
     for (const func of this.animationQueue) {
+      // functions should return false if they want to fall off the queue
       if (func(delta)) {
         keep.push(func)
       }
