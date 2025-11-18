@@ -481,8 +481,9 @@ export class Matcha extends MiniGameBase {
       const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, m2.x, p1.x], y: [p2.y, m2.y, p1.y], z: [p2.z, m2.z, p1.z] }, dur).start()
       // again submit an animation function to the queue
       this.animationQueue.push((delta) => {
-        t1.update(delta)
-        t2.update(delta)
+        // NB: TWEEN can't use the delta...
+        t1.update()
+        t2.update()
         return (t1.isPlaying() || t2.isPlaying())
       })
     } else {
