@@ -5,7 +5,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import $ from 'jquery'
-import { Howl } from 'howler'
 // cSpell:ignore yatiac, kanjivg
 import ntc from '@yatiac/name-that-color'
 import path from 'path-browserify'
@@ -13,7 +12,7 @@ import path from 'path-browserify'
 import { Screen } from './Screen'
 import { MapMan } from './WorldMap'
 import { GamepadManager } from './GamepadManager'
-import { pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile, shellOpenExternal } from './HandyApi'
+import { pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile, loadTextFile } from './HandyApi'
 import { filePathToMine, isInputEvent } from './util'
 import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
 import { Dlg } from './dlg'
@@ -23,9 +22,9 @@ import { VanStuff } from './VanStuff'
 import { UserControls } from './Controls'
 import { MiniGames } from './MiniGames'
 import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
-import deathSound from '../sounds/Humanoid Fall.mp3'
 import { isInteger } from './wahWah'
 import { FileDrop } from './FileDrop'
+import { SoundBoard } from './SoundBoard'
 
 async function pick () {
   const info = await pickFile()
@@ -109,7 +108,7 @@ class Bong extends THREE.EventDispatcher {
     this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
-    setTimeout(this.whenReady.bind(this), 30)
+    setTimeout(this.whenReady.bind(this))
   }
 
   onKeyDown (ev) {
@@ -168,14 +167,11 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'trySomeSvg')
       fld.add(this, 'testVanStuff')
       fld.add(this, 'loadTokyo')
-
-      // fld.add(this.moanSwooper, 'runTestBomb').name('moanSwooper test bomb')
-      // fld.add(this.moanSwooper, 'runTest').name('moanSwooper test 1')
-      // TODO -
-      // enable/disable mixer
-      // show/hide group
-      // create/destroy group
-      // position/scale
+      {
+        const sb = SoundBoard.getInstance()
+        const o = { soundName: 'none' }
+        fld.add(o, 'soundName', [...sb.getNames()]).name('Sound Board').onChange(v => { sb.play(v) })
+      }
     }
     {
       const s = this.gui.addFolder('Scene').close()
@@ -442,8 +438,7 @@ class Bong extends THREE.EventDispatcher {
   }
 
   youDiedWithSound () {
-    const sound = new Howl({ src: [deathSound] })
-    sound.play()
+    SoundBoard.getInstance().play('defenderHumanoidFall')
     this.youDiedFadeIn()
   }
 
@@ -756,7 +751,7 @@ class Bong extends THREE.EventDispatcher {
   addStats (c) {
     const stats = new Stats()
     c.container.appendChild(stats.dom)
-    stats.domElement.style.cssText = 'position:absolute;top:40px;left:10px;'
+    stats.dom.style.cssText = 'position:absolute;top:40px;left:10px;'
     c.addMixer('stats', (_delta) => {
       stats.update()
       return false

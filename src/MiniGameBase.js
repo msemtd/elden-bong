@@ -10,6 +10,7 @@ class MiniGameBase extends THREE.EventDispatcher {
     super()
     console.assert(parent instanceof THREE.EventDispatcher)
     this.active = false
+    this.parent = parent
     this.name = name
     this.gui = null
     this.group = new THREE.Group()

@@ -4,6 +4,7 @@ import * as TWEEN from 'three/addons/libs/tween.module.js'
 
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
+import { MiniGames } from '../MiniGames'
 import { Colours } from '../Colours'
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
@@ -149,10 +150,13 @@ export class Matcha extends MiniGameBase {
   }
 
   loadSettings () {
-    if (this.parent instanceof MiniGameBase && this.parent.parent instanceof Bong) {
+    if (this.parent instanceof MiniGames && this.parent.parent instanceof Bong) {
       const bong = this.parent.parent
       const settings = bong.settings.matchaGame || {}
       // apply settings to me...
+      if (settings?.testing !== undefined) {
+        this.testing = settings.testing
+      }
     }
   }
 
@@ -324,13 +328,14 @@ export class Matcha extends MiniGameBase {
       }
     }
     this.clickable = [rack]
+    this.noClicking = false
     // create a highlight object
     {
       const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
       const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
       const h = new THREE.Mesh(geo, mat)
       h.visible = false
-      h.layers.disable(CLICKABLE_LAYER) // make unclickable
+      h.layers.disable(CLICKABLE_LAYER) // make un-clickable
       rack.add(h)
       this.highlightObj = h
     }
@@ -394,6 +399,7 @@ export class Matcha extends MiniGameBase {
    */
   offerDoubleClick (ev, mousePos, raycaster) {
     if (!this.active || ev.button !== 0) { return false }
+    if (this.noClicking) { return false }
     const savedLayers = raycaster.layers.mask
     raycaster.layers.set(CLICKABLE_LAYER)
     const hits = raycaster.intersectObjects(this.clickable, true)
@@ -474,11 +480,22 @@ export class Matcha extends MiniGameBase {
       const obj2 = obj
       const dur = 1000
       const midPoint = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
-      const [m1, m2] = [midPoint.clone(), midPoint.clone()]
-      m1.z += 0.45
-      m2.z += 0.25
-      const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, m1.x, p2.x], y: [p1.y, m1.y, p2.y], z: [p1.z, m1.z, p2.z] }, dur).start()
-      const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, m2.x, p1.x], y: [p2.y, m2.y, p1.y], z: [p2.z, m2.z, p1.z] }, dur).start()
+      const [midOver, midUnder] = [midPoint.clone(), midPoint.clone()]
+      midOver.z += 0.45
+      midUnder.z += 0.25
+      // https://tweenjs.github.io/tween.js/docs/user_guide.html
+      const e = TWEEN.Easing.Bounce.Out
+      const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
+      const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
+      if (score) {
+        t2.onComplete(() => {
+          setTimeout(() => { this.runScoreTileFalling() })
+        })
+      } else {
+        // cSpell:ignore yoyo
+        t1.yoyo(true).repeat(1)
+        t2.yoyo(true).repeat(1)
+      }
       // again submit an animation function to the queue
       this.animationQueue.push((delta) => {
         // NB: TWEEN can't use the delta...
