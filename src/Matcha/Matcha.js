@@ -473,6 +473,7 @@ export class Matcha extends MiniGameBase {
   swapTiles (obj, p2, otherTile, p1, useTween = true) {
     // disable clicking during the swap and score animations
     this.noClicking = true
+    this.clearLineHighlights()
     // does this change make a score?
     // swap the tiles in the 2D data...
     this.swapData2D(p1.y, p1.x, p2.y, p2.x)
@@ -534,11 +535,7 @@ export class Matcha extends MiniGameBase {
 
     // remove all children of rack that are highlights
     // shouldn't be necessary outside of debugging...
-    let c = null
-    while ((c = this.rack.getObjectByName('lineHighlight'))) {
-      console.log('removing leftover lineHighlight ', c.userData)
-      this.rack.remove(c)
-    }
+    this.clearLineHighlights()
 
     const sc = this.detectScores(this.highlightLine.bind(this))
     console.assert(sc, 'should have scored here!')
@@ -556,6 +553,15 @@ export class Matcha extends MiniGameBase {
 
     // finally...
     this.noClicking = false
+  }
+
+  clearLineHighlights () {
+    let c = null
+    while ((c = this.rack.getObjectByName('lineHighlight'))) {
+      console.log('removing leftover lineHighlight ', c.userData)
+      this.rack.remove(c)
+    }
+    this.redraw()
   }
 
   highlightLine (rowOrCol, rcIndex, pos, line) {
@@ -580,7 +586,7 @@ export class Matcha extends MiniGameBase {
     this.rack.add(m)
 
     // TODO little animation of each single tile exploding
-    const t1 = new TWEEN.Tween(mat).to({ opacity: 0.9 }, 1000).start()
+    const t1 = new TWEEN.Tween(mat).to({ opacity: 0.9 }, 300).start()
     this.animationQueue.push((delta) => {
       // NB: TWEEN can't use the delta...
       t1.update()
