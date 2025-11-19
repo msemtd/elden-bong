@@ -1,19 +1,19 @@
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import * as TWEEN from 'three/addons/libs/tween.module.js'
-
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
 import { MiniGames } from '../MiniGames'
 import { Colours } from '../Colours'
+import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack'
+import { Bong } from '../bong'
+import { SoundBoard } from '../SoundBoard'
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
 import tileImagePig from './matcha-card-pig.png'
 import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
-import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack'
-import { Bong } from '../bong'
 
 const CLICKABLE_LAYER = 1
 
@@ -61,6 +61,8 @@ const CLICKABLE_LAYER = 1
  * AnimationClip has
  * KeyframeTrack
  *
+ * Found that tween.js is easier to use for simple animations so using that for now.
+ *
  * @class Matcha
  * @extends MiniGameBase
  */
@@ -74,6 +76,7 @@ export class Matcha extends MiniGameBase {
     this.clickable = []
     this.highlightObj = null
     this.gameState = 'attract' // 'playing', 'paused', 'gameOver'
+    this.score = 0
     // TODO I want to make the tiles from emoji but I can't be sure that the
     // fonts will be available on the user's system
     // I'll start with little PNG images
@@ -112,6 +115,7 @@ export class Matcha extends MiniGameBase {
     this.data2D = null
     this.testing = true
     this.loadSettings()
+    this.flashMaterial = new THREE.MeshLambertMaterial({ color: this.params.colours.lineWin, transparent: true, opacity: 0.1 })
     // load settings from parent
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -161,6 +165,7 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
+    this.score = 0
     this.rackSetup()
     this.freshGfx()
     this.detectScores(() => {
@@ -303,7 +308,7 @@ export class Matcha extends MiniGameBase {
     const t = this.data2D
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
-      new THREE.MeshBasicMaterial({ color: p.colours.backdrop, side: THREE.DoubleSide })
+      new THREE.MeshLambertMaterial({ color: p.colours.backdrop, side: THREE.DoubleSide })
     )
     backdrop.name = 'backdrop'
     backdrop.position.set(0, 0, -0.1)
@@ -329,7 +334,7 @@ export class Matcha extends MiniGameBase {
     }
     this.clickable = [rack]
     this.noClicking = false
-    // create a highlight object
+    // create a highlight object for first chosen tile
     {
       const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
       const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
@@ -466,6 +471,8 @@ export class Matcha extends MiniGameBase {
   }
 
   swapTiles (obj, p2, otherTile, p1, useTween = true) {
+    // disable clicking during the swap and score animations
+    this.noClicking = true
     // does this change make a score?
     // swap the tiles in the 2D data...
     this.swapData2D(p1.y, p1.x, p2.y, p2.x)
@@ -473,75 +480,48 @@ export class Matcha extends MiniGameBase {
     if (!score) {
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
-
-    if (useTween) {
-      // let's try to use tween lib properly
-      const obj1 = otherTile
-      const obj2 = obj
-      const dur = 1000
-      const midPoint = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
-      const [midOver, midUnder] = [midPoint.clone(), midPoint.clone()]
-      midOver.z += 0.45
-      midUnder.z += 0.25
-      // https://tweenjs.github.io/tween.js/docs/user_guide.html
-      const e = TWEEN.Easing.Bounce.Out
-      const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
-      const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
-      if (score) {
-        t2.onComplete(() => {
-          setTimeout(() => { this.runScoreTileFalling() })
-        })
-      } else {
-        // cSpell:ignore yoyo
-        t1.yoyo(true).repeat(1)
-        t2.yoyo(true).repeat(1)
-      }
-      // again submit an animation function to the queue
-      this.animationQueue.push((delta) => {
-        // NB: TWEEN can't use the delta...
-        t1.update()
-        t2.update()
-        return (t1.isPlaying() || t2.isPlaying())
+    SoundBoard.getInstance().play('defenderLanderDestroyed')
+    // let's try to use tween lib properly
+    const obj1 = otherTile
+    const obj2 = obj
+    const dur = 1000
+    const midPoint = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
+    const [midOver, midUnder] = [midPoint.clone(), midPoint.clone()]
+    midOver.z += 0.45
+    midUnder.z += 0.25
+    // https://tweenjs.github.io/tween.js/docs/user_guide.html
+    const e = TWEEN.Easing.Bounce.Out
+    const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
+    const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
+    if (score) {
+      t2.onComplete(() => {
+        setTimeout(() => { this.runScoreTileFalling() })
       })
     } else {
-    // Hand crafted animation things in Three JS
-    // this seems rather excessive - I'm probably doing this wrong
-      const mid = p2.clone().sub(p1).multiplyScalar(0.5).add(p1)
-      const m1 = mid.clone()
-      const m2 = mid.clone()
-      m1.z += 0.45
-      m2.z += 0.25
-      const kf1 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p1.x, p1.y, p1.z, m1.x, m1.y, m1.z, p2.x, p2.y, p2.z])
-      const kf2 = new THREE.VectorKeyframeTrack('.position', [0, 0.5, 1.0], [p2.x, p2.y, p2.z, m2.x, m2.y, m2.z, p1.x, p1.y, p1.z])
-      const clip1 = new THREE.AnimationClip('Action', -1, [kf1])
-      const clip2 = new THREE.AnimationClip('Action', -1, [kf2])
-      const mixer1 = new THREE.AnimationMixer(otherTile)
-      const mixer2 = new THREE.AnimationMixer(obj)
-      const action1 = mixer1.clipAction(clip1)
-      const action2 = mixer2.clipAction(clip2)
-      // TODO if no score then ping-pong to swap back and maybe do it faster
-      const loopStyle = score ? THREE.LoopOnce : THREE.LoopPingPong
-      const loopTimes = score ? 1 : 2
-      action1.setLoop(loopStyle, loopTimes)
-      action2.setLoop(loopStyle, loopTimes)
-      action1.clampWhenFinished = action2.clampWhenFinished = true
-      action1.play()
-      action2.play()
-      // this animation will be called from the renderer until it returns false upon which it will be removed from the animation queue
-      const swapAnimation = (delta) => {
-        action1.getMixer().update(delta)
-        action2.getMixer().update(delta)
-        const stillRunning = action1.isRunning() || action2.isRunning()
-        if (score && !stillRunning) {
-          setTimeout(() => { this.runScoreTileFalling() })
-        }
-        return stillRunning
-      }
-      this.animationQueue.push(swapAnimation)
+      // cSpell:ignore yoyo
+      t1.yoyo(true).repeat(1)
+      t2.yoyo(true).repeat(1)
+      t2.onComplete(() => {
+        this.noClicking = false
+        setTimeout(() => { SoundBoard.getInstance().play('defenderBaiterBusted') })
+      })
     }
+    // again submit an animation function to the queue
+    this.animationQueue.push((delta) => {
+      // NB: TWEEN can't use the delta...
+      t1.update()
+      t2.update()
+      return (t1.isPlaying() || t2.isPlaying())
+    })
   }
 
-  runScoreTileFalling () {
+  /**
+   * Called upon detecting scoring tiles - clear up and run falling tiles
+   * TODO maybe async?
+   *
+   * @returns {void}
+   */
+  async runScoreTileFalling () {
     console.log('runScoreTileFalling')
     // decide on scoring:
     // 3x = 100
@@ -551,21 +531,45 @@ export class Matcha extends MiniGameBase {
     // highlight the scoring blocks and remove them all (with animations!)
     // Do drop of all tiles into the available space
     // choose the animation for block disappearance
-    //
-    const sc = this.detectScores(this.boom.bind(this))
+
+    // remove all children of rack that are highlights
+    // shouldn't be necessary outside of debugging...
+    let c = null
+    while ((c = this.rack.getObjectByName('lineHighlight'))) {
+      console.log('removing leftover lineHighlight ', c.userData)
+      this.rack.remove(c)
+    }
+
+    const sc = this.detectScores(this.highlightLine.bind(this))
     console.assert(sc, 'should have scored here!')
+    SoundBoard.getInstance().play('defenderHumanoidSave')
+    this.score += sc
+    console.log(`current score: ${this.score}`)
+    // collected scoring positions in userData in highlight children of rack
+    // TODO for each score highlight, animate disappearance of tiles
+
+    // TODO then animate falling of tiles to fill gaps
+    // TODO then generate new tiles at top to fill gaps
+    // TODO then detectScores again and repeat if necessary
+
+    // get clever with async and await
+
+    // finally...
+    this.noClicking = false
   }
 
-  boom (rowOrCol, rcIndex, pos, line) {
+  highlightLine (rowOrCol, rcIndex, pos, line) {
     const t = this.data2D
     const p = this.params
     // let's start with highlighting a line
     const isRow = (rowOrCol === 'row')
     const w = isRow ? line.length : 1
     const h = isRow ? 1 : line.length
-    const geo = new THREE.BoxGeometry(w + p.tileSpacing, h + p.tileSpacing, p.tileThickness * 1.2)
-    const mat = new THREE.MeshBasicMaterial({ color: p.colours.lineWin, wireframe: false, transparent: true, opacity: 0.7 })
+    const geo = new THREE.BoxGeometry(w, h, p.tileThickness * 1.2)
+    const mat = this.flashMaterial.clone()
     const m = new THREE.Mesh(geo, mat)
+    m.name = 'lineHighlight'
+    m.userData.lineInfo = { rowOrCol, rcIndex, pos, line }
     // position box centre
     const mid = ((line.length - 1) / 2)
     const x = isRow ? pos + mid : rcIndex
@@ -575,8 +579,13 @@ export class Matcha extends MiniGameBase {
     m.layers.disable(CLICKABLE_LAYER) // make clickable
     this.rack.add(m)
 
-    // TODO little animation of a single tile exploding
-
+    // TODO little animation of each single tile exploding
+    const t1 = new TWEEN.Tween(mat).to({ opacity: 0.9 }, 1000).start()
+    this.animationQueue.push((delta) => {
+      // NB: TWEEN can't use the delta...
+      t1.update()
+      return t1.isPlaying()
+    })
     this.redraw()
   }
 
