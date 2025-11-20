@@ -506,7 +506,7 @@ export class Matcha extends MiniGameBase {
     const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
     if (scores.length) {
       t2.onComplete(() => {
-        setTimeout(() => { this.runScoreAnimations(scores) })
+        setTimeout(() => { this.runScoreAnimations(scores, midPoint) })
       })
     } else {
       // cSpell:ignore yoyo
@@ -537,7 +537,7 @@ export class Matcha extends MiniGameBase {
    *  - line: the matched line string
    * @returns {Promise<void>}
    */
-  async runScoreAnimations (scores) {
+  async runScoreAnimations (scores, midPoint = null) {
     console.log('runScoreAnimations')
     console.assert(scores.length, 'should have scored here!')
     // highlight the scoring blocks and remove them all (with animations!)
@@ -554,14 +554,14 @@ export class Matcha extends MiniGameBase {
     }
     SoundBoard.getInstance().play('defenderHumanoidSave')
     this.addScores(scores)
-    // TODO for each score highlight, animate disappearance of tiles
+    // for each score highlight, animate disappearance of tiles
     // wait for highlight animations to finish...
     console.log('waiting for highlight animations to finish...')
-    console.time('waitHighlight')
+    console.time('waitForAnimations')
     while (this.animationQueue.length) {
       await delayMs(200)
     }
-    console.timeEnd('waitHighlight')
+    console.timeEnd('waitForAnimations')
     console.log('highlight animations finished')
     this.clearLineHighlights()
     let delay = 10
@@ -595,15 +595,58 @@ export class Matcha extends MiniGameBase {
     }
 
     this.redraw()
+    console.log('waiting for line clearing animations to finish...')
+    console.time('waitForAnimations')
+    while (this.animationQueue.length) {
+      await delayMs(200)
+    }
+    console.timeEnd('waitForAnimations')
+    console.log('clearing animations finished')
 
     // TODO then animate falling of tiles to fill gaps
     // TODO then generate new tiles at top to fill gaps
     // TODO then detectScores again and repeat if necessary
 
-    // get clever with async and await
+    // scan columns for gaps and drop tiles down
+    // hmm, we already have all the tile positions
+    // each unstable tile how far to drop?
+    // how many gaps below me == how many units to drop
+    // ordered by Y increasing - start the animations with the small delays
+    const p = this.params
+    const t = this.data2D
 
+    // just look at all tiles? Maybe just the affected columns?
+    // get column text and look for '-'
+
+    // get column indices and order by modular distance from centre OR from the midpoint of the last swap
+    const colIndices = [...Array(p.w).keys()]
+    const centre = midPoint ? midPoint.x : (p.w - 1) / 2
+    colIndices.sort((a, b) => {
+      return Math.abs(a - centre) - Math.abs(b - centre)
+    })
+
+    // for (const x of colIndices) {
+    //   for (let y = 0; y < p.h; y++) {
+    //     // for each column...
+    //     const emptySpots = 0  // count of empty spots found so far
+    //     for (let y = 0; y < p.h; y++) {
+    //       if (t[y][x] === '-') {
+    //       }
+    //     }
+    //   }
+    // }
+
+    // for (let x = 0; x < p.w; x++) {
+    //   // for each column...
+    //   const emptySpots = 0  // count of empty spots found so far
+    //   for (let y = 0; y < p.h; y++) {
+    //     if (t[y][x] === '-') {
+    //     }
+    //   }
+    // }
     // finally...
     this.noClicking = false
+    this.redraw()
   }
 
   /**
