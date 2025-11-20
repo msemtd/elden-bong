@@ -207,6 +207,52 @@ export class Matcha extends MiniGameBase {
   }
 
   /**
+   * Detect all scoring "lines" in the 2D rack data (all regex matches)
+   * The handler function can do whatever it wants with the info including
+   * changing the data! This is less concerning that it sounds because
+   * each row or column can be handled with consideration of its neighbours.
+   *
+   * @param {function} matchHandler optional function to be called for each match found
+   * with args (rowOrCol, rcIndex, pos, line)
+   * @returns {Array} array of match objects with properties:
+   *   - rowOrCol: 'row' or 'col'
+   *   - rcIndex: row or column index
+   *   - pos: starting position of the match
+   *   - line: the matched line string
+   *
+   * Naturally, if the data is changed by the handler, then this will be
+   * potentially flawed. See usage to gain some understanding.
+   */
+  detectScores (matchHandler = null) {
+    const p = this.params
+    const t = this.data2D
+    const results = []
+    // look at the rows first...
+    for (let y = 0; y < p.h; y++) {
+      const s = getRowString(y, p.w, t)
+      const ma = s.matchAll(this.rx)
+      for (const m of ma) {
+        results.push({ rowOrCol: 'row', rcIndex: y, pos: m.index, line: m[0] })
+        if (typeof matchHandler === 'function') {
+          matchHandler('row', y, m.index, m[0])
+        }
+      }
+    }
+    // look at the columns next...
+    for (let x = 0; x < p.w; x++) {
+      const s = getColumnString(x, p.h, t)
+      const ma = s.matchAll(this.rx)
+      for (const m of ma) {
+        results.push({ rowOrCol: 'col', rcIndex: x, pos: m.index, line: m[0] })
+        if (typeof matchHandler === 'function') {
+          matchHandler('col', x, m.index, m[0])
+        }
+      }
+    }
+    return results
+  }
+
+  /**
    * Callback for detectScores that patches winning lines on rows and columns
    * to be non-winning
    * @returns {void}
@@ -321,11 +367,7 @@ export class Matcha extends MiniGameBase {
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
-    const rack2 = rack.clone(false)
-    rack2.name = 'rack2'
-    backdrop.add(rack2)
-    this.rack2 = rack2
-    // create 3D rack of tile objects from prototype meshes...
+    // create 3D array of tile objects from prototype meshes...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
         const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
@@ -348,52 +390,6 @@ export class Matcha extends MiniGameBase {
     }
     this.activate()
     this.redraw()
-  }
-
-  /**
-   * Detect all scoring "lines" in the 2D rack data (all regex matches)
-   * The handler function can do whatever it wants with the info including
-   * changing the data! This is less concerning that it sounds because
-   * each row or column can be handled with consideration of its neighbours.
-   *
-   * @param {function} matchHandler optional function to be called for each match found
-   * with args (rowOrCol, rcIndex, pos, line)
-   * @returns {Array} array of match objects with properties:
-   *   - rowOrCol: 'row' or 'col'
-   *   - rcIndex: row or column index
-   *   - pos: starting position of the match
-   *   - line: the matched line string
-   *
-   * Naturally, if the data is changed by the handler, then this will be
-   * potentially flawed. See usage to gain some understanding.
-   */
-  detectScores (matchHandler = null) {
-    const p = this.params
-    const t = this.data2D
-    const results = []
-    // look at the rows first...
-    for (let y = 0; y < p.h; y++) {
-      const s = getRowString(y, p.w, t)
-      const ma = s.matchAll(this.rx)
-      for (const m of ma) {
-        results.push({ rowOrCol: 'row', rcIndex: y, pos: m.index, line: m[0] })
-        if (typeof matchHandler === 'function') {
-          matchHandler('row', y, m.index, m[0])
-        }
-      }
-    }
-    // look at the columns next...
-    for (let x = 0; x < p.w; x++) {
-      const s = getColumnString(x, p.h, t)
-      const ma = s.matchAll(this.rx)
-      for (const m of ma) {
-        results.push({ rowOrCol: 'col', rcIndex: x, pos: m.index, line: m[0] })
-        if (typeof matchHandler === 'function') {
-          matchHandler('col', x, m.index, m[0])
-        }
-      }
-    }
-    return results
   }
 
   createTileProtoMeshes () {
@@ -426,15 +422,8 @@ export class Matcha extends MiniGameBase {
     return true
   }
 
-  /**
-   * take focus - activate me, deactivate others, etc
-   */
   clickableClicked (obj) {
     this.activate()
-    // TODO -
-    // lock camera
-    // on escape, pause game, unlock camera
-    // start receiving single clicks
     this.selectTile(obj)
     this.redraw()
   }
@@ -493,6 +482,7 @@ export class Matcha extends MiniGameBase {
     }
     SoundBoard.getInstance().play('defenderLanderDestroyed')
     // let's try to use tween lib properly
+    // https://tweenjs.github.io/tween.js/docs/user_guide.html
     const obj1 = otherTile
     const obj2 = obj
     const dur = 1000
@@ -500,7 +490,6 @@ export class Matcha extends MiniGameBase {
     const [midOver, midUnder] = [midPoint.clone(), midPoint.clone()]
     midOver.z += 0.45
     midUnder.z += 0.25
-    // https://tweenjs.github.io/tween.js/docs/user_guide.html
     const e = TWEEN.Easing.Bounce.Out
     const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
     const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
@@ -509,6 +498,7 @@ export class Matcha extends MiniGameBase {
         setTimeout(() => { this.runScoreAnimations(scores, midPoint) })
       })
     } else {
+      // No score? Bounce back and play a notification sound...
       // cSpell:ignore yoyo
       t1.yoyo(true).repeat(1)
       t2.yoyo(true).repeat(1)
@@ -517,9 +507,9 @@ export class Matcha extends MiniGameBase {
         setTimeout(() => { SoundBoard.getInstance().play('defenderBaiterBusted') })
       })
     }
-    // again submit an animation function to the queue
+    // Submit animation function to the queue
+    // NB: TWEEN can't use the delta...
     this.animationQueue.push((delta) => {
-      // NB: TWEEN can't use the delta...
       t1.update()
       t2.update()
       return (t1.isPlaying() || t2.isPlaying())
@@ -555,20 +545,12 @@ export class Matcha extends MiniGameBase {
     SoundBoard.getInstance().play('defenderHumanoidSave')
     this.addScores(scores)
     // for each score highlight, animate disappearance of tiles
-    // wait for highlight animations to finish...
-    console.log('waiting for highlight animations to finish...')
-    console.time('waitForAnimations')
-    while (this.animationQueue.length) {
-      await delayMs(200)
-    }
-    console.timeEnd('waitForAnimations')
-    console.log('highlight animations finished')
+    await this.waitForAnimations()
     this.clearLineHighlights()
     let delay = 10
     const easing = TWEEN.Easing.Cubic.In
     for (const line of scores) {
       // individual tile removal animations...
-      const p = this.params
       const t = this.data2D
       const isRow = (line.rowOrCol === 'row')
       const len = line.line.length
@@ -593,30 +575,38 @@ export class Matcha extends MiniGameBase {
         delay += 100
       }
     }
-
     this.redraw()
-    console.log('waiting for line clearing animations to finish...')
-    console.time('waitForAnimations')
-    while (this.animationQueue.length) {
-      await delayMs(200)
-    }
-    console.timeEnd('waitForAnimations')
-    console.log('clearing animations finished')
-
-    // TODO then animate falling of tiles to fill gaps
-    // TODO then generate new tiles at top to fill gaps
-    // TODO then detectScores again and repeat if necessary
-
-    // scan columns for gaps and drop tiles down
-    // hmm, we already have all the tile positions
-    // each unstable tile how far to drop?
-    // how many gaps below me == how many units to drop
-    // ordered by Y increasing - start the animations with the small delays
+    await this.waitForAnimations()
+    // Animate falling of tiles to fill gaps...
+    // just look at all tiles? Maybe just the affected columns?
     const p = this.params
     const t = this.data2D
-
-    // just look at all tiles? Maybe just the affected columns?
-    // get column text and look for '-'
+    const columnData = []
+    // get column text and look for the new blank '-' entries
+    for (let x = 0; x < p.w; x++) {
+      const tilesToDrop = []
+      columnData.push(tilesToDrop)
+      const s = getColumnString(x, p.h, t)
+      let drop = 0
+      // starting at the bottom of the column...
+      for (let y = 0; y < p.h; y++) {
+        if (s[y] === '-') {
+          drop++
+        } else {
+          // this tile needs to drop maybe
+          if (drop) {
+            const tileObj = this.rack.children.find(o => o.position.x === x && o.position.y === y)
+            console.assert(tileObj, 'unable to find tile object to remove at scored position')
+            if (!tileObj) { continue }
+            const newY = y - drop
+            // TODO shaky x animation before fall
+            const tw = new TWEEN.Tween(tileObj.position).to({ y: newY }, 300)
+            const afterWhich = () => { this.swapData2D(y, x, newY, x) }
+            tilesToDrop.push({ tw, afterWhich })
+          }
+        }
+      }
+    }
 
     // get column indices and order by modular distance from centre OR from the midpoint of the last swap
     const colIndices = [...Array(p.w).keys()]
@@ -624,29 +614,36 @@ export class Matcha extends MiniGameBase {
     colIndices.sort((a, b) => {
       return Math.abs(a - centre) - Math.abs(b - centre)
     })
+    // now queue up the drop animations in the desired order
+    delay = 0
+    for (const x of colIndices) {
+      const tilesToDrop = columnData[x]
+      for (const act of tilesToDrop) {
+        act.tw.delay(delay).onComplete(act.afterWhich.bind(this)).start()
+        this.animationQueue.push(() => {
+          act.tw.update()
+          return act.tw.isPlaying()
+        })
+        delay += 150
+      }
+    }
+    await this.waitForAnimations()
 
-    // for (const x of colIndices) {
-    //   for (let y = 0; y < p.h; y++) {
-    //     // for each column...
-    //     const emptySpots = 0  // count of empty spots found so far
-    //     for (let y = 0; y < p.h; y++) {
-    //       if (t[y][x] === '-') {
-    //       }
-    //     }
-    //   }
-    // }
-
-    // for (let x = 0; x < p.w; x++) {
-    //   // for each column...
-    //   const emptySpots = 0  // count of empty spots found so far
-    //   for (let y = 0; y < p.h; y++) {
-    //     if (t[y][x] === '-') {
-    //     }
-    //   }
-    // }
+    // TODO then generate new tiles at top to fill gaps
+    // TODO then detectScores again and repeat if necessary
     // finally...
     this.noClicking = false
     this.redraw()
+  }
+
+  async waitForAnimations () {
+    console.log('waiting for animations to finish...')
+    console.time('waitForAnimations')
+    while (this.animationQueue.length) {
+      await delayMs(100)
+    }
+    console.timeEnd('waitForAnimations')
+    console.log('animations finished')
   }
 
   /**
@@ -672,7 +669,6 @@ export class Matcha extends MiniGameBase {
   }
 
   highlightLine (rowOrCol, rcIndex, pos, line) {
-    const t = this.data2D
     const p = this.params
     // let's start with highlighting a line
     const isRow = (rowOrCol === 'row')
