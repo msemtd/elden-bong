@@ -391,6 +391,11 @@ export class Matcha extends MiniGameBase {
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
     this.rack = rack
+    // create a second rack for placing highlights...
+    const rack2 = rack.clone()
+    rack2.name = 'rack2'
+    backdrop.add(rack2)
+    this.rack2 = rack
     // create 3D array of tile objects from prototype meshes...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
@@ -398,7 +403,7 @@ export class Matcha extends MiniGameBase {
         tile.position.set(x, y, 0)
       }
     }
-    this.clickable = [rack]
+    this.clickable = [rack, rack2]
     this.noClicking = false
     // create a highlight object for first chosen tile
     {
@@ -407,7 +412,7 @@ export class Matcha extends MiniGameBase {
       const h = new THREE.Mesh(geo, mat)
       h.visible = false
       h.layers.disable(CLICKABLE_LAYER) // make un-clickable
-      rack.add(h)
+      rack2.add(h)
       this.highlightObj = h
     }
     this.activate()
@@ -482,7 +487,7 @@ export class Matcha extends MiniGameBase {
       return
     }
     // console.log(`adjacent ${p1.x},${p1.y} <==> ${p2.x},${p2.y}`)
-    const otherTile = this.rack.children.find(o => o !== h && o.position.equals(p1))
+    const otherTile = this.rack.children.find(o => o.position.equals(p1))
     if (!otherTile) {
       console.error('something not right with rack contents - debug this')
       return
@@ -697,14 +702,17 @@ export class Matcha extends MiniGameBase {
     setTimeout(() => { this.runScoreAnimations(newScores, midPoint, multiplier) })
   }
 
+  // TODO make sure that the 3D tiles match the 2D data
   checkTiles () {
-    // TODO make sure that the 3D tiles match the 2D data
     const p = this.params
     const t = this.data2D
-    for (let y = 0; y < p.h; y++) {
-      for (let x = 0; x < p.w; x++) {
-        const val = t[y][x]
+    console.assert(this.rack.children.length === 64, `unexpected rack children length ${this.rack.children.length}`)
+    for (let row = 0; row < p.h; row++) {
+      for (let col = 0; col < p.w; col++) {
+        const val = t[row][col]
         console.log(val)
+        const tileObj = this.rack.children.find(o => o.position.x === col && o.position.y === row)
+        console.assert(tileObj, `failed to find tile object in position ${row} ${col}`)
       }
     }
   }
@@ -734,7 +742,7 @@ export class Matcha extends MiniGameBase {
 
   clearLineHighlights () {
     let c = null
-    while ((c = this.rack.getObjectByName('lineHighlight'))) {
+    while ((c = this.rack2.getObjectByName('lineHighlight'))) {
       this.rack.remove(c)
     }
     this.redraw()
@@ -758,7 +766,7 @@ export class Matcha extends MiniGameBase {
     m.position.set(x, y, 0)
     m.visible = true
     m.layers.disable(CLICKABLE_LAYER) // make clickable
-    this.rack.add(m)
+    this.rack2.add(m)
 
     // TODO little animation of each single tile exploding
     const t1 = new TWEEN.Tween(mat).to({ opacity: 0.9 }, 300).start()
