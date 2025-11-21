@@ -42,6 +42,7 @@ const CLICKABLE_LAYER = 1
  * - because raycasting hits invisible objects we can use layers
  * - layer 1 (CLICKABLE_LAYER) will be used for clickable objects
  * - when making an object invisible and non-clickable just remove it from layer 1
+ * - while animating swaps and scores, clicking is disabled
  *
  * A non-graphical data is convenient to hold the initial or current state of the rack
  * - this is a 2D array of text digits representing tile types
@@ -475,9 +476,10 @@ export class Matcha extends MiniGameBase {
     this.clearLineHighlights()
     // does this change make a score?
     // swap the tiles in the 2D data...
+    const scoresBefore = this.detectScores()
     this.swapData2D(p1.y, p1.x, p2.y, p2.x)
     const scores = this.detectScores()
-    if (!scores.length) {
+    if (scores.length > scoresBefore.length) {
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
     SoundBoard.getInstance().play('defenderLanderDestroyed')
@@ -527,7 +529,7 @@ export class Matcha extends MiniGameBase {
    *  - line: the matched line string
    * @returns {Promise<void>}
    */
-  async runScoreAnimations (scores, midPoint = null) {
+  async runScoreAnimations (scores, midPoint = null, multiplier = 1) {
     console.log('runScoreAnimations')
     console.assert(scores.length, 'should have scored here!')
     // highlight the scoring blocks and remove them all (with animations!)
@@ -543,12 +545,12 @@ export class Matcha extends MiniGameBase {
       this.highlightLine(score.rowOrCol, score.rcIndex, score.pos, score.line)
     }
     SoundBoard.getInstance().play('defenderHumanoidSave')
-    this.addScores(scores)
+    this.addScores(scores, multiplier)
     // for each score highlight, animate disappearance of tiles
     await this.waitForAnimations()
     this.clearLineHighlights()
     let delay = 10
-    const easing = TWEEN.Easing.Cubic.In
+    let easing = TWEEN.Easing.Cubic.In
     for (const line of scores) {
       // individual tile removal animations...
       const t = this.data2D
@@ -582,6 +584,7 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     const t = this.data2D
     const columnData = []
+    easing = TWEEN.Easing.Cubic.In
     // get column text and look for the new blank '-' entries
     for (let x = 0; x < p.w; x++) {
       const tilesToDrop = []
@@ -600,20 +603,24 @@ export class Matcha extends MiniGameBase {
             if (!tileObj) { continue }
             const newY = y - drop
             // TODO shaky x animation before fall
-            const tw = new TWEEN.Tween(tileObj.position).to({ y: newY }, 300)
+            const tw = new TWEEN.Tween(tileObj.position).to({ y: newY }, 300).easing(easing)
             const afterWhich = () => { this.swapData2D(y, x, newY, x) }
             tilesToDrop.push({ tw, afterWhich })
           }
         }
       }
     }
-
-    // get column indices and order by modular distance from centre OR from the midpoint of the last swap
+    // We are going to operate on each affected column but rather than do it in
+    // a boring left-to-right order, we can order based on proximity to the
+    // action the user took!
+    // Get column indices and order by modular distance from centre OR from the
+    // midpoint of the last swap if available...
     const colIndices = [...Array(p.w).keys()]
     const centre = midPoint ? midPoint.x : (p.w - 1) / 2
     colIndices.sort((a, b) => {
       return Math.abs(a - centre) - Math.abs(b - centre)
     })
+    console.log('column order', colIndices)
     // now queue up the drop animations in the desired order
     delay = 0
     for (const x of colIndices) {
@@ -628,12 +635,46 @@ export class Matcha extends MiniGameBase {
       }
     }
     await this.waitForAnimations()
-
-    // TODO then generate new tiles at top to fill gaps
-    // TODO then detectScores again and repeat if necessary
-    // finally...
-    this.noClicking = false
-    this.redraw()
+    // Generate new tiles at top to fill gaps...
+    const cs = []
+    for (let x = 0; x < p.w; x++) {
+      cs.push(getColumnString(x, p.h, t))
+    }
+    console.log(`columns after drop:\n${cs.join('\n')}`)
+    delay = 0
+    for (const x of colIndices) {
+      const s = cs[x]
+      for (let y = 0; y < p.h; y++) {
+        if (s[y] === '-') {
+          // need a new tile here - pick a random tile type
+          const nTiles = p.tileInfo.length
+          const tileId = Math.floor(Math.random() * nTiles)
+          t[y][x] = `${tileId}`
+          const tile = p.tileInfo[tileId].mesh.clone()
+          tile.position.set(x, p.h, 0.1) // start above the rack
+          tile.layers.enable(CLICKABLE_LAYER) // make clickable
+          this.rack.add(tile)
+          const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start()
+          this.animationQueue.push(() => {
+            tw1.update()
+            return tw1.isPlaying()
+          })
+          delay += 200
+        }
+      }
+    }
+    await this.waitForAnimations()
+    // detectScores again and repeat if necessary
+    const newScores = this.detectScores()
+    if (!newScores.length) {
+      console.log('no more scores detected - finishing')
+      this.noClicking = false
+      this.redraw()
+      return
+    }
+    console.log('combo detected!')
+    multiplier++
+    setTimeout(() => { this.runScoreAnimations(newScores, midPoint, multiplier) })
   }
 
   async waitForAnimations () {
@@ -654,8 +695,8 @@ export class Matcha extends MiniGameBase {
    * combo multipliers for additional lines in one move?
    *
    */
-  addScores (scores) {
-    this.score += scores.length
+  addScores (scores, multiplier = 1) {
+    this.score += scores.length * multiplier
     console.log(`current score: ${this.score}`)
   }
 
