@@ -470,16 +470,17 @@ export class Matcha extends MiniGameBase {
     t[r2][c2] = temp
   }
 
-  swapTiles (obj, p2, otherTile, p1, useTween = true) {
+  swapTiles (obj, p2, otherTile, p1) {
     // disable clicking during the swap and score animations
     this.noClicking = true
     this.clearLineHighlights()
     // does this change make a score?
-    // swap the tiles in the 2D data...
     const scoresBefore = this.detectScores()
     this.swapData2D(p1.y, p1.x, p2.y, p2.x)
     const scores = this.detectScores()
-    if (scores.length > scoresBefore.length) {
+    const bounceBack = (scores.length === scoresBefore.length)
+    if (bounceBack) {
+      console.log('bounce back swap - no score made')
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
     SoundBoard.getInstance().play('defenderLanderDestroyed')
@@ -495,20 +496,14 @@ export class Matcha extends MiniGameBase {
     const e = TWEEN.Easing.Bounce.Out
     const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
     const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
-    if (scores.length) {
-      t2.onComplete(() => {
-        setTimeout(() => { this.runScoreAnimations(scores, midPoint) })
-      })
-    } else {
-      // No score? Bounce back and play a notification sound...
-      // cSpell:ignore yoyo
+    if (bounceBack) {
+      // cspell:ignore yoyo
       t1.yoyo(true).repeat(1)
       t2.yoyo(true).repeat(1)
-      t2.onComplete(() => {
-        this.noClicking = false
-        setTimeout(() => { SoundBoard.getInstance().play('defenderBaiterBusted') })
-      })
     }
+    t2.onComplete(() => {
+      setTimeout(() => { this.runScoreAnimations(scores, midPoint) })
+    })
     // Submit animation function to the queue
     // NB: TWEEN can't use the delta...
     this.animationQueue.push((delta) => {
@@ -531,7 +526,6 @@ export class Matcha extends MiniGameBase {
    */
   async runScoreAnimations (scores, midPoint = null, multiplier = 1) {
     console.log('runScoreAnimations')
-    console.assert(scores.length, 'should have scored here!')
     // highlight the scoring blocks and remove them all (with animations!)
     // Do drop of all tiles into the available space
     // choose the animation for block disappearance
