@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import * as TWEEN from 'three/addons/libs/tween.module.js'
+import seedrandom from 'seedrandom'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
 import { MiniGames } from '../MiniGames'
@@ -9,6 +10,8 @@ import { rackToString, createRack, stringToRack, getRowString, getColumnString }
 import { Bong } from '../bong'
 import { SoundBoard } from '../SoundBoard'
 import { delayMs } from '../util'
+import { isInteger } from '../wahWah'
+import { Dlg } from '../dlg'
 
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
@@ -111,7 +114,8 @@ export class Matcha extends MiniGameBase {
       colours: {
         backdrop: Colours.get('bruise'),
         highlight: Colours.get('cyan'),
-        lineWin: Colours.get('custard')
+        lineWin: Colours.get('custard'),
+        tileSides: Colours.get('green'),
       },
     }
     this.animationQueue = []
@@ -125,6 +129,7 @@ export class Matcha extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.gui.add(this, 'checkTiles')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -168,12 +173,30 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
+    this.startGame(1)
+  }
+
+  startGame (shuffleNumber = 0) {
+    this.setupRng(shuffleNumber)
     this.score = 0
     this.rackSetup()
     this.freshGfx()
     this.detectScores(() => {
       console.warn('detected a score in initial state!')
     })
+  }
+
+  setupRng (shuffleNumber) {
+    console.assert(isInteger(shuffleNumber))
+    shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
+    this.shuffleNumber = shuffleNumber
+    const seedStr = 'Matcha_' + shuffleNumber.toString().padStart(10, '0')
+    this.rng = seedrandom(seedStr)
+    return shuffleNumber
+  }
+
+  randomTileId (p) {
+    return Math.floor(this.rng() * p.tileInfo.length)
   }
 
   rackSetup () {
@@ -270,12 +293,12 @@ export class Matcha extends MiniGameBase {
     for (const r of t) {
       console.assert(r.length === p.w, 'data2D width mismatch')
     }
-    const len = line.length
+    // const len = line.length
     const tileId = Number(line[0])
     // assert range of tileId
     console.assert(tileId >= 0 && tileId < nTiles, 'tileId out of range')
-    const tileType = p.tileInfo[tileId].name
-    console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
+    // const tileType = p.tileInfo[tileId].name
+    // console.log(`match of ${len} ${tileType} tiles on ${rowOrCol} ${rcIndex} starting at position ${pos} = '${line}'`)
     if (rowOrCol === 'row') {
       // the horizontal rows pass - rcIndex is y, pos is start x
       const row = rcIndex
@@ -287,7 +310,7 @@ export class Matcha extends MiniGameBase {
       for (let i = 1; i < line.length; i += 3) {
         // we know that the tile at (row, col + i) is part of the match and thus equal to tileId but let's assert it
         console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop')
-        console.log(` - patching tile at row ${row}, column ${col + i}`)
+        // console.log(` - patching tile at row ${row}, column ${col + i}`)
         // pick next suitable image - loop through until all is good or we run out of options...
         let foundGoodReplacement = null
         for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
@@ -310,7 +333,7 @@ export class Matcha extends MiniGameBase {
           continue
         }
         // actually alter the data2D
-        console.log(` - patching tile at row ${row}, column ${col + i} to ${foundGoodReplacement}`)
+        // console.log(` - patching tile at row ${row}, column ${col + i} to ${foundGoodReplacement}`)
         t[row][col + i] = `${foundGoodReplacement}`
       }
     } else if (rowOrCol === 'col') {
@@ -321,7 +344,7 @@ export class Matcha extends MiniGameBase {
       // the index along the line is the increasing row number
       for (let i = 1; i < line.length; i += 3) {
         console.assert(line[i] === `${tileId}`, 'line match mismatch inside blit loop (col)')
-        console.log(` - patching tile at row ${row + i}, column ${col}`)
+        // console.log(` - patching tile at row ${row + i}, column ${col}`)
         // pick next suitable image - loop through until all is good or we run out of options...
         let foundGoodReplacement = null
         for (let id = (tileId + 1) % nTiles; id !== tileId; id = (id + 1) % nTiles) {
@@ -344,7 +367,7 @@ export class Matcha extends MiniGameBase {
           continue
         }
         // actually alter the data2D
-        console.log(` - patching tile at row ${row + i}, column ${col} to ${foundGoodReplacement}`)
+        // console.log(` - patching tile at row ${row + i}, column ${col} to ${foundGoodReplacement}`)
         t[row + i][col] = `${foundGoodReplacement}`
       }
     }
@@ -371,10 +394,8 @@ export class Matcha extends MiniGameBase {
     // create 3D array of tile objects from prototype meshes...
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
-        const tile = p.tileInfo[Number(t[y][x])].mesh.clone()
+        const tile = this.spawnTile(Number(t[y][x]))
         tile.position.set(x, y, 0)
-        tile.layers.enable(CLICKABLE_LAYER) // make clickable
-        rack.add(tile)
       }
     }
     this.clickable = [rack]
@@ -382,7 +403,7 @@ export class Matcha extends MiniGameBase {
     // create a highlight object for first chosen tile
     {
       const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
-      const mat = new THREE.MeshBasicMaterial({ color: Colours.get('cyan'), wireframe: false, transparent: true, opacity: 0.8 })
+      const mat = new THREE.MeshBasicMaterial({ color: p.colours.highlight, transparent: true, opacity: 0.8 })
       const h = new THREE.Mesh(geo, mat)
       h.visible = false
       h.layers.disable(CLICKABLE_LAYER) // make un-clickable
@@ -396,7 +417,7 @@ export class Matcha extends MiniGameBase {
   createTileProtoMeshes () {
     const p = this.params
     const loader = new THREE.TextureLoader()
-    const m = new THREE.MeshLambertMaterial({ color: Colours.get('green') })
+    const m = new THREE.MeshLambertMaterial({ color: p.colours.tileSides })
     const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
     for (const t of p.tileInfo) {
       const mat = new THREE.MeshLambertMaterial({ map: loader.load(t.img) })
@@ -404,6 +425,14 @@ export class Matcha extends MiniGameBase {
       mesh.userData.tileType = t.name
       t.mesh = mesh
     }
+  }
+
+  spawnTile (val = 0) {
+    const p = this.params
+    const tile = p.tileInfo[val].mesh.clone()
+    tile.layers.enable(CLICKABLE_LAYER) // make clickable
+    this.rack.add(tile)
+    return tile
   }
 
   /**
@@ -452,7 +481,7 @@ export class Matcha extends MiniGameBase {
     if (p2.distanceToSquared(p1) !== 1.0) {
       return
     }
-    console.log(`adjacent ${p1.x},${p1.y} <==> ${p2.x},${p2.y}`)
+    // console.log(`adjacent ${p1.x},${p1.y} <==> ${p2.x},${p2.y}`)
     const otherTile = this.rack.children.find(o => o !== h && o.position.equals(p1))
     if (!otherTile) {
       console.error('something not right with rack contents - debug this')
@@ -525,7 +554,7 @@ export class Matcha extends MiniGameBase {
    * @returns {Promise<void>}
    */
   async runScoreAnimations (scores, midPoint = null, multiplier = 1) {
-    console.log('runScoreAnimations')
+    // console.log('runScoreAnimations')
     // highlight the scoring blocks and remove them all (with animations!)
     // Do drop of all tiles into the available space
     // choose the animation for block disappearance
@@ -614,7 +643,7 @@ export class Matcha extends MiniGameBase {
     colIndices.sort((a, b) => {
       return Math.abs(a - centre) - Math.abs(b - centre)
     })
-    console.log('column order', colIndices)
+    // console.log('column order', colIndices)
     // now queue up the drop animations in the desired order
     delay = 0
     for (const x of colIndices) {
@@ -634,20 +663,17 @@ export class Matcha extends MiniGameBase {
     for (let x = 0; x < p.w; x++) {
       cs.push(getColumnString(x, p.h, t))
     }
-    console.log(`columns after drop:\n${cs.join('\n')}`)
+    // console.log(`columns after drop:\n${cs.join('\n')}`)
     delay = 0
     for (const x of colIndices) {
       const s = cs[x]
       for (let y = 0; y < p.h; y++) {
         if (s[y] === '-') {
           // need a new tile here - pick a random tile type
-          const nTiles = p.tileInfo.length
-          const tileId = Math.floor(Math.random() * nTiles)
+          const tileId = this.randomTileId(p)
           t[y][x] = `${tileId}`
-          const tile = p.tileInfo[tileId].mesh.clone()
+          const tile = this.spawnTile(tileId)
           tile.position.set(x, p.h, 0.1) // start above the rack
-          tile.layers.enable(CLICKABLE_LAYER) // make clickable
-          this.rack.add(tile)
           const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start()
           this.animationQueue.push(() => {
             tw1.update()
@@ -661,24 +687,36 @@ export class Matcha extends MiniGameBase {
     // detectScores again and repeat if necessary
     const newScores = this.detectScores()
     if (!newScores.length) {
-      console.log('no more scores detected - finishing')
+      // console.log('no more scores detected - finishing')
       this.noClicking = false
       this.redraw()
       return
     }
-    console.log('combo detected!')
+    // console.log('combo detected!')
     multiplier++
     setTimeout(() => { this.runScoreAnimations(newScores, midPoint, multiplier) })
   }
 
+  checkTiles () {
+    // TODO make sure that the 3D tiles match the 2D data
+    const p = this.params
+    const t = this.data2D
+    for (let y = 0; y < p.h; y++) {
+      for (let x = 0; x < p.w; x++) {
+        const val = t[y][x]
+        console.log(val)
+      }
+    }
+  }
+
   async waitForAnimations () {
-    console.log('waiting for animations to finish...')
-    console.time('waitForAnimations')
+    // console.log('waiting for animations to finish...')
+    // console.time('waitForAnimations')
     while (this.animationQueue.length) {
       await delayMs(100)
     }
-    console.timeEnd('waitForAnimations')
-    console.log('animations finished')
+    // console.timeEnd('waitForAnimations')
+    // console.log('animations finished')
   }
 
   /**
@@ -691,13 +729,12 @@ export class Matcha extends MiniGameBase {
    */
   addScores (scores, multiplier = 1) {
     this.score += scores.length * multiplier
-    console.log(`current score: ${this.score}`)
+    Dlg.popup(`current score: ${this.score} x${multiplier}`)
   }
 
   clearLineHighlights () {
     let c = null
     while ((c = this.rack.getObjectByName('lineHighlight'))) {
-      console.log('removing leftover lineHighlight ', c.userData)
       this.rack.remove(c)
     }
     this.redraw()
