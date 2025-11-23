@@ -1,12 +1,38 @@
 /* eslint-disable new-cap */
 import jBox from 'jbox'
 import 'jbox/dist/jBox.all.css'
+import van from 'vanjs-core/debug'
+import { Modal } from 'vanjs-ui'
+const { p, div, button, input } = van.tags
 
 const theme = 'dlgDude'
 
 export const errMsg = (e) => e instanceof Error && e.message ? e.message : `${e}`
 
 export class Dlg {
+  static async questionBox (question, inputVal = '') {
+    const closed = van.state(false)
+    const inputText = van.state(`${inputVal}`)
+    return new Promise((resolve, _reject) => {
+      van.add(document.body, Modal({ closed },
+        p(question),
+        input({ type: 'text', value: inputText.val }),
+        button({
+          onclick: () => {
+            closed.val = true
+            resolve(inputText.val)
+          }
+        }, 'Ok'),
+        button({
+          onclick: () => {
+            closed.val = true
+            resolve('')
+          }
+        }, 'Cancel')
+      ))
+    })
+  }
+
   static errorDialog (error) {
     console.error(error)
 

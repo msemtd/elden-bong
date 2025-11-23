@@ -129,6 +129,7 @@ export class Matcha extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.gui.add(this, 'chooseGame')
       this.gui.add(this, 'checkTiles')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
@@ -186,6 +187,15 @@ export class Matcha extends MiniGameBase {
     })
   }
 
+  async chooseGame () {
+    const response = await Dlg.questionBox('pick a game seed (or 0 for random)', '0')
+    if (response === '') {
+      console.log('cancel?')
+      return
+    }
+    console.log(response)
+  }
+
   setupRng (shuffleNumber) {
     console.assert(isInteger(shuffleNumber))
     shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
@@ -203,7 +213,6 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     if (this.testing) {
       // Load a known rack for testing...
-      // const s = '5202002312024022501431520453331444031444103022542140045541311342'
       const s = `
 
         5 2 0 2 0 0 2 3
@@ -217,6 +226,33 @@ export class Matcha extends MiniGameBase {
 
       `
       this.data2D = stringToRack(s, p.w, p.h)
+      // TODO detection of done states
+      // no more moves possible.
+      // if any scores then return false
+      // for each tile
+      // if any pairs then look at each end and the pairs around it
+      // then find the x-x states and the pairs either side of the middle
+      this.testData = {}
+      this.testData.doneData2D1 = [
+        ['2', '1', '3', '5', '2', '4', '5', '0'],
+        ['3', '2', '1', '0', '3', '1', '3', '0'],
+        ['0', '5', '4', '1', '2', '0', '4', '5'],
+        ['4', '3', '0', '3', '1', '3', '2', '4'],
+        ['2', '4', '2', '3', '5', '4', '2', '5'],
+        ['1', '5', '2', '1', '2', '0', '1', '0'],
+        ['0', '5', '3', '0', '5', '0', '3', '0'],
+        ['1', '1', '3', '0', '2', '5', '3', '4']
+      ]
+      this.testData.doneData2D2 = [
+        ['3', '1', '5', '2', '3', '4', '1', '5'],
+        ['0', '4', '2', '1', '5', '2', '3', '5'],
+        ['0', '3', '0', '3', '2', '5', '0', '2'],
+        ['3', '5', '5', '1', '3', '4', '1', '4'],
+        ['4', '0', '1', '4', '0', '4', '3', '3'],
+        ['5', '3', '0', '2', '5', '1', '2', '4'],
+        ['0', '4', '4', '5', '2', '0', '5', '5'],
+        ['5', '2', '5', '3', '0', '1', '5', '5']
+      ]
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length)
     }
@@ -731,13 +767,28 @@ export class Matcha extends MiniGameBase {
    * TODO decide on scoring:
    * 3x = 100
    * 4x = 200
-   * 5x = 400 (theoretical max surely unless random drops are weird)
-   * combo multipliers for additional lines in one move?
+   * 5x = 300 (theoretical max surely unless RNG drops are very lucky)
+   * any more than 5 should trigger a message saying "what are the odds?"
+   * combo x2,x3 etc. for additional lines in the first move.
+   * After score is added and the new tiles drop the multiplier increases for further scores
+   * https://web.archive.org/web/20100612032438/http://popcap.com/faq/bejeweled/1033/pc/readme.html
    *
+   * You receive a base score of 10 points for each set you create.
+   * Sets of 4 or 5 gems are worth 20 or 30 points respectively.
+   * Each set triggered after the first in a single move (a combo or cascade) is worth more points.
+   * The first combo is worth 2x the normal points, the second 3x, and so on.
+   * Each successive level in Normal mode adds 0.5 to the point multiplier for all these events, so a basic set is worth 15 points on level 2.
+   * Timetrial mode starts out at double the value of Normal mode, so sets are worth 20 points.
+   * Each successive level in Timetrial adds 0.5 to this multiplier, so on level 2 sets are worth 30 points.
    */
   addScores (scores, multiplier = 1) {
-    this.score += scores.length * multiplier
-    Dlg.popup(`current score: ${this.score} x${multiplier}`)
+    let combo = 1
+    for (const score of scores) {
+      const points = (score.line.length - 2) * 100 * combo
+      this.score += points * multiplier
+      Dlg.popup(`score: ${this.score} (x${multiplier})`)
+      combo++
+    }
   }
 
   clearLineHighlights () {
@@ -767,11 +818,9 @@ export class Matcha extends MiniGameBase {
     m.visible = true
     m.layers.disable(CLICKABLE_LAYER) // make clickable
     this.rack2.add(m)
-
-    // TODO little animation of each single tile exploding
+    // Animate opacity to look like a flash
     const t1 = new TWEEN.Tween(mat).to({ opacity: 0.9 }, 300).start()
-    this.animationQueue.push((delta) => {
-      // NB: TWEEN can't use the delta...
+    this.animationQueue.push(() => {
       t1.update()
       return t1.isPlaying()
     })
@@ -789,6 +838,7 @@ export class Matcha extends MiniGameBase {
     const keep = []
     for (const func of this.animationQueue) {
       // functions should return false if they want to fall off the queue
+      // NB: TWEEN can't use this delta that comes from Screen class...
       if (func(delta)) {
         keep.push(func)
       }
