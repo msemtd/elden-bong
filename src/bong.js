@@ -114,6 +114,7 @@ class Bong extends THREE.EventDispatcher {
   onKeyDown (ev) {
     if (isInputEvent(ev)) {
       console.log('apparently an input event')
+      return false
     }
     // give mini-games the first refusal...
     if (this.miniGames?.onKeyDown(ev)) {

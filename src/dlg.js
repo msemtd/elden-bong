@@ -19,37 +19,48 @@ const theme = 'dlgDude'
 export const errMsg = (e) => e instanceof Error && e.message ? e.message : `${e}`
 
 export class Dlg {
+  /**
+   * Prompt the user with a question and an input box.
+   * Returns a Promise that resolves to the input text when the user clicks "Ok",
+   * or an empty string if the user clicks "Cancel".
+   *
+   * @param {string} question - The question to display in the dialog.
+   * @param {string} [inputVal=''] - The initial value for the input box.
+   * @param {boolean} [select=true] - Whether to select the input text when the dialog opens.
+   * @returns {Promise<string>} - A Promise that resolves to the user's input.
+   *
+   * TODO distinguish cancel vs empty input? Maybe return null on cancel?
+   */
   static async questionBox (question, inputVal = '', select = true) {
-    // TODO take focus on input field with selected text and accept return as clicking OK and escape as clicking Cancel
     const inputValueAsText = `${inputVal}`
-    const closed = van.state(false)
     const inputText = van.state(inputValueAsText)
+    const closed = van.state(false)
     const inputId = 'questionBoxInputText'
     return new Promise((resolve, _reject) => {
-      van.add(document.body, Modal({ closed },
+      const onOk = () => {
+        closed.val = true
+        resolve(inputText.val)
+      }
+      const onCancel = () => {
+        closed.val = true
+        resolve('')
+      }
+      const modal = van.add(document.body, Modal({ closed },
         p(question),
         input({
           id: inputId,
           type: 'text',
           value: inputText,
-          oninput: e => {
-            inputText.val = e.target.value
-          }
+          oninput: e => { inputText.val = e.target.value }
         }),
         br(),
-        button({
-          onclick: () => {
-            closed.val = true
-            resolve(inputText.val)
-          }
-        }, 'Ok'),
-        button({
-          onclick: () => {
-            closed.val = true
-            resolve('')
-          }
-        }, 'Cancel')
+        button({ onclick: onOk }, 'Ok'),
+        button({ onclick: onCancel }, 'Cancel')
       ))
+      modal.addEventListener('keyup', e => {
+        if (e.key === 'Enter') { return onOk() }
+        if (e.key === 'Escape') { return onCancel() }
+      })
       const el = document.getElementById(inputId)
       console.assert(el, 'Dlg.questionBox: input element not found')
       el?.focus()
