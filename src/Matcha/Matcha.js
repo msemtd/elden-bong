@@ -180,7 +180,7 @@ export class Matcha extends MiniGameBase {
   startGame (shuffleNumber = 0) {
     this.setupRng(shuffleNumber)
     this.score = 0
-    this.rackSetup()
+    this.rackSetup(shuffleNumber === 1)
     this.freshGfx()
     this.detectScores(() => {
       console.warn('detected a score in initial state!')
@@ -194,6 +194,14 @@ export class Matcha extends MiniGameBase {
       return
     }
     console.log(response)
+    // ensure integer >= 0
+    const n = Number(response)
+    if (!isInteger(n) || n < 0) {
+      // Dlg.errorDialog('please enter a valid positive integer or zero')
+      console.warn('please enter a valid positive integer or zero')
+      return
+    }
+    this.startGame(n)
   }
 
   setupRng (shuffleNumber) {
@@ -209,9 +217,9 @@ export class Matcha extends MiniGameBase {
     return Math.floor(this.rng() * p.tileInfo.length)
   }
 
-  rackSetup () {
+  rackSetup (testing = false) {
     const p = this.params
-    if (this.testing) {
+    if (testing) {
       // Load a known rack for testing...
       const s = `
 
