@@ -8,7 +8,7 @@ const { p, br, button, input } = van.tags
 /**
  * Dialog utilities
  *
- * TODO port from jBox to vanjs-ui
+ * TODO port all dialog boxes from jBox to vanjs-ui
  *
  * Become an expert in Van-JS
  *

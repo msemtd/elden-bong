@@ -15,11 +15,11 @@ export function newEmptyRack (w, h) {
  * @param {number} n number of different digits (0 to n-1)
  * @returns {string[][]} 2D array of text digits
  */
-export function createRack (w, h, n) {
+export function createRack (w, h, n, randYoFunc = Math.random) {
   const r = newEmptyRack(w, h)
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const rnd = Math.floor(Math.random() * n)
+      const rnd = Math.floor(randYoFunc() * n)
       r[y][x] = `${rnd}`
     }
   }

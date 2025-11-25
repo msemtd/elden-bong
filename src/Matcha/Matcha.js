@@ -261,8 +261,12 @@ export class Matcha extends MiniGameBase {
         ['0', '4', '4', '5', '2', '0', '5', '5'],
         ['5', '2', '5', '3', '0', '1', '5', '5']
       ]
+      // saved game score at
+      // this.score = 145600
+      this.testData.ongoingGame = [['2', '0', '4', '0', '5', '4', '3', '0'], ['5', '1', '0', '5', '3', '4', '5', '4'], ['1', '4', '4', '1', '5', '3', '5', '5'], ['5', '0', '3', '4', '1', '5', '3', '3'], ['0', '1', '5', '2', '5', '3', '0', '0'], ['4', '2', '2', '0', '1', '2', '3', '5'], ['4', '1', '2', '1', '3', '0', '4', '1'], ['2', '0', '5', '2', '0', '1', '4', '4']]
+
     } else {
-      this.data2D = createRack(p.w, p.h, p.tileInfo.length)
+      this.data2D = createRack(p.w, p.h, p.tileInfo.length, this.rng)
     }
     this.detectScores(this.rackPatcher.bind(this))
     this.detectScores(() => {
