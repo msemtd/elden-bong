@@ -170,8 +170,9 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'loadTokyo')
       {
         const sb = SoundBoard.getInstance()
-        const o = { soundName: 'none' }
+        const o = { soundName: 'none', percussionName: 'none' }
         fld.add(o, 'soundName', [...sb.getNames()]).name('Sound Board').onChange(v => { sb.play(v) })
+        fld.add(o, 'percussionName', [...sb.getPercussionSpriteNames()]).name('Percussion').onChange(v => { sb.playPercussionSprite(v) })
       }
     }
     {

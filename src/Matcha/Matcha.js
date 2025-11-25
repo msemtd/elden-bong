@@ -69,6 +69,13 @@ const CLICKABLE_LAYER = 1
  *
  * Found that tween.js is easier to use for simple animations so using that for now.
  *
+ * TODO: good score display, timer, pause button, restart, smart bomb etc.
+ * TODO: more sound effects
+ * TODO: detection of available moves and indication of "no more moves possible" state
+ * TODO: load and save game state
+ * TODO: load sumo wrestler bobble heads for tiles
+ * TODO: game moves history for replay
+ *
  * @class Matcha
  * @extends MiniGameBase
  */
@@ -264,7 +271,6 @@ export class Matcha extends MiniGameBase {
       // saved game score at
       // this.score = 145600
       this.testData.ongoingGame = [['2', '0', '4', '0', '5', '4', '3', '0'], ['5', '1', '0', '5', '3', '4', '5', '4'], ['1', '4', '4', '1', '5', '3', '5', '5'], ['5', '0', '3', '4', '1', '5', '3', '3'], ['0', '1', '5', '2', '5', '3', '0', '0'], ['4', '2', '2', '0', '1', '2', '3', '5'], ['4', '1', '2', '1', '3', '0', '4', '1'], ['2', '0', '5', '2', '0', '1', '4', '4']]
-
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length, this.rng)
     }
@@ -727,7 +733,9 @@ export class Matcha extends MiniGameBase {
           t[y][x] = `${tileId}`
           const tile = this.spawnTile(tileId)
           tile.position.set(x, p.h, 0.1) // start above the rack
-          const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start()
+          const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start().onComplete(() => {
+            SoundBoard.getInstance().playPercussionSprite('finger-snap-3-xy')
+          })
           this.animationQueue.push(() => {
             tw1.update()
             return tw1.isPlaying()
@@ -776,7 +784,7 @@ export class Matcha extends MiniGameBase {
   }
 
   /**
-   * TODO decide on scoring:
+   * Scoring:
    * 3x = 100
    * 4x = 200
    * 5x = 300 (theoretical max surely unless RNG drops are very lucky)
@@ -784,14 +792,6 @@ export class Matcha extends MiniGameBase {
    * combo x2,x3 etc. for additional lines in the first move.
    * After score is added and the new tiles drop the multiplier increases for further scores
    * https://web.archive.org/web/20100612032438/http://popcap.com/faq/bejeweled/1033/pc/readme.html
-   *
-   * You receive a base score of 10 points for each set you create.
-   * Sets of 4 or 5 gems are worth 20 or 30 points respectively.
-   * Each set triggered after the first in a single move (a combo or cascade) is worth more points.
-   * The first combo is worth 2x the normal points, the second 3x, and so on.
-   * Each successive level in Normal mode adds 0.5 to the point multiplier for all these events, so a basic set is worth 15 points on level 2.
-   * Timetrial mode starts out at double the value of Normal mode, so sets are worth 20 points.
-   * Each successive level in Timetrial adds 0.5 to this multiplier, so on level 2 sets are worth 30 points.
    */
   addScores (scores, multiplier = 1) {
     let combo = 1
