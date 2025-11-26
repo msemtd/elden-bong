@@ -126,6 +126,13 @@ export class Matcha extends MiniGameBase {
         lineWin: Colours.get('custard'),
         tileSides: Colours.get('green'),
       },
+      sounds: {
+        swap: 'big-maraca-os-1',
+        bounceBack: 'pizzabox-hit',
+        pop: 'mouth-bop',
+        dropNew: 'mouth-chik',
+        drop: 'finger-snap-3-xy',
+      }
     }
     this.animationQueue = []
     this.data2D = null
@@ -573,7 +580,7 @@ export class Matcha extends MiniGameBase {
       console.log('bounce back swap - no score made')
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
-    SoundBoard.getInstance().playPercussionSprite('big-maraca-os-1')
+    this.sound(this.params.sounds.swap)
     // let's try to use tween lib properly
     // https://tweenjs.github.io/tween.js/docs/user_guide.html
     const obj1 = otherTile
@@ -588,7 +595,7 @@ export class Matcha extends MiniGameBase {
     const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
     if (bounceBack) {
       t1.yoyo(true).repeat(1).onComplete(() => {
-        SoundBoard.getInstance().playPercussionSprite('pizzabox-hit')
+        this.sound(this.params.sounds.bounceBack)
       })
       t2.yoyo(true).repeat(1)
     }
@@ -630,7 +637,7 @@ export class Matcha extends MiniGameBase {
       this.highlightLine(score.rowOrCol, score.rcIndex, score.pos, score.line)
     }
     if (scores.length) {
-      SoundBoard.getInstance().playPercussionSprite('mouth-bop')
+      this.sound(this.params.sounds.pop)
     }
     this.addScores(scores, multiplier)
     // for each score highlight, animate disappearance of tiles
@@ -715,7 +722,7 @@ export class Matcha extends MiniGameBase {
       for (const act of tilesToDrop) {
         act.tw.delay(delay).onComplete(() => {
           act.afterWhich()
-          SoundBoard.getInstance().playPercussionSprite('mouth-chik')
+          this.sound(this.params.sounds.drop)
         }).start()
         this.animationQueue.push(() => {
           act.tw.update()
@@ -742,7 +749,7 @@ export class Matcha extends MiniGameBase {
           const tile = this.spawnTile(tileId)
           tile.position.set(x, p.h, 0.1) // start above the rack
           const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start().onComplete(() => {
-            SoundBoard.getInstance().playPercussionSprite('finger-snap-3-xy')
+            this.sound(this.params.sounds.dropNew)
           })
           this.animationQueue.push(() => {
             tw1.update()
@@ -845,6 +852,10 @@ export class Matcha extends MiniGameBase {
       return t1.isPlaying()
     })
     this.redraw()
+  }
+
+  sound (name) {
+    SoundBoard.getInstance().playPercussionSprite(name)
   }
 
   /**
