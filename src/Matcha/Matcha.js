@@ -20,6 +20,8 @@ import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
 
+// cspell:ignore yoyo pizzabox chik
+
 const CLICKABLE_LAYER = 1
 
 /**
@@ -571,7 +573,7 @@ export class Matcha extends MiniGameBase {
       console.log('bounce back swap - no score made')
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
     }
-    SoundBoard.getInstance().play('defenderLanderDestroyed')
+    SoundBoard.getInstance().playPercussionSprite('big-maraca-os-1')
     // let's try to use tween lib properly
     // https://tweenjs.github.io/tween.js/docs/user_guide.html
     const obj1 = otherTile
@@ -585,8 +587,9 @@ export class Matcha extends MiniGameBase {
     const t1 = new TWEEN.Tween(obj1.position).to({ x: [p1.x, midOver.x, p2.x], y: [p1.y, midOver.y, p2.y], z: [p1.z, midOver.z, p2.z] }, dur).easing(e).start()
     const t2 = new TWEEN.Tween(obj2.position).to({ x: [p2.x, midUnder.x, p1.x], y: [p2.y, midUnder.y, p1.y], z: [p2.z, midUnder.z, p1.z] }, dur).easing(e).delay(90).start()
     if (bounceBack) {
-      // cspell:ignore yoyo
-      t1.yoyo(true).repeat(1)
+      t1.yoyo(true).repeat(1).onComplete(() => {
+        SoundBoard.getInstance().playPercussionSprite('pizzabox-hit')
+      })
       t2.yoyo(true).repeat(1)
     }
     t2.onComplete(() => {
@@ -626,7 +629,9 @@ export class Matcha extends MiniGameBase {
     for (const score of scores) {
       this.highlightLine(score.rowOrCol, score.rcIndex, score.pos, score.line)
     }
-    SoundBoard.getInstance().play('defenderHumanoidSave')
+    if (scores.length) {
+      SoundBoard.getInstance().playPercussionSprite('mouth-bop')
+    }
     this.addScores(scores, multiplier)
     // for each score highlight, animate disappearance of tiles
     await this.waitForAnimations()
@@ -708,7 +713,10 @@ export class Matcha extends MiniGameBase {
     for (const x of colIndices) {
       const tilesToDrop = columnData[x]
       for (const act of tilesToDrop) {
-        act.tw.delay(delay).onComplete(act.afterWhich.bind(this)).start()
+        act.tw.delay(delay).onComplete(() => {
+          act.afterWhich()
+          SoundBoard.getInstance().playPercussionSprite('mouth-chik')
+        }).start()
         this.animationQueue.push(() => {
           act.tw.update()
           return act.tw.isPlaying()

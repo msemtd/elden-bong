@@ -164,5 +164,6 @@ export class Dlg {
       title,
       content: msg,
     })
+    console.assert(b, 'Dlg.popup: jBox Notice creation failed')
   }
 }
