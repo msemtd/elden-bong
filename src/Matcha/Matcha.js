@@ -20,7 +20,7 @@ import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
 
-// cspell:ignore yoyo pizzabox chik
+// cspell:ignore yoyo pizzabox chik Banzuke
 
 const CLICKABLE_LAYER = 1
 
@@ -147,6 +147,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'chooseGame')
       this.gui.add(this, 'checkTiles')
+      this.gui.add(this, 'useBanzukeBobbleHeads')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -179,14 +180,10 @@ export class Matcha extends MiniGameBase {
   }
 
   loadSettings () {
-    if (this.parent instanceof MiniGames && this.parent.parent instanceof Bong) {
-      const bong = this.parent.parent
-      const settings = bong.settings.matchaGame || {}
-      // apply settings to me...
-      if (settings?.testing !== undefined) {
-        this.testing = settings.testing
-      }
-    }
+    const bong = Bong.getInstance()
+    const settings = bong?.settings?.matchaGame || {}
+    console.log('loading Matcha settings:', settings)
+    // TODO load and apply settings
   }
 
   runTest () {
@@ -480,6 +477,21 @@ export class Matcha extends MiniGameBase {
     }
     this.activate()
     this.redraw()
+  }
+
+  async useBanzukeBobbleHeads () {
+    // TODO check that the banzuke is available
+    console.warn('TODO: useBanzukeBobbleHeads not implemented yet')
+    const bong = Bong.getInstance()
+    if (!bong) {
+      console.error('unable to get Bong instance for Banzuke access')
+      return
+    }
+    // cspell:ignore Doyoh
+    if (bong.miniGames?.games?.sumoDoyoh?.banzuke) {
+      await bong.miniGames.games.sumoDoyoh.loadBanzukeData()
+      console.log('Banzuke data loaded in Matcha - TODO use bobble heads for tiles')
+    }
   }
 
   createTileProtoMeshes () {
