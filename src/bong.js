@@ -34,10 +34,12 @@ async function pick () {
 
 const characterClasses = bongData.characterClasses
 const regionNames = bongData.regions.map(x => x.name)
+let instance = null
 
 class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
     super()
+    instance = this
     this.settings = loadSettings('eldenBong', defaultSettings)
     distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
@@ -109,6 +111,10 @@ class Bong extends THREE.EventDispatcher {
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
     overlay.on('click', this.youDiedFadeOut.bind(this))
     setTimeout(this.whenReady.bind(this))
+  }
+
+  static getInstance (appDiv) {
+    return instance
   }
 
   onKeyDown (ev) {
