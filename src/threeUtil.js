@@ -31,10 +31,10 @@ export function depthFirstReverseTraverse (p, o, cb) {
   cb(p, o)
 }
 
-export function addGrid (scene) {
+export function addGrid (scene, visible) {
   const width = 100
   const gridPos = new THREE.Vector3(0, 0, -0.01)
-  const gridVisible = true
+  const gridVisible = !!visible
 
   const grid = new THREE.GridHelper(width, width)
   grid.geometry.rotateX(Math.PI / 2)

@@ -484,8 +484,6 @@ export class Matcha extends MiniGameBase {
   async useBanzukeBobbleHeads (prefs = {
     rikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
   }) {
-    // TODO check that the banzuke is available
-    console.warn('TODO: useBanzukeBobbleHeads not implemented yet')
     const bong = Bong.getInstance()
     if (!bong) {
       console.error('unable to get Bong instance for Banzuke access')
@@ -496,7 +494,9 @@ export class Matcha extends MiniGameBase {
       console.error('SumoDoyoh Banzuke instance not available in Bong miniGames')
       return
     }
-    if (!(prefs.rikishi && Array.isArray(prefs.rikishi) && prefs.rikishi.length >= this.params.tileInfo.length)) {
+    const p = this.params
+    const t = this.data2D
+    if (!(prefs.rikishi && Array.isArray(prefs.rikishi) && prefs.rikishi.length >= p.tileInfo.length)) {
       console.error('rikishi list not valid for use')
       return
     }
@@ -505,7 +505,10 @@ export class Matcha extends MiniGameBase {
     console.log(`found ${sumoDoyoh.banzuke.rikishi.length} banzuke entries`)
     // scan for preferred rikishi
     const cd = await sumoDoyoh.banzuke.getCacheDirFullPath(true)
-    for (let i = 0; i < this.params.tileInfo.length; i++) {
+    const textOffset = new THREE.Vector3(-0.8, 0.7, 0)
+    const u = Math.PI / 2
+    const textRot = new THREE.Euler(u, -u, u)
+    for (let i = 0; i < p.tileInfo.length; i++) {
       const rikishiName = prefs.rikishi[i]
       const tile = this.params.tileInfo[i]
       const rikishi = sumoDoyoh.banzuke.getRikishiObjByName(rikishiName)
@@ -518,14 +521,31 @@ export class Matcha extends MiniGameBase {
         console.log(` - removing existing prototype mesh for tile ${tile.name}`)
         // TODO remove existing prototype mesh
       }
-      const p = new THREE.Vector3(0, 0, 0)
+      const v = new THREE.Vector3(0, 0, 0)
       const g = new THREE.Group()
       const fp = path.join(cd, rikishi.cacheFileThumbnail())
-      tile.mesh = await sumoDoyoh.addHead(fp, p, g)
-      tile.mesh.scale.divideScalar(2)
-      // TODO scale and rotate
+      tile.mesh = await sumoDoyoh.addHead(fp, v, g)
+      const text = sumoDoyoh.addText(rikishiName, v.clone().add(textOffset), textRot)
+      text.color = 0xff0789
+      text.scale.multiplyScalar(0.7)
+      tile.mesh.add(text)
+      tile.mesh.scale.divideScalar(2.1)
+      tile.mesh.rotation.x = 0
     }
-    // TODO replace the meshes in the 3D rack
+    // Replace the meshes in the 3D rack...
+    this.rack.clear()
+    for (let y = 0; y < p.h; y++) {
+      for (let x = 0; x < p.w; x++) {
+        const tileId = Number(t[y][x])
+        const tile = this.spawnTile(tileId)
+        tile.position.set(x, y, 0) // start above the rack
+      }
+    }
+    const backdrop = this.group.getObjectByName('backdrop')
+    backdrop.material.transparent = true
+    backdrop.material.opacity = 0.15
+    backdrop.material.needsUpdate = true
+    this.redraw()
   }
 
   createTileProtoMeshes () {

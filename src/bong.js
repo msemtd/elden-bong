@@ -94,10 +94,11 @@ class Bong extends THREE.EventDispatcher {
     }
     this.fog = new THREE.Fog(0x444444, 10, 200)
     c.scene.fog = this.fog
-    addGrid(c.scene)
+    addGrid(c.scene, this.PROPS.scene?.grid?.visible)
     {
       const axesHelper = new THREE.AxesHelper(5)
       axesHelper.name = 'axesHelper'
+      axesHelper.visible = !!(this.PROPS.scene?.axes?.visible)
       c.scene.add(axesHelper)
     }
     this.addStats(c)
