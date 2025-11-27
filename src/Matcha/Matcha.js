@@ -522,7 +522,10 @@ export class Matcha extends MiniGameBase {
       const g = new THREE.Group()
       const fp = path.join(cd, rikishi.cacheFileThumbnail())
       tile.mesh = await sumoDoyoh.addHead(fp, p, g)
+      tile.mesh.scale.divideScalar(2)
+      // TODO scale and rotate
     }
+    // TODO replace the meshes in the 3D rack
   }
 
   createTileProtoMeshes () {
