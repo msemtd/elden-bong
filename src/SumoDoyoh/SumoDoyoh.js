@@ -330,6 +330,7 @@ export class SumoDoyoh extends MiniGameBase {
     mesh.position.copy(p)
     g.add(mesh)
     this.redraw()
+    return mesh
   }
 
   async allBobbleHeads () {

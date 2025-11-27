@@ -2,9 +2,9 @@ import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import * as TWEEN from 'three/addons/libs/tween.module.js'
 import seedrandom from 'seedrandom'
+import path from 'path-browserify'
 import { generalObj3dClean, depthFirstReverseTraverse } from '../threeUtil'
 import { MiniGameBase } from '../MiniGameBase'
-import { MiniGames } from '../MiniGames'
 import { Colours } from '../Colours'
 import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack'
 import { Bong } from '../bong'
@@ -19,6 +19,8 @@ import tileImagePig from './matcha-card-pig.png'
 import tileImageChicken from './matcha-card-chicken.png'
 import tileImageRabbit from './matcha-card-rabbit.png'
 import tileImageRat from './matcha-card-rat.png'
+import { Banzuke } from '../SumoDoyoh/Banzuke'
+import { SumoDoyoh } from '../SumoDoyoh/SumoDoyoh'
 
 // cspell:ignore yoyo pizzabox chik Banzuke
 
@@ -479,7 +481,9 @@ export class Matcha extends MiniGameBase {
     this.redraw()
   }
 
-  async useBanzukeBobbleHeads () {
+  async useBanzukeBobbleHeads (prefs = {
+    rikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
+  }) {
     // TODO check that the banzuke is available
     console.warn('TODO: useBanzukeBobbleHeads not implemented yet')
     const bong = Bong.getInstance()
@@ -487,10 +491,37 @@ export class Matcha extends MiniGameBase {
       console.error('unable to get Bong instance for Banzuke access')
       return
     }
+    const sumoDoyoh = bong.miniGames?.games?.sumoDoyoh
+    if ((sumoDoyoh instanceof SumoDoyoh && sumoDoyoh.banzuke instanceof Banzuke) === false) {
+      console.error('SumoDoyoh Banzuke instance not available in Bong miniGames')
+      return
+    }
+    if (!(prefs.rikishi && Array.isArray(prefs.rikishi) && prefs.rikishi.length >= this.params.tileInfo.length)) {
+      console.error('rikishi list not valid for use')
+      return
+    }
     // cspell:ignore Doyoh
-    if (bong.miniGames?.games?.sumoDoyoh?.banzuke) {
-      await bong.miniGames.games.sumoDoyoh.loadBanzukeData()
-      console.log('Banzuke data loaded in Matcha - TODO use bobble heads for tiles')
+    await sumoDoyoh.loadBanzukeData()
+    console.log(`found ${sumoDoyoh.banzuke.rikishi.length} banzuke entries`)
+    // scan for preferred rikishi
+    const cd = await sumoDoyoh.banzuke.getCacheDirFullPath(true)
+    for (let i = 0; i < this.params.tileInfo.length; i++) {
+      const rikishiName = prefs.rikishi[i]
+      const tile = this.params.tileInfo[i]
+      const rikishi = sumoDoyoh.banzuke.getRikishiObjByName(rikishiName)
+      if (!rikishi) {
+        console.warn(`preferred rikishi ${rikishiName} not found in banzuke data`)
+        continue
+      }
+      console.log(`found rikishi ${rikishi.shikona} for tile ${i}`)
+      if (tile.mesh) {
+        console.log(` - removing existing prototype mesh for tile ${tile.name}`)
+        // TODO remove existing prototype mesh
+      }
+      const p = new THREE.Vector3(0, 0, 0)
+      const g = new THREE.Group()
+      const fp = path.join(cd, rikishi.cacheFileThumbnail())
+      tile.mesh = await sumoDoyoh.addHead(fp, p, g)
     }
   }
 
