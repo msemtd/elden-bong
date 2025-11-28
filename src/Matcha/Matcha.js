@@ -113,6 +113,8 @@ export class Matcha extends MiniGameBase {
       tileThickness: 0.1,
       highlightZ: 0.12,
       tileInfo,
+      useBanzukeBobbleHeads: true,
+      colourTileOnly: true,
       gameTransform: {
         position: {
           x: 0, y: 0, z: 0
@@ -135,7 +137,9 @@ export class Matcha extends MiniGameBase {
         dropNew: 'mouth-chik',
         drop: 'finger-snap-3-xy',
       },
+      // cspell:ignore Ura Ichiyamamoto Wakatakakage Kotozakura Hoshoryu Tamawashi
       favouriteRikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
+      mawashiColours: ['pink', 'greenish teal', 'lightblue', 'minty green', 'dusky purple', 'gunmetal'],
     }
     this.animationQueue = []
     this.data2D = null
@@ -150,7 +154,9 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'runTest')
       this.gui.add(this, 'chooseGame')
       this.gui.add(this, 'checkTiles')
-      this.gui.add(this, 'useBanzukeBobbleHeads')
+      this.gui.add(this, 'refreshRackTiles')
+      this.gui.add(this.params, 'useBanzukeBobbleHeads')
+      this.gui.add(this.params, 'colourTileOnly')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -193,11 +199,11 @@ export class Matcha extends MiniGameBase {
     this.startGame(0)
   }
 
-  startGame (shuffleNumber = 0) {
+  async startGame (shuffleNumber = 0) {
     this.setupRng(shuffleNumber)
     this.score = 0
     this.rackSetup(shuffleNumber === 1)
-    this.freshGfx()
+    await this.freshGfx()
     this.detectScores(() => {
       console.warn('detected a score in initial state!')
     })
@@ -436,10 +442,10 @@ export class Matcha extends MiniGameBase {
     }
   }
 
-  freshGfx () {
+  async freshGfx () {
     const p = this.params
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
-    this.createTileProtoMeshes()
+    await this.createTileProtoMeshes()
     const t = this.data2D
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
@@ -447,7 +453,13 @@ export class Matcha extends MiniGameBase {
     )
     backdrop.name = 'backdrop'
     backdrop.position.set(0, 0, -0.1)
+    if (p.useBanzukeBobbleHeads) {
+      backdrop.material.transparent = true
+      backdrop.material.opacity = 0.15
+      backdrop.material.needsUpdate = true
+    }
     this.group.add(backdrop)
+
     // create "rack" for tiles...
     const rack = new THREE.Group()
     rack.name = 'rack'
@@ -482,25 +494,18 @@ export class Matcha extends MiniGameBase {
     this.redraw()
   }
 
-  async useBanzukeBobbleHeads (prefs = {
-    rikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
-    mawashi: ['pink', 'greenish teal', 'french blue', 'minty green', 'mauve', 'gunmetal'],
-  }) {
+  async createTilesFromBanzuke () {
     const bong = Bong.getInstance()
     if (!bong) {
-      console.error('unable to get Bong instance for Banzuke access')
-      return
+      throw Error('unable to get Bong instance for Banzuke access')
     }
     const sumoDoyoh = bong.miniGames?.games?.sumoDoyoh
     if ((sumoDoyoh instanceof SumoDoyoh && sumoDoyoh.banzuke instanceof Banzuke) === false) {
-      console.error('SumoDoyoh Banzuke instance not available in Bong miniGames')
-      return
+      throw Error('SumoDoyoh Banzuke instance not available in Bong miniGames')
     }
     const p = this.params
-    const t = this.data2D
-    if (!(prefs.rikishi && Array.isArray(prefs.rikishi) && prefs.rikishi.length >= p.tileInfo.length)) {
-      console.error('rikishi list not valid for use')
-      return
+    if (!(p.favouriteRikishi && Array.isArray(p.favouriteRikishi) && p.favouriteRikishi.length >= p.tileInfo.length)) {
+      throw Error('rikishi list not valid for use')
     }
     // cspell:ignore Doyoh
     await sumoDoyoh.loadBanzukeData()
@@ -511,52 +516,62 @@ export class Matcha extends MiniGameBase {
     const u = Math.PI / 2
     const textRot = new THREE.Euler(u, -u, u)
     for (let i = 0; i < p.tileInfo.length; i++) {
-      const rikishiName = prefs.rikishi[i]
+      const rikishiName = p.favouriteRikishi[i]
       const tile = this.params.tileInfo[i]
       const rikishi = sumoDoyoh.banzuke.getRikishiObjByName(rikishiName)
       if (!rikishi) {
-        console.warn(`preferred rikishi ${rikishiName} not found in banzuke data`)
-        continue
+        throw Error(`preferred rikishi ${rikishiName} not found in banzuke data`)
       }
       console.log(`found rikishi ${rikishi.shikona} for tile ${i}`)
       if (tile.mesh) {
         console.log(` - removing existing prototype mesh for tile ${tile.name}`)
-        // TODO remove existing prototype mesh
       }
-      const mawashiColour = Colours.get(prefs.mawashi[i])
+      const mawashiColour = Colours.get(p.mawashiColours[i])
       // add a coloured tile base
       const baseGeo = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
       const baseMat = new THREE.MeshLambertMaterial({ color: mawashiColour })
       const base = new THREE.Mesh(baseGeo, baseMat)
-      const v = new THREE.Vector3(0, 0, 0.2)
-      const fp = path.join(cd, rikishi.cacheFileThumbnail())
-      const head = await sumoDoyoh.addHead(fp, v, base)
-      head.scale.divideScalar(2.2)
-      head.rotation.x = 0
-      const text = sumoDoyoh.addText(rikishiName, v.clone().add(textOffset), textRot)
-      text.color = mawashiColour
-      text.scale.multiplyScalar(0.7)
-      head.add(text)
+      if (p.colourTileOnly === false) {
+        const v = new THREE.Vector3(0, 0, 0.2)
+        const fp = path.join(cd, rikishi.cacheFileThumbnail())
+        const head = await sumoDoyoh.addHead(fp, v, base)
+        head.scale.divideScalar(2.5)
+        head.rotation.x = 0
+        const text = sumoDoyoh.addText(rikishiName, v.clone().add(textOffset), textRot)
+        text.color = mawashiColour
+        text.scale.multiplyScalar(0.7)
+        // TODO outline text doesn't work and needs a patch in troika
+        // text.outlineWidth = 0.03
+        head.add(text)
+      }
       tile.mesh = base
     }
-    // Replace the meshes in the 3D rack...
-    this.rack.clear()
+  }
+
+  refreshRackTiles () {
+    const p = this.params
+    const t = this.data2D
+    this.rack?.clear()
     for (let y = 0; y < p.h; y++) {
       for (let x = 0; x < p.w; x++) {
         const tileId = Number(t[y][x])
         const tile = this.spawnTile(tileId)
-        tile.position.set(x, y, 0) // start above the rack
+        tile.position.set(x, y, 0)
       }
     }
-    const backdrop = this.group.getObjectByName('backdrop')
-    backdrop.material.transparent = true
-    backdrop.material.opacity = 0.15
-    backdrop.material.needsUpdate = true
-    this.redraw()
   }
 
-  createTileProtoMeshes () {
+  async createTileProtoMeshes () {
     const p = this.params
+    if (p.useBanzukeBobbleHeads) {
+      try {
+        await this.createTilesFromBanzuke(false)
+        return
+      } catch (error) {
+        console.error('error creating Banzuke bobble head tiles:', error)
+      }
+      console.log('falling back to standard tile images')
+    }
     const loader = new THREE.TextureLoader()
     const m = new THREE.MeshLambertMaterial({ color: p.colours.tileSides })
     const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
