@@ -14,6 +14,8 @@ import { DataDir } from '../DataDir'
 // https://www.sumo.or.jp/EnSumoDataRikishi/profile/3842/
 // https://sumodb.sumogames.de/Rikishi_opp.aspx?r=1287
 // https://www.sumo-api.com/
+// Japanese profile page example: (Hoshouryu)
+// https://www.sumo.or.jp/ResultRikishiData/profile/3842/
 //
 // What do I want to achieve?
 // - Get the banzuke (ranking sheet) for a given basho (tournament).

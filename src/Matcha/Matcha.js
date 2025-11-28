@@ -134,7 +134,8 @@ export class Matcha extends MiniGameBase {
         pop: 'mouth-bop',
         dropNew: 'mouth-chik',
         drop: 'finger-snap-3-xy',
-      }
+      },
+      favouriteRikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
     }
     this.animationQueue = []
     this.data2D = null
@@ -189,7 +190,7 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
-    this.startGame(1)
+    this.startGame(0)
   }
 
   startGame (shuffleNumber = 0) {
@@ -483,6 +484,7 @@ export class Matcha extends MiniGameBase {
 
   async useBanzukeBobbleHeads (prefs = {
     rikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
+    mawashi: ['pink', 'greenish teal', 'french blue', 'minty green', 'mauve', 'gunmetal'],
   }) {
     const bong = Bong.getInstance()
     if (!bong) {
@@ -521,16 +523,21 @@ export class Matcha extends MiniGameBase {
         console.log(` - removing existing prototype mesh for tile ${tile.name}`)
         // TODO remove existing prototype mesh
       }
-      const v = new THREE.Vector3(0, 0, 0)
-      const g = new THREE.Group()
+      const mawashiColour = Colours.get(prefs.mawashi[i])
+      // add a coloured tile base
+      const baseGeo = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
+      const baseMat = new THREE.MeshLambertMaterial({ color: mawashiColour })
+      const base = new THREE.Mesh(baseGeo, baseMat)
+      const v = new THREE.Vector3(0, 0, 0.2)
       const fp = path.join(cd, rikishi.cacheFileThumbnail())
-      tile.mesh = await sumoDoyoh.addHead(fp, v, g)
+      const head = await sumoDoyoh.addHead(fp, v, base)
+      head.scale.divideScalar(2.2)
+      head.rotation.x = 0
       const text = sumoDoyoh.addText(rikishiName, v.clone().add(textOffset), textRot)
-      text.color = 0xff0789
+      text.color = mawashiColour
       text.scale.multiplyScalar(0.7)
-      tile.mesh.add(text)
-      tile.mesh.scale.divideScalar(2.1)
-      tile.mesh.rotation.x = 0
+      head.add(text)
+      tile.mesh = base
     }
     // Replace the meshes in the 3D rack...
     this.rack.clear()
@@ -554,7 +561,7 @@ export class Matcha extends MiniGameBase {
     const m = new THREE.MeshLambertMaterial({ color: p.colours.tileSides })
     const geometry = new THREE.BoxGeometry(p.tileSize, p.tileSize, p.tileThickness)
     for (const t of p.tileInfo) {
-      const mat = new THREE.MeshLambertMaterial({ map: loader.load(t.img) })
+      const mat = new THREE.MeshLambertMaterial({ map: loader.load(t.img, () => this.redraw()) })
       const mesh = new THREE.Mesh(geometry, [m, m, m, m, mat, m])
       mesh.userData.tileType = t.name
       t.mesh = mesh
