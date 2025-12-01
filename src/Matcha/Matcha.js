@@ -12,6 +12,7 @@ import { SoundBoard } from '../SoundBoard'
 import { delayMs } from '../util'
 import { isInteger } from '../wahWah'
 import { Dlg } from '../dlg'
+import { ScoreBox } from '../ScoreBox'
 
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
@@ -283,6 +284,8 @@ export class Matcha extends MiniGameBase {
         ['0', '4', '4', '5', '2', '0', '5', '5'],
         ['5', '2', '5', '3', '0', '1', '5', '5']
       ]
+      // first complete game with the score-box 126900
+      this.testData.doneData2D3 = [['5', '2', '1', '5', '5', '1', '2', '0'], ['4', '0', '3', '1', '0', '3', '1', '3'], ['3', '4', '5', '4', '1', '0', '2', '0'], ['1', '0', '3', '0', '5', '3', '5', '4'], ['0', '4', '5', '2', '2', '4', '5', '1'], ['2', '3', '0', '3', '0', '1', '3', '2'], ['2', '3', '0', '1', '2', '4', '4', '3'], ['1', '5', '5', '2', '0', '0', '1', '1']]
       // saved game score at
       // this.score = 145600
       this.testData.ongoingGame = [['2', '0', '4', '0', '5', '4', '3', '0'], ['5', '1', '0', '5', '3', '4', '5', '4'], ['1', '4', '4', '1', '5', '3', '5', '5'], ['5', '0', '3', '4', '1', '5', '3', '3'], ['0', '1', '5', '2', '5', '3', '0', '0'], ['4', '2', '2', '0', '1', '2', '3', '5'], ['4', '1', '2', '1', '3', '0', '4', '1'], ['2', '0', '5', '2', '0', '1', '4', '4']]
@@ -490,6 +493,9 @@ export class Matcha extends MiniGameBase {
       rack2.add(h)
       this.highlightObj = h
     }
+    const sb = this.scoreBox = new ScoreBox()
+    sb.position.set(3, -4.7, 0)
+    this.group.add(sb)
     this.activate()
     this.redraw()
   }
@@ -901,9 +907,11 @@ export class Matcha extends MiniGameBase {
     for (const score of scores) {
       const points = (score.line.length - 2) * 100 * combo
       this.score += points * multiplier
-      Dlg.popup(`score: ${this.score} (x${multiplier})`)
+      this.scoreBox.setScore(this.score)
+      // Dlg.popup(`score: ${this.score} (x${multiplier})`)
       combo++
     }
+    this.redraw()
   }
 
   clearLineHighlights () {
