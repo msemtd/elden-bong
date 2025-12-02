@@ -163,7 +163,11 @@ async function pickDir () {
   return result.canceled ? '' : result.filePaths.length ? result.filePaths[0] : ''
 }
 
-async function pickFile () {
+async function pickFile (evt, options) {
+  if (options.saveAs) {
+    const res = await dialog.showSaveDialog(mainWindow, { defaultPath: options.saveAs })
+    return res
+  }
   const result = await dialog.showOpenDialog(mainWindow, {
   })
   return result

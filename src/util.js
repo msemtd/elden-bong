@@ -15,6 +15,19 @@ export function leftFillNum (num, targetLength) {
   return num.toString().padStart(targetLength, '0')
 }
 
+/**
+ * Date time stamp string (without timezone info)
+ * @param {Date} d date object to stringify, defaults to local now
+ * @returns {string} 19 char local date-time string that is filename friendly
+ */
+export function dateTimeStamp (d = new Date()) {
+  // 1970-01-01T00:00:00
+  // 1234567890123456789
+  let s = d.toISOString().substring(0, 19)
+  s = s.replaceAll(':', '-').replace('T', '_')
+  return s
+}
+
 export function rxBetween (prefix, suffix) {
   return new RegExp('^(?:' + prefix + ')(.*)(?:' + suffix + ')$')
 }

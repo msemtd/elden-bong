@@ -9,10 +9,11 @@ import { Colours } from '../Colours'
 import { rackToString, createRack, stringToRack, getRowString, getColumnString } from './rack'
 import { Bong } from '../bong'
 import { SoundBoard } from '../SoundBoard'
-import { delayMs } from '../util'
+import { dateTimeStamp, delayMs } from '../util'
 import { isInteger } from '../wahWah'
 import { Dlg } from '../dlg'
 import { ScoreBox } from '../ScoreBox'
+import { pickFile, outputFile } from '../HandyApi'
 
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
@@ -74,12 +75,14 @@ const CLICKABLE_LAYER = 1
  *
  * Found that tween.js is easier to use for simple animations so using that for now.
  *
- * TODO: good score display, timer, pause button, restart, smart bomb etc.
- * TODO: more sound effects
+ * DONE: good score display
+ * TODO: timer, pause button, restart, smart bomb etc.
+ * DONE: more sound effects
  * TODO: detection of available moves and indication of "no more moves possible" state
  * TODO: load and save game state
- * TODO: load sumo wrestler bobble heads for tiles
- * TODO: game moves history for replay
+ * DONE: load sumo wrestler bobble heads for tiles
+ * DONE: game moves history for replay
+ * TODO: replay history and check that it gets the same result
  *
  * @class Matcha
  * @extends MiniGameBase
@@ -93,7 +96,6 @@ export class Matcha extends MiniGameBase {
     this.rx = /(\d)\1{2,}/gd
     this.clickable = []
     this.highlightObj = null
-    this.gameState = 'attract' // 'playing', 'paused', 'gameOver'
     this.score = 0
     // TODO I want to make the tiles from emoji but I can't be sure that the
     // fonts will be available on the user's system
@@ -144,9 +146,9 @@ export class Matcha extends MiniGameBase {
     }
     this.animationQueue = []
     this.data2D = null
-    this.testing = true
     this.loadSettings()
     this.flashMaterial = new THREE.MeshLambertMaterial({ color: this.params.colours.lineWin, transparent: true, opacity: 0.1 })
+    this.moveHistory = []
     // load settings from parent
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -158,6 +160,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'refreshRackTiles')
       this.gui.add(this.params, 'useBanzukeBobbleHeads')
       this.gui.add(this.params, 'colourTileOnly')
+      this.gui.add(this, 'saveGameHistory')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -200,14 +203,21 @@ export class Matcha extends MiniGameBase {
     this.startGame(0)
   }
 
+  /**
+   * Start a new game.
+   *
+   * @param {number} shuffleNumber zero is a random game, 1 is known test data,
+   * 2 and onwards use a specific seed
+   */
   async startGame (shuffleNumber = 0) {
     this.setupRng(shuffleNumber)
     this.score = 0
     this.rackSetup(shuffleNumber === 1)
-    await this.freshGfx()
     this.detectScores(() => {
       console.warn('detected a score in initial state!')
     })
+    this.moveHistory = [{ shuffleNumber, rack: JSON.parse(JSON.stringify(this.data2D)) }]
+    await this.freshGfx()
   }
 
   async chooseGame () {
@@ -673,6 +683,8 @@ export class Matcha extends MiniGameBase {
     if (bounceBack) {
       console.log('bounce back swap - no score made')
       this.swapData2D(p2.y, p2.x, p1.y, p1.x)
+    } else {
+      this.moveHistory.push({ swapRc1Rc: [p1.y, p1.x, p2.y, p2.x] })
     }
     this.sound(this.params.sounds.swap)
     // let's try to use tween lib properly
@@ -973,5 +985,28 @@ export class Matcha extends MiniGameBase {
     this.animationQueue = keep
     // return that we need to redraw...
     return true
+  }
+
+  async saveGameHistory () {
+    // file chooser for save - use timestamp in default name
+    const dts = dateTimeStamp()
+    console.log(dts)
+    const res = await pickFile({ saveAs: `matcha_hist_${dts}.json` })
+    console.log(res)
+    if (res.canceled === true) {
+      return
+    }
+    if (res?.canceled !== false) {
+      console.warn('something not right', res)
+      return
+    }
+    const jf = res.filePath
+    const data = {
+      dts,
+      score: this.score,
+      moveHistory: this.moveHistory,
+      finalState: this.data2D,
+    }
+    await outputFile(jf, JSON.stringify(data), { encoding: 'utf8' })
   }
 }
