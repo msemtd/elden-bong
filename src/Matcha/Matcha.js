@@ -78,11 +78,13 @@ const CLICKABLE_LAYER = 1
  * DONE: good score display
  * TODO: timer, pause button, restart, smart bomb etc.
  * DONE: more sound effects
- * TODO: detection of available moves and indication of "no more moves possible" state
+ * TODO: PROGRESS: detection of available moves and indication of "no more moves possible" state
  * TODO: load and save game state
  * DONE: load sumo wrestler bobble heads for tiles
  * DONE: game moves history for replay
  * TODO: replay history and check that it gets the same result
+ *
+ * TODO: make a web-browser version of the game - see how well webpack tree-shakes it down
  *
  * @class Matcha
  * @extends MiniGameBase
@@ -94,6 +96,8 @@ export class Matcha extends MiniGameBase {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
     // getting more from the regex with the 'd' flag
     this.rx = /(\d)\1{2,}/gd
+    this.rxNextMove1 = /(\d)\1{1,}/gd
+    this.rxNextMove2 = /(\d).\1{1,}/gd
     this.clickable = []
     this.highlightObj = null
     this.score = 0
@@ -161,6 +165,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this.params, 'useBanzukeBobbleHeads')
       this.gui.add(this.params, 'colourTileOnly')
       this.gui.add(this, 'saveGameHistory')
+      this.gui.add(this, 'findMove')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -200,7 +205,7 @@ export class Matcha extends MiniGameBase {
   }
 
   runTest () {
-    this.startGame(0)
+    this.startGame(1)
   }
 
   /**
@@ -1000,13 +1005,79 @@ export class Matcha extends MiniGameBase {
       console.warn('something not right', res)
       return
     }
-    const jf = res.filePath
+    const f = res.filePath
     const data = {
       dts,
       score: this.score,
       moveHistory: this.moveHistory,
       finalState: this.data2D,
     }
-    await outputFile(jf, JSON.stringify(data), { encoding: 'utf8' })
+    await outputFile(f, JSON.stringify(data), { encoding: 'utf8' })
+  }
+
+  /**
+   * Look for the following patterns that are the potential next moves...
+   *
+   * U-shape:
+   *   #.#
+   *   .#.
+   * J-shape:
+   *   #..
+   *   .##
+   * I-shape:
+   *   ##.#
+   *
+   * (these patterns can be in any orientation or reflection)
+   *
+   * When looking for the U-shape we match the #.# pattern and look if a tile
+   * of the right value is adjacent to the middle.
+   *
+   * When looking for the J-shape and I-shape we match the ## pattern and look
+   * at three tiles adjacent to each end.
+   */
+  async findMove () {
+    await this.waitForAnimations()
+    if (this.noClicking) {
+      throw Error('still busy')
+    }
+    const t = this.data2D
+    const p = this.params
+    // We are going to need to look at multiple rows or columns at once so we
+    // might as well get them all as strings
+    const cols = Array(p.w).fill('').map((v, i) => getColumnString(i, p.h, t))
+    const rows = Array(p.h).fill('').map((v, i) => getRowString(i, p.w, t))
+    // We need to search both rows and columns and they can be generalised as
+    // dimensions...
+    const dimensions = [cols, rows]
+    for (let dim = 0; dim < dimensions.length; dim++) {
+      // In either dimension we are just looking at an array of strings...
+      // The number of columns is the width and the number of rows is the height...
+      const n = dim ? p.h : p.w
+      for (let i = 0; i < n; i++) {
+        const s = dimensions[dim][i]
+        // Let's look for any U-shape by looking for #.#...
+        const ma = s.matchAll(this.rxNextMove2)
+        for (const m of ma) {
+          // Look either side of the middle tile
+          // m[0] is the entire matched string
+          // m[1] is the captured tile value
+          const tile = m[1]
+          // so we are looking for m[1] on either side of the middle tile
+          // i.e. at m.index plus one
+          const j = m.index + 1
+          // Look either side, i.e. the index one less and one more...
+          for (let rc = i - 1; rc <= i + 1; rc += 2) {
+            // Unless that's off the edge...
+            if (rc < 0 || rc >= n) { continue }
+            const os = dimensions[dim][rc]
+            if (os[j] === m[1]) {
+              const [x1, y1] = dim ? [j, rc] : [rc, j]
+              const [x2, y2] = dim ? [j, i] : [i, j]
+              console.log(`found a U-shape move of ${tile} at ${x1} ${y1} -> ${x2} ${y2}`)
+            }
+          }
+        }
+      }
+    }
   }
 }
