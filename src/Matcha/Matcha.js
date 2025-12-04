@@ -101,7 +101,7 @@ export class Matcha extends MiniGameBase {
     // regex to match sequences of 3 or more consecutive matching digits...
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
     // getting more from the regex with the 'd' flag
-    this.rx = /(\d)\1{2,}/gd
+    this.rxScore = /(\d)\1{2,}/gd
     this.rxNextMove1 = /(\d)\1{1,}/gd
     this.rxNextMove2 = /(\d).\1{1,}/gd
     this.clickable = []
@@ -347,7 +347,7 @@ export class Matcha extends MiniGameBase {
     // look at the rows first...
     for (let y = 0; y < p.h; y++) {
       const s = getRowString(y, p.w, t)
-      const ma = s.matchAll(this.rx)
+      const ma = s.matchAll(this.rxScore)
       for (const m of ma) {
         results.push({ rowOrCol: 'row', rcIndex: y, pos: m.index, line: m[0] })
         if (typeof matchHandler === 'function') {
@@ -358,7 +358,7 @@ export class Matcha extends MiniGameBase {
     // look at the columns next...
     for (let x = 0; x < p.w; x++) {
       const s = getColumnString(x, p.h, t)
-      const ma = s.matchAll(this.rx)
+      const ma = s.matchAll(this.rxScore)
       for (const m of ma) {
         results.push({ rowOrCol: 'col', rcIndex: x, pos: m.index, line: m[0] })
         if (typeof matchHandler === 'function') {
@@ -1044,9 +1044,8 @@ export class Matcha extends MiniGameBase {
    * Use the terms source and target for the tile of correct value to be moved and the
    * position to move to respectively.
    * @async
-   * @returns {Promise<void>} nothing
-   * TODO: should really return a list of possible moves found
-   * TODO: quick exit option when we only want to see if any move is available
+   * @returns {Promise<object[]>} list of possible moves found
+   * @argument  {boolean} quickExit TODO: quick exit upon first move found
    */
   async findMove (quickExit = false) {
     // Since this is called from the UI we need to wait for any ongoing
