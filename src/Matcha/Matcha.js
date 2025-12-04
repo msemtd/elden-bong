@@ -55,9 +55,15 @@ const CLICKABLE_LAYER = 1
  *
  * A non-graphical data is convenient to hold the initial or current state of the rack
  * - this is a 2D array of text digits representing tile types
+ *   TODO: this could just be an array of row strings - we would still have access as a 2D array, e.g. t[r][c]
+ *   TODO: we would only talk in terms of rows and columns (rather than x and y which would only be required in the 3D gfx world)
+ *   TODO: with width and height as the limits
  * - functions to create, convert, and access the data are in rack.js
  * - we want to look at the data in rows and columns for scoring and to detect
  *   scoring lines we can use a regex on a text representation of the rows/columns
+ * TODO: the 2D data is more concerned with the overall state
+ * whereas the 3D gfx world is more concerned with identity of objects and
+ * allowing them to move around nicely.
  *
  * For animation:
  * - the 'gsap' animation library is proving annoying in other mini-games and
@@ -1034,50 +1040,87 @@ export class Matcha extends MiniGameBase {
    *
    * When looking for the J-shape and I-shape we match the ## pattern and look
    * at three tiles adjacent to each end.
+   *
+   * Use the terms source and target for the tile of correct value to be moved and the
+   * position to move to respectively.
+   * @async
+   * @returns {Promise<void>} nothing
+   * TODO: should really return a list of possible moves found
+   * TODO: quick exit option when we only want to see if any move is available
    */
-  async findMove () {
+  async findMove (quickExit = false) {
+    // Since this is called from the UI we need to wait for any ongoing
+    // animations to finish first. The rest could well be synchronous.
     await this.waitForAnimations()
     if (this.noClicking) {
       throw Error('still busy')
     }
+    // An assumption here is that the 2D state is valid and non-scoring
+    console.time('findMove')
+    const moves = []
     const t = this.data2D
     const p = this.params
     // We are going to need to look at multiple rows or columns at once so we
     // might as well get them all as strings
+    // TODO not really true for quick exit mode and all data is already available in 2D array
     const cols = Array(p.w).fill('').map((v, i) => getColumnString(i, p.h, t))
     const rows = Array(p.h).fill('').map((v, i) => getRowString(i, p.w, t))
+    // TODO: no need to have all rows or columns available as strings - the 2D data is enough
     // We need to search both rows and columns and they can be generalised as
     // dimensions...
+    // TODO: use j and k as primary and secondary dimension terms
+    // TODO: row scan first for speed since more likely to find a move without constructing column strings
+    // when working in columns vs rows, the order of the coords when looking up neighbours is swapped - so transposed
     const dimensions = [cols, rows]
     for (let dim = 0; dim < dimensions.length; dim++) {
       // In either dimension we are just looking at an array of strings...
+      const scanType = dim ? 'rows' : 'cols'
       // The number of columns is the width and the number of rows is the height...
+      // TODO: we are talking about dimension length and range
       const n = dim ? p.h : p.w
       for (let i = 0; i < n; i++) {
         const s = dimensions[dim][i]
         // Let's look for any U-shape by looking for #.#...
         const ma = s.matchAll(this.rxNextMove2)
         for (const m of ma) {
-          // Look either side of the middle tile
           // m[0] is the entire matched string
           // m[1] is the captured tile value
           const tile = m[1]
-          // so we are looking for m[1] on either side of the middle tile
+          // Look either side of the middle tile for a next move...
           // i.e. at m.index plus one
           const j = m.index + 1
-          // Look either side, i.e. the index one less and one more...
+          // Look either side, i.e. the row/col one less and one more...
           for (let rc = i - 1; rc <= i + 1; rc += 2) {
             // Unless that's off the edge...
             if (rc < 0 || rc >= n) { continue }
             const os = dimensions[dim][rc]
             if (os[j] === m[1]) {
+              // TODO this is ugly - whether or not to transpose coords - not very readable
               const [x1, y1] = dim ? [j, rc] : [rc, j]
               const [x2, y2] = dim ? [j, i] : [i, j]
-              console.log(`found a U-shape move of ${tile} at ${x1} ${y1} -> ${x2} ${y2}`)
+              console.log(`found a U-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
+              moves.push({ shape: 'U', scanType, tile, from: [x1, y1], to: [x2, y2] })
             }
+          }
+        }
+        const ma2 = s.matchAll(this.rxNextMove1)
+        for (const m of ma2) {
+          // Look at three tiles adjacent to either end of the matched .##.
+          const tile = m[1]
+          // each end is a potentially scoring spot...
+          // I-shape seems easier somehow
+          if (m.index - 2 >= 0 && s[m.index - 2] === tile) {
+            const [x1, y1] = dim ? [m.index - 2, i] : [i, m.index - 2] // rows
+            const [x2, y2] = dim ? [m.index - 1, i] : [i, m.index - 1] // cols
+            moves.push({ shape: 'I', scanType, tile, from: [x1, y1], to: [x2, y2] })
+            console.log(`found an I-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
+          }
+          if (m.index + 2 >= 0 && s[m.index + 2] === tile) {
           }
         }
       }
     }
+    console.timeEnd('findMove')
+    return moves
   }
 }
