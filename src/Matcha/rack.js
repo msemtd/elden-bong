@@ -17,10 +17,10 @@ export function newEmptyRack (w, h) {
  */
 export function createRack (w, h, n, randYoFunc = Math.random) {
   const r = newEmptyRack(w, h)
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
+  for (let row = 0; row < h; row++) {
+    for (let col = 0; col < w; col++) {
       const rnd = Math.floor(randYoFunc() * n)
-      r[y][x] = `${rnd}`
+      r[row][col] = `${rnd}`
     }
   }
   return r
@@ -40,27 +40,27 @@ export function stringToRack (sIn, w, h) {
   }
   const r = newEmptyRack(w, h)
   let i = 0
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      r[y][x] = s[i]
+  for (let row = 0; row < h; row++) {
+    for (let col = 0; col < w; col++) {
+      r[row][col] = s[i]
       i++
     }
   }
   return r
 }
 
-export function getColumnString (x, h, rack) {
-  const col = []
-  for (let y = 0; y < h; y++) {
-    col.push(rack[y][x])
+export function getColumnString (col, h, rack) {
+  const ca = []
+  for (let row = 0; row < h; row++) {
+    ca.push(rack[row][col])
   }
-  return col.join('')
+  return ca.join('')
 }
 
-export function getRowString (y, w, rack) {
-  const row = []
-  for (let x = 0; x < w; x++) {
-    row.push(rack[y][x])
+export function getRowString (row, w, rack) {
+  const ra = []
+  for (let col = 0; col < w; col++) {
+    ra.push(rack[row][col])
   }
-  return row.join('')
+  return ra.join('')
 }

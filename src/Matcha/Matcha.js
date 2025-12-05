@@ -55,7 +55,6 @@ const CLICKABLE_LAYER = 1
  *
  * A non-graphical data is convenient to hold the initial or current state of the rack
  * - this is a 2D array of text digits representing tile types
- *   TODO: this could just be an array of row strings - we would still have access as a 2D array, e.g. t[r][c]
  *   TODO: we would only talk in terms of rows and columns (rather than x and y which would only be required in the 3D gfx world)
  *   TODO: with width and height as the limits
  * - functions to create, convert, and access the data are in rack.js
@@ -67,19 +66,9 @@ const CLICKABLE_LAYER = 1
  *
  * For animation:
  * - the 'gsap' animation library is proving annoying in other mini-games and
- *   not acting intuitively so I want to just use three.js built-in animation
- *   features. In the process I might discover what I'm doing wrong in 'gsap'.
- *
- * https://threejs.org/manual/#en/animation-system
- * simplest example: https://threejs.org/examples/?q=keys#misc_animation_keys
- * example code: https://github.com/mrdoob/three.js/blob/master/examples/misc_animation_keys.html
- * Class relationships for the system
- * AnimationAction drives
- * AnimationMixer controlling
- * AnimationClip has
- * KeyframeTrack
- *
- * Found that tween.js is easier to use for simple animations so using that for now.
+ *   not acting intuitively so I tried to use three.js built-in animation
+ *   features (https://threejs.org/manual/#en/animation-system)
+ * - in the end I found that tween.js is easier to use and is working well
  *
  * DONE: good score display
  * TODO: timer, pause button, restart, smart bomb etc.
@@ -306,10 +295,28 @@ export class Matcha extends MiniGameBase {
         ['5', '2', '5', '3', '0', '1', '5', '5']
       ]
       // first complete game with the score-box 126900
-      this.testData.doneData2D3 = [['5', '2', '1', '5', '5', '1', '2', '0'], ['4', '0', '3', '1', '0', '3', '1', '3'], ['3', '4', '5', '4', '1', '0', '2', '0'], ['1', '0', '3', '0', '5', '3', '5', '4'], ['0', '4', '5', '2', '2', '4', '5', '1'], ['2', '3', '0', '3', '0', '1', '3', '2'], ['2', '3', '0', '1', '2', '4', '4', '3'], ['1', '5', '5', '2', '0', '0', '1', '1']]
+      this.testData.doneData2D3 = [
+        ['5', '2', '1', '5', '5', '1', '2', '0'],
+        ['4', '0', '3', '1', '0', '3', '1', '3'],
+        ['3', '4', '5', '4', '1', '0', '2', '0'],
+        ['1', '0', '3', '0', '5', '3', '5', '4'],
+        ['0', '4', '5', '2', '2', '4', '5', '1'],
+        ['2', '3', '0', '3', '0', '1', '3', '2'],
+        ['2', '3', '0', '1', '2', '4', '4', '3'],
+        ['1', '5', '5', '2', '0', '0', '1', '1'],
+      ]
       // saved game score at
       // this.score = 145600
-      this.testData.ongoingGame = [['2', '0', '4', '0', '5', '4', '3', '0'], ['5', '1', '0', '5', '3', '4', '5', '4'], ['1', '4', '4', '1', '5', '3', '5', '5'], ['5', '0', '3', '4', '1', '5', '3', '3'], ['0', '1', '5', '2', '5', '3', '0', '0'], ['4', '2', '2', '0', '1', '2', '3', '5'], ['4', '1', '2', '1', '3', '0', '4', '1'], ['2', '0', '5', '2', '0', '1', '4', '4']]
+      this.testData.ongoingGame = [
+        ['2', '0', '4', '0', '5', '4', '3', '0'],
+        ['5', '1', '0', '5', '3', '4', '5', '4'],
+        ['1', '4', '4', '1', '5', '3', '5', '5'],
+        ['5', '0', '3', '4', '1', '5', '3', '3'],
+        ['0', '1', '5', '2', '5', '3', '0', '0'],
+        ['4', '2', '2', '0', '1', '2', '3', '5'],
+        ['4', '1', '2', '1', '3', '0', '4', '1'],
+        ['2', '0', '5', '2', '0', '1', '4', '4'],
+      ]
     } else {
       this.data2D = createRack(p.w, p.h, p.tileInfo.length, this.rng)
     }
@@ -345,24 +352,24 @@ export class Matcha extends MiniGameBase {
     const t = this.data2D
     const results = []
     // look at the rows first...
-    for (let y = 0; y < p.h; y++) {
-      const s = getRowString(y, p.w, t)
+    for (let row = 0; row < p.h; row++) {
+      const s = getRowString(row, p.w, t)
       const ma = s.matchAll(this.rxScore)
       for (const m of ma) {
-        results.push({ rowOrCol: 'row', rcIndex: y, pos: m.index, line: m[0] })
+        results.push({ rowOrCol: 'row', rcIndex: row, pos: m.index, line: m[0] })
         if (typeof matchHandler === 'function') {
-          matchHandler('row', y, m.index, m[0])
+          matchHandler('row', row, m.index, m[0])
         }
       }
     }
     // look at the columns next...
-    for (let x = 0; x < p.w; x++) {
-      const s = getColumnString(x, p.h, t)
+    for (let col = 0; col < p.w; col++) {
+      const s = getColumnString(col, p.h, t)
       const ma = s.matchAll(this.rxScore)
       for (const m of ma) {
-        results.push({ rowOrCol: 'col', rcIndex: x, pos: m.index, line: m[0] })
+        results.push({ rowOrCol: 'col', rcIndex: col, pos: m.index, line: m[0] })
         if (typeof matchHandler === 'function') {
-          matchHandler('col', x, m.index, m[0])
+          matchHandler('col', col, m.index, m[0])
         }
       }
     }
@@ -483,27 +490,17 @@ export class Matcha extends MiniGameBase {
       backdrop.material.needsUpdate = true
     }
     this.group.add(backdrop)
-
     // create "rack" for tiles...
-    const rack = new THREE.Group()
+    const rack = this.rack = new THREE.Group()
     rack.name = 'rack'
     rack.position.set(-3.5, -3.5, (p.tileThickness / 2) + 0.001)
     backdrop.add(rack)
-    this.rack = rack
     // create a second rack for placing highlights...
-    const rack2 = rack.clone()
+    const rack2 = this.rack2 = rack.clone()
     rack2.name = 'rack2'
     backdrop.add(rack2)
-    this.rack2 = rack
     // create 3D array of tile objects from prototype meshes...
-    for (let y = 0; y < p.h; y++) {
-      for (let x = 0; x < p.w; x++) {
-        const tile = this.spawnTile(Number(t[y][x]))
-        tile.position.set(x, y, 0)
-      }
-    }
-    this.clickable = [rack, rack2]
-    this.noClicking = false
+    this.refreshRackTiles()
     // create a highlight object for first chosen tile
     {
       const geo = new THREE.BoxGeometry(p.tileSize + p.tileSpacing, p.tileSize + p.tileSpacing, p.tileThickness * 1.2)
@@ -518,6 +515,8 @@ export class Matcha extends MiniGameBase {
     sb.position.set(3, -4.7, 0)
     this.group.add(sb)
     this.activate()
+    this.clickable = [rack, rack2]
+    this.noClicking = false
     this.redraw()
   }
 
@@ -579,11 +578,11 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     const t = this.data2D
     this.rack?.clear()
-    for (let y = 0; y < p.h; y++) {
-      for (let x = 0; x < p.w; x++) {
-        const tileId = Number(t[y][x])
+    for (let row = 0; row < p.h; row++) {
+      for (let col = 0; col < p.w; col++) {
+        const tileId = Number(t[row][col])
         const tile = this.spawnTile(tileId)
-        tile.position.set(x, y, 0)
+        tile.position.set(col, row, 0)
       }
     }
   }
@@ -796,26 +795,25 @@ export class Matcha extends MiniGameBase {
     const t = this.data2D
     const columnData = []
     easing = TWEEN.Easing.Cubic.In
-    // get column text and look for the new blank '-' entries
-    for (let x = 0; x < p.w; x++) {
+    // scan each column looking for the new blank '-' entries...
+    for (let col = 0; col < p.w; col++) {
       const tilesToDrop = []
       columnData.push(tilesToDrop)
-      const s = getColumnString(x, p.h, t)
+      const s = getColumnString(col, p.h, t)
       let drop = 0
-      // starting at the bottom of the column...
-      for (let y = 0; y < p.h; y++) {
-        if (s[y] === '-') {
+      // row by row, starting at the "bottom" of the column, decide how far tiles need to drop...
+      for (let row = 0; row < p.h; row++) {
+        if (s[row] === '-') {
           drop++
         } else {
-          // this tile needs to drop maybe
+          // this is a tile that maybe needs to drop...
           if (drop) {
-            const tileObj = this.rack.children.find(o => o.position.x === x && o.position.y === y)
+            const tileObj = this.rack.children.find(o => o.position.x === col && o.position.y === row)
             console.assert(tileObj, 'unable to find tile object to remove at scored position')
             if (!tileObj) { continue }
-            const newY = y - drop
-            // TODO shaky x animation before fall
+            const newY = row - drop
             const tw = new TWEEN.Tween(tileObj.position).to({ y: newY }, 300).easing(easing)
-            const afterWhich = () => { this.swapData2D(y, x, newY, x) }
+            const afterWhich = () => { this.swapData2D(row, col, newY, col) }
             tilesToDrop.push({ tw, afterWhich })
           }
         }
@@ -851,21 +849,21 @@ export class Matcha extends MiniGameBase {
     await this.waitForAnimations()
     // Generate new tiles at top to fill gaps...
     const cs = []
-    for (let x = 0; x < p.w; x++) {
-      cs.push(getColumnString(x, p.h, t))
+    for (let col = 0; col < p.w; col++) {
+      cs.push(getColumnString(col, p.h, t))
     }
     // console.log(`columns after drop:\n${cs.join('\n')}`)
     delay = 0
-    for (const x of colIndices) {
-      const s = cs[x]
-      for (let y = 0; y < p.h; y++) {
-        if (s[y] === '-') {
+    for (const idx of colIndices) {
+      const s = cs[idx]
+      for (let row = 0; row < p.h; row++) {
+        if (s[row] === '-') {
           // need a new tile here - pick a random tile type
           const tileId = this.randomTileId(p)
-          t[y][x] = `${tileId}`
+          t[row][idx] = `${tileId}`
           const tile = this.spawnTile(tileId)
-          tile.position.set(x, p.h, 0.1) // start above the rack
-          const tw1 = new TWEEN.Tween(tile.position).to({ y, z: 0 }, 600).easing(easing).delay(delay).start().onComplete(() => {
+          tile.position.set(idx, p.h, 0.1) // start above the rack
+          const tw1 = new TWEEN.Tween(tile.position).to({ y: row, z: 0 }, 600).easing(easing).delay(delay).start().onComplete(() => {
             this.sound(this.params.sounds.dropNew)
           })
           this.animationQueue.push(() => {
@@ -940,7 +938,7 @@ export class Matcha extends MiniGameBase {
   clearLineHighlights () {
     let c = null
     while ((c = this.rack2.getObjectByName('lineHighlight'))) {
-      this.rack.remove(c)
+      this.rack2.remove(c)
     }
     this.redraw()
   }
@@ -1061,10 +1059,11 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     // We are going to need to look at multiple rows or columns at once so we
     // might as well get them all as strings
-    // TODO not really true for quick exit mode and all data is already available in 2D array
+    // TODO: not really true for quick exit mode!
+    // TODO: as such, no need to have all rows or columns available as strings up front
+    // TODO: the 2D data should be enough to work from directly
     const cols = Array(p.w).fill('').map((v, i) => getColumnString(i, p.h, t))
     const rows = Array(p.h).fill('').map((v, i) => getRowString(i, p.w, t))
-    // TODO: no need to have all rows or columns available as strings - the 2D data is enough
     // We need to search both rows and columns and they can be generalised as
     // dimensions...
     // TODO: use j and k as primary and secondary dimension terms
@@ -1095,6 +1094,8 @@ export class Matcha extends MiniGameBase {
             const os = dimensions[dim][rc]
             if (os[j] === m[1]) {
               // TODO this is ugly - whether or not to transpose coords - not very readable
+              // TODO: refer to source and target tiles for clarity - the source is the tile with the scoring value
+              // TODO: use row and column terms for clarity
               const [x1, y1] = dim ? [j, rc] : [rc, j]
               const [x2, y2] = dim ? [j, i] : [i, j]
               console.log(`found a U-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
