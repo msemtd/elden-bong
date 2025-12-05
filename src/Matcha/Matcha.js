@@ -1057,30 +1057,16 @@ export class Matcha extends MiniGameBase {
     const moves = []
     const t = this.data2D
     const p = this.params
-    // We are going to need to look at multiple rows or columns at once so we
-    // might as well get them all as strings
-    // TODO: not really true for quick exit mode!
-    // TODO: as such, no need to have all rows or columns available as strings up front
-    // TODO: the 2D data should be enough to work from directly
-    const cols = Array(p.w).fill('').map((v, i) => getColumnString(i, p.h, t))
-    const rows = Array(p.h).fill('').map((v, i) => getRowString(i, p.w, t))
-    // We need to search both rows and columns and they can be generalised as
-    // dimensions...
-    // TODO: use j and k as primary and secondary dimension terms
-    // TODO: row scan first for speed since more likely to find a move without constructing column strings
-    // when working in columns vs rows, the order of the coords when looking up neighbours is swapped - so transposed
-    const dimensions = [cols, rows]
-    for (let dim = 0; dim < dimensions.length; dim++) {
-      // In either dimension we are just looking at an array of strings...
-      const scanType = dim ? 'rows' : 'cols'
-      // The number of columns is the width and the number of rows is the height...
-      // TODO: we are talking about dimension length and range
-      const n = dim ? p.h : p.w
-      for (let i = 0; i < n; i++) {
-        const s = dimensions[dim][i]
-        // Let's look for any U-shape by looking for #.#...
-        const ma = s.matchAll(this.rxNextMove2)
-        for (const m of ma) {
+    // Scan in both columns and rows...
+    for (let isRowScan = 0; isRowScan <= 1; isRowScan++) {
+      const scanType = isRowScan ? 'rows' : 'cols'
+      // The "width" of the data: the number of rows is the height and the number of columns is the width...
+      const w = isRowScan ? p.h : p.w
+      for (let i = 0; i < w; i++) {
+        const s = isRowScan ? getRowString(i, w, t) : getColumnString(i, w, t)
+        // Look for U-shape by looking for #.#...
+        const m2 = s.matchAll(this.rxNextMove2)
+        for (const m of m2) {
           // m[0] is the entire matched string
           // m[1] is the captured tile value
           const tile = m[1]
@@ -1088,35 +1074,57 @@ export class Matcha extends MiniGameBase {
           // i.e. at m.index plus one
           const j = m.index + 1
           // Look either side, i.e. the row/col one less and one more...
-          for (let rc = i - 1; rc <= i + 1; rc += 2) {
+          for (let otherRowOrCol = i - 1; otherRowOrCol <= i + 1; otherRowOrCol += 2) {
             // Unless that's off the edge...
-            if (rc < 0 || rc >= n) { continue }
-            const os = dimensions[dim][rc]
-            if (os[j] === m[1]) {
-              // TODO this is ugly - whether or not to transpose coords - not very readable
-              // TODO: refer to source and target tiles for clarity - the source is the tile with the scoring value
-              // TODO: use row and column terms for clarity
-              const [x1, y1] = dim ? [j, rc] : [rc, j]
-              const [x2, y2] = dim ? [j, i] : [i, j]
-              console.log(`found a U-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
-              moves.push({ shape: 'U', scanType, tile, from: [x1, y1], to: [x2, y2] })
+            if (otherRowOrCol < 0 || otherRowOrCol >= w) { continue }
+            // Does that position have the right tile?
+            const [candidateRow, candidateCol] = isRowScan ? [otherRowOrCol, j] : [j, otherRowOrCol]
+            if (t[candidateRow][candidateCol] === tile) {
+              const [dRow, dCol] = isRowScan ? [i, j] : [j, i]
+              moves.push({ shape: 'U', scanType, tile, src: [candidateRow, candidateCol], dest: [dRow, dCol] })
+              if (quickExit) {
+                console.timeEnd('findMove')
+                return moves
+              }
             }
           }
         }
-        const ma2 = s.matchAll(this.rxNextMove1)
-        for (const m of ma2) {
+        // Look for J-shape and I-shape by looking for ##...
+        const m1 = s.matchAll(this.rxNextMove1)
+        for (const m of m1) {
           // Look at three tiles adjacent to either end of the matched .##.
           const tile = m[1]
-          // each end is a potentially scoring spot...
-          // I-shape seems easier somehow
-          if (m.index - 2 >= 0 && s[m.index - 2] === tile) {
-            const [x1, y1] = dim ? [m.index - 2, i] : [i, m.index - 2] // rows
-            const [x2, y2] = dim ? [m.index - 1, i] : [i, m.index - 1] // cols
-            moves.push({ shape: 'I', scanType, tile, from: [x1, y1], to: [x2, y2] })
-            console.log(`found an I-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
+          // each end is a potentially scoring destination spot...
+          for (let end = m.index - 1; end <= m.index + 2; end += 3) {
+            // look at three candidate tiles adjacent to this end destination...
+            const [dRow, dCol] = isRowScan ? [i, end] : [end, i]
+            // unless the destination is off the edge...
+            if (dRow < 0 || dRow >= w || dCol < 0 || dCol >= w) {
+              continue
+            }
+            // I-shape checks
+            for (let offset = -1; offset <= 1; offset++) {
+              const c = end + offset
+            }
+            // J-shape checks
+            for (let offset = -1; offset <= 1; offset++) {
+              // other dimension coordinate
+            }
+
+
           }
-          if (m.index + 2 >= 0 && s[m.index + 2] === tile) {
-          }
+
+
+
+          // // I-shape seems easier somehow
+          // if (m.index - 2 >= 0 && s[m.index - 2] === tile) {
+          //   const [x1, y1] = isRowScan ? [m.index - 2, i] : [i, m.index - 2] // rows
+          //   const [x2, y2] = isRowScan ? [m.index - 1, i] : [i, m.index - 1] // cols
+          //   moves.push({ shape: 'I', scanType, tile, from: [x1, y1], to: [x2, y2] })
+          //   console.log(`found an I-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
+          // }
+          // if (m.index + 2 >= 0 && s[m.index + 2] === tile) {
+          // }
         }
       }
     }
