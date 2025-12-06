@@ -1054,16 +1054,26 @@ export class Matcha extends MiniGameBase {
     }
     // An assumption here is that the 2D state is valid and non-scoring
     console.time('findMove')
+    const moves = this.scanMoves(quickExit)
+    console.timeEnd('findMove')
+    for (const m of moves) {
+      console.dir(m)
+    }
+  }
+
+  scanMoves (quickExit) {
     const moves = []
     const t = this.data2D
     const p = this.params
     // Scan in both columns and rows...
     for (let isRowScan = 0; isRowScan <= 1; isRowScan++) {
       const scanType = isRowScan ? 'rows' : 'cols'
-      // The "width" of the data: the number of rows is the height and the number of columns is the width...
-      const w = isRowScan ? p.h : p.w
-      for (let i = 0; i < w; i++) {
-        const s = isRowScan ? getRowString(i, w, t) : getColumnString(i, w, t)
+      // The "width" of the data in this direction/dimension...
+      const wid = isRowScan ? p.h : p.w
+      // The "length" of the data in this direction/dimension...
+      const len = isRowScan ? p.w : p.h
+      for (let i = 0; i < wid; i++) {
+        const s = isRowScan ? getRowString(i, wid, t) : getColumnString(i, wid, t)
         // Look for U-shape by looking for #.#...
         const m2 = s.matchAll(this.rxNextMove2)
         for (const m of m2) {
@@ -1073,20 +1083,15 @@ export class Matcha extends MiniGameBase {
           // Look either side of the middle tile for a next move...
           // i.e. at m.index plus one
           const j = m.index + 1
-          // Look either side, i.e. the row/col one less and one more...
-          for (let otherRowOrCol = i - 1; otherRowOrCol <= i + 1; otherRowOrCol += 2) {
+          // Look either side, i.e. the adjacent row/col one less and one more...
+          for (let adjRowOrCol = i - 1; adjRowOrCol <= i + 1; adjRowOrCol += 2) {
             // Unless that's off the edge...
-            if (otherRowOrCol < 0 || otherRowOrCol >= w) { continue }
+            if (adjRowOrCol < 0 || adjRowOrCol >= wid) { continue }
             // Does that position have the right tile?
-            const [candidateRow, candidateCol] = isRowScan ? [otherRowOrCol, j] : [j, otherRowOrCol]
-            if (t[candidateRow][candidateCol] === tile) {
-              const [dRow, dCol] = isRowScan ? [i, j] : [j, i]
-              moves.push({ shape: 'U', scanType, tile, src: [candidateRow, candidateCol], dest: [dRow, dCol] })
-              if (quickExit) {
-                console.timeEnd('findMove')
-                return moves
-              }
-            }
+            const [sRow, sCol] = isRowScan ? [adjRowOrCol, j] : [j, adjRowOrCol]
+            if (t[sRow][sCol] !== tile) { continue }
+            const [dRow, dCol] = isRowScan ? [i, j] : [j, i]
+            moves.push({ shape: 'U', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
           }
         }
         // Look for J-shape and I-shape by looking for ##...
@@ -1095,40 +1100,30 @@ export class Matcha extends MiniGameBase {
           // Look at three tiles adjacent to either end of the matched .##.
           const tile = m[1]
           // each end is a potentially scoring destination spot...
-          for (let end = m.index - 1; end <= m.index + 2; end += 3) {
+          const [end1, end2] = [m.index - 1, m.index + 2]
+          for (const end of [end1, end2]) {
             // look at three candidate tiles adjacent to this end destination...
+            // but quickly skip if the destination is off the edge...
+            if (end < 0 || end >= len) { continue }
             const [dRow, dCol] = isRowScan ? [i, end] : [end, i]
-            // unless the destination is off the edge...
-            if (dRow < 0 || dRow >= w || dCol < 0 || dCol >= w) {
-              continue
+            // I-shape checks at either end
+            for (const dot of [end1 - 1, end2 + 1]) {
+              if (dot < 0 || dot >= len) { continue }
+              const [sRow, sCol] = isRowScan ? [i, dot] : [dot, i]
+              if (t[sRow][sCol] !== tile) { continue }
+              moves.push({ shape: 'I', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
             }
-            // I-shape checks
-            for (let offset = -1; offset <= 1; offset++) {
-              const c = end + offset
+            // J-shape checks...
+            for (const j of [i - 1, i + 1]) {
+              if (j < 0 || j >= wid) { continue }
+              const [sRow, sCol] = isRowScan ? [j, end] : [end, j]
+              if (t[sRow][sCol] !== tile) { continue }
+              moves.push({ shape: 'J', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
             }
-            // J-shape checks
-            for (let offset = -1; offset <= 1; offset++) {
-              // other dimension coordinate
-            }
-
-
           }
-
-
-
-          // // I-shape seems easier somehow
-          // if (m.index - 2 >= 0 && s[m.index - 2] === tile) {
-          //   const [x1, y1] = isRowScan ? [m.index - 2, i] : [i, m.index - 2] // rows
-          //   const [x2, y2] = isRowScan ? [m.index - 1, i] : [i, m.index - 1] // cols
-          //   moves.push({ shape: 'I', scanType, tile, from: [x1, y1], to: [x2, y2] })
-          //   console.log(`found an I-shape move of ${tile} during ${scanType} scan at ${x1} ${y1} -> ${x2} ${y2}`)
-          // }
-          // if (m.index + 2 >= 0 && s[m.index + 2] === tile) {
-          // }
         }
       }
     }
-    console.timeEnd('findMove')
     return moves
   }
 }
