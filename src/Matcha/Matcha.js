@@ -160,7 +160,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this.params, 'useBanzukeBobbleHeads')
       this.gui.add(this.params, 'colourTileOnly')
       this.gui.add(this, 'saveGameHistory')
-      this.gui.add(this, 'findMove')
+      this.gui.add(this, 'showMoves')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
           this.redraw()
@@ -477,7 +477,6 @@ export class Matcha extends MiniGameBase {
     const p = this.params
     depthFirstReverseTraverse(null, this.group, generalObj3dClean)
     await this.createTileProtoMeshes()
-    const t = this.data2D
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(p.w, p.h),
       new THREE.MeshLambertMaterial({ color: p.colours.backdrop, side: THREE.DoubleSide })
@@ -1020,6 +1019,43 @@ export class Matcha extends MiniGameBase {
   }
 
   /**
+   * @async
+   */
+  async showMoves () {
+    // Since this is called from the UI we need to wait for any ongoing
+    // animations to finish first. The rest could well be synchronous.
+    await this.waitForAnimations()
+    if (this.noClicking) {
+      throw Error('still busy')
+    }
+    console.time('find moves all')
+    const moves = this.findMoves()
+    console.timeEnd('find moves all')
+    let c = null
+    while ((c = this.rack2.getObjectByName('hint'))) {
+      this.rack2.remove(c)
+    }
+    this.redraw()
+    for (const m of moves) {
+      console.dir(m)
+      const src = new THREE.Vector3(m.src[1], m.src[0], 0.2)
+      const dest = new THREE.Vector3(m.dest[1], m.dest[0], 0.2)
+      const dir = dest.clone().sub(src)
+      const len = dir.length()
+      const arrowHelper = new THREE.ArrowHelper(dir.normalize(), src, len)
+      arrowHelper.name = 'hint'
+      this.rack2.add(arrowHelper)
+    }
+    this.redraw()
+    await delayMs(1600)
+    while ((c = this.rack2.getObjectByName('hint'))) {
+      this.rack2.remove(c)
+      c.dispose()
+    }
+    this.redraw()
+  }
+
+  /**
    * Look for the following patterns that are the potential next moves...
    *
    * U-shape:
@@ -1041,27 +1077,13 @@ export class Matcha extends MiniGameBase {
    *
    * Use the terms source and target for the tile of correct value to be moved and the
    * position to move to respectively.
-   * @async
-   * @returns {Promise<object[]>} list of possible moves found
-   * @argument  {boolean} quickExit TODO: quick exit upon first move found
+   *
+   * An assumption here is that the 2D state is valid and non-scoring
+   *
+   * @param {boolean} quickExit stop search after first move found
+   * @returns {object[]} list of moves found
    */
-  async findMove (quickExit = false) {
-    // Since this is called from the UI we need to wait for any ongoing
-    // animations to finish first. The rest could well be synchronous.
-    await this.waitForAnimations()
-    if (this.noClicking) {
-      throw Error('still busy')
-    }
-    // An assumption here is that the 2D state is valid and non-scoring
-    console.time('findMove')
-    const moves = this.scanMoves(quickExit)
-    console.timeEnd('findMove')
-    for (const m of moves) {
-      console.dir(m)
-    }
-  }
-
-  scanMoves (quickExit) {
+  findMoves (quickExit) {
     const moves = []
     const t = this.data2D
     const p = this.params
@@ -1092,6 +1114,7 @@ export class Matcha extends MiniGameBase {
             if (t[sRow][sCol] !== tile) { continue }
             const [dRow, dCol] = isRowScan ? [i, j] : [j, i]
             moves.push({ shape: 'U', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
+            if (quickExit) { return }
           }
         }
         // Look for J-shape and I-shape by looking for ##...
@@ -1112,6 +1135,7 @@ export class Matcha extends MiniGameBase {
               const [sRow, sCol] = isRowScan ? [i, dot] : [dot, i]
               if (t[sRow][sCol] !== tile) { continue }
               moves.push({ shape: 'I', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
+              if (quickExit) { return }
             }
             // J-shape checks...
             for (const j of [i - 1, i + 1]) {
@@ -1119,6 +1143,7 @@ export class Matcha extends MiniGameBase {
               const [sRow, sCol] = isRowScan ? [j, end] : [end, j]
               if (t[sRow][sCol] !== tile) { continue }
               moves.push({ shape: 'J', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
+              if (quickExit) { return }
             }
           }
         }
