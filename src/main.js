@@ -164,13 +164,12 @@ async function pickDir () {
 }
 
 async function pickFile (evt, options) {
-  if (options.saveAs) {
+  if (options?.saveAs) {
     const res = await dialog.showSaveDialog(mainWindow, { defaultPath: options.saveAs })
     return res
   }
-  const result = await dialog.showOpenDialog(mainWindow, {
-  })
-  return result
+  const res2 = await dialog.showOpenDialog(mainWindow, {})
+  return res2
 }
 
 async function readDir (path) {

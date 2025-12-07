@@ -13,7 +13,7 @@ import { dateTimeStamp, delayMs } from '../util'
 import { isInteger } from '../wahWah'
 import { Dlg } from '../dlg'
 import { ScoreBox } from '../ScoreBox'
-import { pickFile, outputFile } from '../HandyApi'
+import { pickFile, outputFile, loadJsonFile } from '../HandyApi'
 
 import tileImageMonkey from './matcha-card-monkey.png'
 import tileImageDog from './matcha-card-dog.png'
@@ -160,6 +160,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this.params, 'useBanzukeBobbleHeads')
       this.gui.add(this.params, 'colourTileOnly')
       this.gui.add(this, 'saveGameHistory')
+      this.gui.add(this, 'loadGameHistory')
       this.gui.add(this, 'showMoves')
       {
         const fld = this.gui.addFolder('transform').onChange((v) => {
@@ -1014,8 +1015,29 @@ export class Matcha extends MiniGameBase {
       score: this.score,
       moveHistory: this.moveHistory,
       finalState: this.data2D,
+      seed: this.rng?.seed,
     }
     await outputFile(f, JSON.stringify(data), { encoding: 'utf8' })
+  }
+
+  async loadGameHistory () {
+    const res = await pickFile()
+    if (res.canceled === true) {
+      return
+    }
+    const f = res.filePaths[0]
+    const data = await loadJsonFile(f)
+    const { dts, score, moveHistory, finalState } = data
+    console.log(`check all values... date/time stamp = ${dts}`)
+    if (!Number.isInteger(score)) {
+      console.warn(`can't use score ${score}`)
+    }
+    if (!Array.isArray(moveHistory)) {
+      console.warn(`can't use moveHistory ${moveHistory}`)
+    }
+    if (!Array.isArray(finalState)) {
+      console.warn(`can't use finalState ${finalState}`)
+    }
   }
 
   /**
@@ -1034,6 +1056,7 @@ export class Matcha extends MiniGameBase {
     let c = null
     while ((c = this.rack2.getObjectByName('hint'))) {
       this.rack2.remove(c)
+      c.dispose()
     }
     this.redraw()
     for (const m of moves) {
