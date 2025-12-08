@@ -217,7 +217,7 @@ export class Matcha extends MiniGameBase {
     this.detectScores(() => {
       console.warn('detected a score in initial state!')
     })
-    this.moveHistory = [{ shuffleNumber, rack: JSON.parse(JSON.stringify(this.data2D)) }]
+    this.moveHistory = [{ shuffleNumber: this.shuffleNumber, rack: JSON.parse(JSON.stringify(this.data2D)) }]
     await this.freshGfx()
   }
 
@@ -1015,7 +1015,6 @@ export class Matcha extends MiniGameBase {
       score: this.score,
       moveHistory: this.moveHistory,
       finalState: this.data2D,
-      seed: this.rng?.seed,
     }
     await outputFile(f, JSON.stringify(data), { encoding: 'utf8' })
   }
@@ -1027,17 +1026,31 @@ export class Matcha extends MiniGameBase {
     }
     const f = res.filePaths[0]
     const data = await loadJsonFile(f)
-    const { dts, score, moveHistory, finalState } = data
+    let { dts, score, moveHistory, finalState } = data
     console.log(`check all values... date/time stamp = ${dts}`)
     if (!Number.isInteger(score)) {
       console.warn(`can't use score ${score}`)
+      score = 0
     }
+    // TODO: continue game with seeded RNG from this point
+    // TODO: full game replay to validate score and final state
+    // but for now we just load the state
     if (!Array.isArray(moveHistory)) {
       console.warn(`can't use moveHistory ${moveHistory}`)
+      this.moveHistory = null
     }
     if (!Array.isArray(finalState)) {
       console.warn(`can't use finalState ${finalState}`)
+      return
     }
+    this.score = score
+    this.moveHistory = moveHistory || []
+    this.data2D = finalState
+    this.detectScores(() => {
+      console.warn('detected a score in initial state!')
+    })
+    await this.freshGfx()
+    this.scoreBox.setScore(this.score)
   }
 
   /**
