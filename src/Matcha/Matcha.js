@@ -1168,6 +1168,7 @@ export class Matcha extends MiniGameBase {
             // I-shape checks at either end
             for (const dot of [end1 - 1, end2 + 1]) {
               if (dot < 0 || dot >= len) { continue }
+              if (Math.abs(dot - end) !== 1) { continue }
               const [sRow, sCol] = isRowScan ? [i, dot] : [dot, i]
               if (t[sRow][sCol] !== tile) { continue }
               moves.push({ shape: 'I', scanType, tile, src: [sRow, sCol], dest: [dRow, dCol] })
