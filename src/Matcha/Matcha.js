@@ -141,7 +141,7 @@ export class Matcha extends MiniGameBase {
       },
       // cspell:ignore Ura Ichiyamamoto Wakatakakage Kotozakura Hoshoryu Tamawashi
       favouriteRikishi: ['Ura', 'Ichiyamamoto', 'Wakatakakage', 'Kotozakura', 'Hoshoryu', 'Tamawashi'],
-      mawashiColours: ['pink', 'greenish teal', 'lightblue', 'minty green', 'dusky purple', 'gunmetal'],
+      mawashiColours: ['pink', 'fern green', 'bright sky blue', 'aqua marine', 'dusky purple', 'gunmetal'],
     }
     this.animationQueue = []
     this.data2D = null
