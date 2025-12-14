@@ -159,6 +159,7 @@ export class Matcha extends MiniGameBase {
       this.gui.add(this, 'refreshRackTiles')
       this.gui.add(this.params, 'useBanzukeBobbleHeads')
       this.gui.add(this.params, 'colourTileOnly')
+      this.gui.add(this, 'tileSetup')
       this.gui.add(this, 'saveGameHistory')
       this.gui.add(this, 'loadGameHistory')
       this.gui.add(this, 'showMoves')
@@ -242,7 +243,7 @@ export class Matcha extends MiniGameBase {
     console.assert(isInteger(shuffleNumber))
     shuffleNumber ||= Math.floor(Math.random() * (Math.pow(2, 32) - 1))
     this.shuffleNumber = shuffleNumber
-    const seedStr = 'Matcha_' + shuffleNumber.toString().padStart(10, '0')
+    const seedStr = this.seedStr = 'Matcha_' + shuffleNumber.toString().padStart(10, '0')
     this.rng = seedrandom(seedStr)
     return shuffleNumber
   }
@@ -1015,6 +1016,9 @@ export class Matcha extends MiniGameBase {
       score: this.score,
       moveHistory: this.moveHistory,
       finalState: this.data2D,
+      seedStr: this.seedStr,
+      shuffleNumber: this.shuffleNumber,
+
     }
     await outputFile(f, JSON.stringify(data), { encoding: 'utf8' })
   }
@@ -1187,5 +1191,14 @@ export class Matcha extends MiniGameBase {
       }
     }
     return moves
+  }
+
+  async tileSetup () {
+    // rikishi chooser - components from SumoDoyoh?
+    // img, name, rank, etc.
+    // the big list - per-rank pages
+    // name search
+    
+
   }
 }
