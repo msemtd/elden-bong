@@ -9,7 +9,7 @@ export class GeoRefMiniGame extends MiniGameBase {
   constructor (parent) {
     super(parent, 'GeoRef')
     this.geoRef = null
-
+    // TODO: port from gsap to tween-js
     this.timeLine = gsap.timeline({
       autoRemoveChildren: true,
       onComplete: () => { this.redraw?.() }

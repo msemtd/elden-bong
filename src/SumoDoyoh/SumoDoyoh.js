@@ -15,6 +15,14 @@ import { SumoBody } from './SumoBody'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
+const Table = ({ head, data, tabProps }) => table(
+  tabProps || { border: '1px solid black', width: '100%' },
+  head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
+  tbody(data.map(row => tr(
+    row.map(col => td(col))
+  )))
+)
+
 // cSpell:ignore vanjs doyoh dohyō basho banzuke Ryogoku Kokugikan EDION Kokusai rikishi mawashi shikona
 
 /*
@@ -432,13 +440,6 @@ export class SumoDoyoh extends MiniGameBase {
     const dt = this.banzuke.divisions
     const head = ['jp', 'en', 'info', 'count', 'pct', 'btn']
     const data = dt.map(row => [row.jpName, row.name, row.enName, 0, 0, button({ onclick: () => { this.showDivisionDialog(row.name) } }, 'show')])
-    const Table = ({ head, data }) => table(
-      { border: '1px solid black', width: '100%' },
-      head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
-      tbody(data.map(row => tr(
-        row.map(col => td(col))
-      )))
-    )
     const closed = van.state(false)
     const progressPct = van.state(0)
     const progressStage = van.state('<none yet>')
@@ -457,14 +458,15 @@ export class SumoDoyoh extends MiniGameBase {
       }
       refreshButtonDisabled.val = false
     }
+    const tabProps = { id: 'banzukeTopLevelTable', border: '1px solid black', width: '100%' }
     van.add(document.body, FloatingWindow(
       { title: '📼 Banzuke Data', closed, width: 600, height: 500 },
       div({ id: 'banzukeDialog', style: 'display: flex; flex-direction: column; justify-content: center;' },
         p('Show banzuke data from the Japan Sumo Association website'),
-        button({ disabled: refreshButtonDisabled, onclick: doTheThing }, 'refresh'),
+        button({ disabled: refreshButtonDisabled, onclick: doTheThing }, 'refresh 📠'),
         label({}, 'stage: ', progressStage),
         label({}, 'import: ', progress({ value: progressPct, max: 100 })),
-        Table({ head, data })
+        Table({ head, data, tabProps })
       )
     ))
   }
