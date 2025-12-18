@@ -33,7 +33,8 @@ class Screen extends THREE.EventDispatcher {
     new ResizeObserver(_ex => {
       this.resizeRequired = true
     }).observe(this.container)
-    this.clock = new THREE.Clock()
+    this.clock = new THREE.Timer()
+    this.clock.connect(document)
     this.scene = new THREE.Scene()
     this.mixers = null
     this.cameraSetup()
@@ -69,6 +70,7 @@ class Screen extends THREE.EventDispatcher {
     // there can be various sources of update that will require a render
     let renderRequired = this.forceRedraw
     this.forceRedraw = false
+    this.clock.update()
     const delta = this.clock.getDelta()
     if (this.resizeRequired) {
       this.doResize()
