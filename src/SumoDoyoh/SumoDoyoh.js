@@ -12,6 +12,7 @@ import { Text } from 'troika-three-text'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 import { SumoBody } from './SumoBody'
+import $ from 'jquery'
 
 const { p, div, button, label, progress, table, tbody, thead, td, th, tr } = van.tags
 
@@ -483,5 +484,20 @@ export class SumoDoyoh extends MiniGameBase {
     // Show the division data
     const data = this.banzuke.getRikishiForDivision(d.sumoOrJpPage)
     console.table(data)
+    // hide the dialog content?
+    const cont = $('#banzukeDialog')
+    const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(cont)
+    cont.hide()
+    van.add(dlgDiv[0], div(
+      { id: 'banzukeDivisionDialog' },
+      p(`Division: ${d.jpName} (${d.enName}) - ${data.length} rikishi`),
+      button({
+        onclick: () => {
+          $('#banzukeDivisionDialog').remove()
+          cont.show()
+        }
+      }, 'Close')
+
+    ))
   }
 }
