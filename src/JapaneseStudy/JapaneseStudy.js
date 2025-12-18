@@ -12,18 +12,21 @@
  * - simple HTML popup will be OK for now - links to open things in system browser
  * - 3D things might be fun too
  *
+ * cSpell:words kanjivg heisig jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki
  */
 
 import * as THREE from 'three'
 import { generalObj3dClean } from '../threeUtil'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import { MiniGameBase } from '../MiniGameBase'
 import { getN5KanjiTab, getN5VocabTab } from './jlptN5Help'
 import $ from 'jquery'
-import { shellOpenExternal } from '../HandyApi'
+import { shellOpenExternal, loadTextFile } from '../HandyApi'
 import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import { KanjiByFrequency } from './KanjiByFrequency'
+import { filePathToMine } from '../util'
 
 const sources = {
   gradedReaders: {
@@ -118,6 +121,7 @@ class JapaneseStudy extends MiniGameBase {
       }
       this.gui.add(links, 'wpKyouikuKanji')
       this.gui.add(this, 'testKanjiByFrequency')
+      this.gui.add(this, 'trySomeSvg')
 
       // do more!
     })
@@ -210,6 +214,90 @@ class JapaneseStudy extends MiniGameBase {
     console.assert(KanjiByFrequency.getFreq('日') === 1)
     console.assert(KanjiByFrequency.getFreq('味') === 442)
     console.assert(KanjiByFrequency.getFreq('Z') === 0)
+  }
+
+  async trySomeSvg () {
+    // get an SVG image from the custom URL
+    const cp = '066f8'
+    // TODO: setting for kanjivg folder
+    // the kanjivg data is included in package.json and it could be added to a
+    // webpack bundle (that does not change)
+    // how does a webpack bundle avoid slow startup times?
+    // In dev mode (i.e. most of the time for me!) load kanji svg files from a
+    // configurable dir.
+    // In production mode, load from a static dir in the app package.
+    const kvgDir = 'C:\\Users\\msemt\\Documents\\dev\\kanjivg'
+    const f = `${kvgDir}/kanji/${cp}.svg`
+    const url = filePathToMine(f)
+    const alreadyGotData = await loadTextFile(f)
+    await this.loadSvg(url, this.screen.scene, alreadyGotData)
+  }
+
+  async loadSvg (url, scene, alreadyGotData) {
+    // taken from https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_svg.html
+    const guiData = {
+      currentURL: '',
+      drawFillShapes: true,
+      drawStrokes: true,
+      fillShapesWireframe: false,
+      strokesWireframe: false
+    }
+    const loader = new SVGLoader()
+    const callback = (data) => {
+      const group = new THREE.Group()
+      group.scale.multiplyScalar(0.1)
+      group.position.x = 5
+      group.position.y = 5
+      group.position.z = 1
+      group.scale.y *= -1
+      let renderOrder = 0
+      for (const path of data.paths) {
+        const fillColor = path.userData.style.fill
+        if (guiData.drawFillShapes && fillColor !== undefined && fillColor !== 'none') {
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setStyle(fillColor),
+            opacity: path.userData.style.fillOpacity,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            wireframe: guiData.fillShapesWireframe
+          })
+          const shapes = SVGLoader.createShapes(path)
+          for (const shape of shapes) {
+            const geometry = new THREE.ShapeGeometry(shape)
+            const mesh = new THREE.Mesh(geometry, material)
+            mesh.renderOrder = renderOrder++
+            group.add(mesh)
+          }
+        }
+        const strokeColor = path.userData.style.stroke
+        if (guiData.drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setStyle(strokeColor),
+            opacity: path.userData.style.strokeOpacity,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            wireframe: guiData.strokesWireframe
+          })
+          for (const subPath of path.subPaths) {
+            const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path.userData.style)
+            if (geometry) {
+              const mesh = new THREE.Mesh(geometry, material)
+              mesh.renderOrder = renderOrder++
+              group.add(mesh)
+            }
+          }
+        }
+      }
+      scene.add(group)
+    }
+    if (alreadyGotData) {
+      const parsedData = loader.parse(alreadyGotData)
+      callback(parsedData)
+    } else {
+      loader.load(url, callback)
+    }
   }
 }
 

@@ -14,6 +14,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'static', to: 'static' },
+        // TODO: is it worth doing this if the kanjivg data does not change?
         // { from: 'node_modules/kanjivg', to: 'static/kanjivg' },
       ],
     }),

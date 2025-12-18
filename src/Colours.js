@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/no-tabs */
 // cSpell:ignore xkcd
-// cSpell:ignore yatiac, kanjivg
-import ntc from '@yatiac/name-that-color'
+// cSpell:ignore yatiac
+// import ntc from '@yatiac/name-that-color'
 import * as THREE from 'three'
 
 let _inst = null

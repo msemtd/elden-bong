@@ -143,6 +143,7 @@ export class SumoDoyoh extends MiniGameBase {
     // this.makeUnderDoyoh()
     this.group.position.setZ(doyohHeight)
     await this.loadBanzukeData()
+    // cSpell:words Ura Wakatakakage Ichiyamamoto
     const ura = await this.makeRikishi('Ura', 'bubble gum pink')
     const waka = await this.makeRikishi('Wakatakakage', 'blue')
     const yams = await this.makeRikishi('Ichiyamamoto', 'emerald green')

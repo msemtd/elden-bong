@@ -37,7 +37,7 @@ import { DataDir } from '../DataDir'
 
 // cSpell:ignore Banzuke sumodb doyoh dohyō rikishi basho shikona beya heya mawashi
 // cSpell:ignore Makuuchi Jūryō Makushita Sandanme Jonidan Jonokuchi Maezumo Yokozuna Ozeki Sekiwake Komusubi
-// cSpell:ignore chibi romaji
+// cSpell:ignore chibi romaji Hoshouryu
 
 // cSpell:ignore  Asakayama Asahiyama Ajigawa Arashio Ikazuchi Isegahama Isenoumi Oitekaze
 // cSpell:ignore  Onomatsu Oshima Otake Oshiogawa Otowayama Onoe Kasugano Kataonami Kise Kokonoe
