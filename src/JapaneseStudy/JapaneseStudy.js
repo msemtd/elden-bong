@@ -12,7 +12,7 @@
  * - simple HTML popup will be OK for now - links to open things in system browser
  * - 3D things might be fun too
  *
- * cSpell:words kanjivg heisig jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki
+ * cSpell:words kanjivg heisig hepburn jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki
  */
 
 import * as THREE from 'three'
@@ -27,87 +27,18 @@ import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
 import { KanjiByFrequency } from './KanjiByFrequency'
 import { filePathToMine } from '../util'
-
-const sources = {
-  gradedReaders: {
-    first: {
-      site: 'https://jgrpg-sakura.com/',
-      info: 'needs registration and a test',
-      me: `kumo no ito was a enlightening - I should go back and read it again
-      Keita to neko ishi part one was also enlightening
-      (enlightening as in the exciting light-bulb moment of things coming together)
-      `
-    }
-  },
-  JLPT_N5: {
-    vocabulary: {
-      list: 'https://nihongoichiban.com/2011/04/30/complete-list-of-vocabulary-for-the-jlpt-n5/',
-      html: ''
-    },
-    videoList: {
-      listName: 'Japanese Ammo with Misa JLPT N5 YouTube playlist (@JapaneseAmmowithMisa)',
-      src: 'https://www.youtube.com/playlist?list=PLd5-Wp_4tLqaDGh1kvlS_N0X3O_bTaKar'
-    },
-    kanji: {
-      learning: {
-        process:
-          `
-          When I encounter a kanji as text I tend to immediately google it and
-          follow the wiktionary link, e.g. https://en.wiktionary.org/wiki/%E9%95%B7#Japanese
-          to see the Japanese usage.
-          Next I'd search for it in Jisho to see the get newspaper usage stats
-          and the RTK dictionary index.
-          This mismatch in the RTK order vs newspaper frequency is one of the annoyances with RTK!
-          Wanikani search is sometimes next - the usage examples are good and the reading
-          mnemonics are cool if they don't conflict too much with RTK.
-          The Anki deck is pretty good too.
-          Getting the radicals.
-          School order is also important.
-
-          Launching URL using electron shell to open the browser.
-
-          `
-        ,
-      },
-      n5Kanji: {
-
-      },
-      rtkVsSchool: {
-        situation: `
-
-The RTK Kanji list is ordered to build up from a foundation but
-that order is not frequency of usage or how important the Kanji is.
-
-That may be a bit annoying.
-
-RTK does not teach any Japanese readings - only conceptual meanings
-and only associated with English words in order to create a mapping
-of english word to Kanji _in that direction_!
-
-The Kanji is taught in school to kids who quite naturally already
-speak and understand the language, see those kanji symbols every day,
-are free to ask anyone any questions about them, etc. etc.
-
-There's a fixed order of learning. The learning is by repetition.
-
-
-        `,
-        items: {
-          term: 'Kyōiku kanji',
-          meaning: 'education kanji',
-          wpPage: 'https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji',
-
-        }
-
-      }
-    }
-  }
-}
+import { loadSettings, saveTheseSettings } from '../settings'
+import * as hepburn from 'hepburn'
 
 class JapaneseStudy extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Japanese Study')
-    this.sources = sources
+    this.sources = this.mkSources()
+    this.props = {
+      kanjivgDir: ''
+    }
+    this.settings = loadSettings(this.name, this.props)
+    this.props = { ...this.props, ...this.settings }
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -118,21 +49,30 @@ class JapaneseStudy extends MiniGameBase {
       this.gui.add(this, 'n5Kanji')
       const links = {
         wpKyouikuKanji: () => { shellOpenExternal('https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji') },
+        jisho: () => { shellOpenExternal('https://jisho.org/') },
+        kanjivg: () => { shellOpenExternal('https://kanjivg.tagaini.net/index.html') }
       }
       this.gui.add(links, 'wpKyouikuKanji')
+      this.gui.add(links, 'jisho')
+      this.gui.add(links, 'kanjivg')
       this.gui.add(this, 'testKanjiByFrequency')
       this.gui.add(this, 'trySomeSvg')
-
-      // do more!
+      this.gui.add(this.props, 'kanjivgDir').name('KanjiVG index').onFinishChange((v) => {
+        console.log(`KanjiVG Dir set to ${v}`)
+        saveTheseSettings(this.name, this.props)
+      })
     })
   }
 
   //
   //
   async runTest () {
-    console.warn('TODO runTest')
     const k = this.kanaGenerate()
-    // console.dir(k)
+    console.table(k)
+    // patch and convert with hepburn
+    const hiragana = k.map(item => hepburn.toHiragana(item))
+    console.table(hiragana)
+
     // create the classroom "over there" and enter learning mode!
     // - disable camera user input and animate move the camera to there
     // - escape to stop! maybe
@@ -163,6 +103,83 @@ class JapaneseStudy extends MiniGameBase {
     const t2 = getN5VocabTab()
   }
 
+  mkSources () {
+    return {
+      gradedReaders: {
+        first: {
+          site: 'https://jgrpg-sakura.com/',
+          info: 'needs registration and a test',
+          me: `kumo no ito was a enlightening - I should go back and read it again
+      Keita to neko ishi part one was also enlightening
+      (enlightening as in the exciting light-bulb moment of things coming together)
+      `
+        }
+      },
+      JLPT_N5: {
+        vocabulary: {
+          list: 'https://nihongoichiban.com/2011/04/30/complete-list-of-vocabulary-for-the-jlpt-n5/',
+          html: ''
+        },
+        videoList: {
+          listName: 'Japanese Ammo with Misa JLPT N5 YouTube playlist (@JapaneseAmmowithMisa)',
+          src: 'https://www.youtube.com/playlist?list=PLd5-Wp_4tLqaDGh1kvlS_N0X3O_bTaKar'
+        },
+        kanji: {
+          learning: {
+            process:
+          `
+          When I encounter a kanji as text I tend to immediately google it and
+          follow the wiktionary link, e.g. https://en.wiktionary.org/wiki/%E9%95%B7#Japanese
+          to see the Japanese usage.
+          Next I'd search for it in Jisho to see the get newspaper usage stats
+          and the RTK dictionary index.
+          This mismatch in the RTK order vs newspaper frequency is one of the annoyances with RTK!
+          Wanikani search is sometimes next - the usage examples are good and the reading
+          mnemonics are cool if they don't conflict too much with RTK.
+          The Anki deck is pretty good too.
+          Getting the radicals.
+          School order is also important.
+
+          Launching URL using electron shell to open the browser.
+
+          `
+            ,
+          },
+          n5Kanji: {
+
+          },
+          rtkVsSchool: {
+            situation: `
+
+              The RTK Kanji list is ordered to build up from a foundation but
+              that order is not frequency of usage or how important the Kanji is.
+
+              That may be a bit annoying.
+
+              RTK does not teach any Japanese readings - only conceptual meanings
+              and only associated with English words in order to create a mapping
+              of english word to Kanji _in that direction_!
+
+              The Kanji is taught in school to kids who quite naturally already
+              speak and understand the language, see those kanji symbols every day,
+              are free to ask anyone any questions about them, etc. etc.
+
+              There's a fixed order of learning. The learning is by repetition.
+
+        `,
+            items: {
+              term: 'Kyōiku kanji',
+              meaning: 'education kanji',
+              wpPage: 'https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji',
+
+            }
+
+          }
+        }
+      }
+    }
+  }
+
   buildClassroom () {
     {
       const o = this.group.getObjectByName('classroom')
@@ -191,7 +208,15 @@ class JapaneseStudy extends MiniGameBase {
     const row = 'aiueo'.split('')
     for (let i = 0; i < col.length; i++) {
       for (let j = 0; j < row.length; j++) {
-        out.push(`${col[i]}${row[j]}`)
+        let k = `${col[i]}${row[j]}`
+        if (k === 'si') k = 'shi'
+        if (k === 'ti') k = 'chi'
+        if (k === 'tu') k = 'tsu'
+        if (k === 'hu') k = 'fu'
+        if (k === 'yi') k = '-'
+        if (k === 'ye') k = '-'
+        if (k === 'wu') k = 'n' // for convenience
+        out.push(k)
       }
     }
     return out.map(x => x.trim())
@@ -219,14 +244,21 @@ class JapaneseStudy extends MiniGameBase {
   async trySomeSvg () {
     // get an SVG image from the custom URL
     const cp = '066f8'
-    // TODO: setting for kanjivg folder
     // the kanjivg data is included in package.json and it could be added to a
     // webpack bundle (that does not change)
     // how does a webpack bundle avoid slow startup times?
     // In dev mode (i.e. most of the time for me!) load kanji svg files from a
     // configurable dir.
     // In production mode, load from a static dir in the app package.
-    const kvgDir = 'C:\\Users\\msemt\\Documents\\dev\\kanjivg'
+    let kvgDir = this.props.kanjivgDir
+    if (!kvgDir || kvgDir.length === 0) {
+      console.error('KanjiVG Dir not set!')
+      return
+    }
+    kvgDir = kvgDir.replace(/\\/g, '/')
+    if (kvgDir.endsWith('kvg-index.json')) {
+      kvgDir = kvgDir.slice(0, -'kvg-index.json'.length)
+    }
     const f = `${kvgDir}/kanji/${cp}.svg`
     const url = filePathToMine(f)
     const alreadyGotData = await loadTextFile(f)
