@@ -29,6 +29,8 @@ import { KanjiByFrequency } from './KanjiByFrequency'
 import { filePathToMine } from '../util'
 import { loadSettings, saveTheseSettings } from '../settings'
 import * as hepburn from 'hepburn'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import animeClassroom from '../../stuff/anime_classroom.glb'
 
 class JapaneseStudy extends MiniGameBase {
   constructor (parent) {
@@ -68,10 +70,12 @@ class JapaneseStudy extends MiniGameBase {
   //
   async runTest () {
     const k = this.kanaGenerate()
-    console.table(k)
+    // console.table(k)
     // patch and convert with hepburn
     const hiragana = k.map(item => hepburn.toHiragana(item))
     console.table(hiragana)
+    const katakana = k.map(item => hepburn.toKatakana(item))
+    console.table(katakana)
 
     // create the classroom "over there" and enter learning mode!
     // - disable camera user input and animate move the camera to there
@@ -188,13 +192,22 @@ class JapaneseStudy extends MiniGameBase {
         generalObj3dClean(o)
       }
     }
-
     const g = new THREE.BoxGeometry(5, 4, 3)
-    const m = new THREE.MeshLambertMaterial({ color: 'tan', side: THREE.DoubleSide })
+    const m = new THREE.MeshLambertMaterial({ color: 'tan', side: THREE.DoubleSide, transparent: true, opacity: 0.05 })
     const o = new THREE.Mesh(g, m)
     o.name = 'classroom'
     o.position.set(5, 15, 1.5)
     this.group.add(o)
+
+    const loader = new GLTFLoader()
+    const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
+    const errCb = (error) => { console.error('An error happened', error) }
+    loader.load(animeClassroom, (gltf) => {
+      const classroom = gltf.scene
+      classroom.rotateX(Math.PI / 2)
+      classroom.scale.divideScalar(10)
+      o.add(classroom)
+    }, progressCb, errCb)
   }
 
   /**
