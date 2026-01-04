@@ -513,8 +513,7 @@ class Bong extends THREE.EventDispatcher {
       scene.background.dispose()
     }
     if (v === '...none') {
-      // TODO - chose previous colour
-      scene.background = new THREE.Color(0xff0000)
+      scene.background = new THREE.Color(this.PROPS.scene.background.colour)
       return
     }
     const urls = await window.handy.getSkyBoxMineUrlList(v)
@@ -800,7 +799,7 @@ class Bong extends THREE.EventDispatcher {
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
     // TODO modes of operation
     // TODO this.moanSwooper.intersect(this.raycaster, ev)
-    if (this.miniGames.stealIntersectForGame(ev, mousePos, this.raycaster)) {
+    if (this.miniGames?.stealIntersectForGame(ev, mousePos, this.raycaster)) {
       return
     }
     const clickable = this.mapIconSets
@@ -818,7 +817,7 @@ class Bong extends THREE.EventDispatcher {
   doubleClick (ev, mousePos) {
     // offer up double click for use by mini games
     this.raycaster.setFromCamera(mousePos, this.screen.camera)
-    if (this.miniGames.offerDoubleClick(ev, mousePos, this.raycaster)) {
+    if (this.miniGames?.offerDoubleClick(ev, mousePos, this.raycaster)) {
       return
     }
     console.log(mousePos)
