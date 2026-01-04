@@ -36,11 +36,19 @@ class JapaneseStudy extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Japanese Study')
     this.sources = this.mkSources()
+    // set up some props from settings and defaults
     this.props = {
       kanjivgDir: ''
     }
     this.settings = loadSettings(this.name, this.props)
     this.props = { ...this.props, ...this.settings }
+    if (!this.props.kanjivgDir) {
+      // 
+      // TODO: when in dev mode, use the kanjivg dir from relative local node_modules
+      // TODO: when in production, bundle the kanjivg data from node_modules
+      console.log(this.props.kanjivgDir)
+    }
+
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -202,9 +210,10 @@ class JapaneseStudy extends MiniGameBase {
     const loader = new GLTFLoader()
     const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
     const errCb = (error) => { console.error('An error happened', error) }
-    loader.load(animeClassroom, (gltf) => {
-      const classroom = gltf.scene
+    loader.load(animeClassroom, (data) => {
+      const classroom = data.scene
       classroom.rotateX(Math.PI / 2)
+      classroom.position.set(-1, -2, -2.3)
       classroom.scale.divideScalar(10)
       o.add(classroom)
     }, progressCb, errCb)
