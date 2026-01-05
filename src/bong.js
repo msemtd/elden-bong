@@ -113,6 +113,9 @@ class Bong extends THREE.EventDispatcher {
     setTimeout(this.whenReady.bind(this))
   }
 
+  /**
+   * @returns {Bong} the singleton Bong instance
+   */
   static getInstance (appDiv) {
     return instance
   }

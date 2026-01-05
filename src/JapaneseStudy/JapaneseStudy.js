@@ -17,6 +17,7 @@
 
 import * as THREE from 'three'
 import { generalObj3dClean } from '../threeUtil'
+import { Bong } from '../bong'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import { MiniGameBase } from '../MiniGameBase'
@@ -43,7 +44,7 @@ class JapaneseStudy extends MiniGameBase {
     this.settings = loadSettings(this.name, this.props)
     this.props = { ...this.props, ...this.settings }
     if (!this.props.kanjivgDir) {
-      // 
+      //
       // TODO: when in dev mode, use the kanjivg dir from relative local node_modules
       // TODO: when in production, bundle the kanjivg data from node_modules
       console.log(this.props.kanjivgDir)
@@ -77,13 +78,20 @@ class JapaneseStudy extends MiniGameBase {
   //
   //
   async runTest () {
-    const k = this.kanaGenerate()
-    // console.table(k)
-    // patch and convert with hepburn
-    const hiragana = k.map(item => hepburn.toHiragana(item))
-    console.table(hiragana)
-    const katakana = k.map(item => hepburn.toKatakana(item))
-    console.table(katakana)
+    if (this.testAll) {
+      const k = this.kanaGenerate()
+      // console.table(k)
+      // patch and convert with hepburn
+      const hiragana = k.map(item => hepburn.toHiragana(item))
+      console.table(hiragana)
+      const katakana = k.map(item => hepburn.toKatakana(item))
+      console.table(katakana)
+      // test various things...
+      const n5Kanji = getN5KanjiTab()
+      console.table(n5Kanji)
+      const n5Voc = getN5VocabTab()
+      console.table(n5Voc)
+    }
 
     // create the classroom "over there" and enter learning mode!
     // - disable camera user input and animate move the camera to there
@@ -101,18 +109,25 @@ class JapaneseStudy extends MiniGameBase {
     // "drive" the camera there!
     // to test reset the camera first
 
-    this.buildClassroom()
     this.activate()
-    console.assert(this.screen instanceof Screen)
-    console.assert(this.screen.cameraControls instanceof CameraControls)
+    // set the sky box to something earthly
+    Bong.getInstance().setSkyBox('zeus')
+    await this.buildClassroom()
+    this.redraw()
+    const s = this.screen
+    console.assert(s instanceof Screen)
+    console.assert(s.cameraControls instanceof CameraControls)
+    const oldCamEnabled = s.cameraControls.enabled
+    s.cameraControls.enabled = false
     const classroom = this.group.getObjectByName('classroom')
-    await this.screen.cameraControls.fitToSphere(classroom, true)
-    await this.screen.cameraControls.rotatePolarTo(Math.PI / 2, true)
-    await this.screen.cameraControls.dollyTo(0.5, true)
-    await this.screen.cameraControls.rotateAzimuthTo(Math.PI / 4 * 3, true)
-
-    const t1 = getN5KanjiTab()
-    const t2 = getN5VocabTab()
+    // const box = new THREE.BoxHelper(classroom, 0xffff00)
+    // this.screen.scene.add(box)
+    classroom?.updateWorldMatrix(true, true)
+    await s.cameraControls.fitToSphere(classroom, true)
+    await s.cameraControls.rotatePolarTo(Math.PI / 2, true)
+    await s.cameraControls.dollyTo(0.5, true)
+    await s.cameraControls.rotateAzimuthTo(Math.PI / 4 * 2.3, true)
+    s.cameraControls.enabled = oldCamEnabled
   }
 
   mkSources () {
@@ -192,7 +207,7 @@ class JapaneseStudy extends MiniGameBase {
     }
   }
 
-  buildClassroom () {
+  async buildClassroom () {
     {
       const o = this.group.getObjectByName('classroom')
       if (o) {
@@ -200,32 +215,36 @@ class JapaneseStudy extends MiniGameBase {
         generalObj3dClean(o)
       }
     }
-    const g = new THREE.BoxGeometry(5, 4, 3)
-    const m = new THREE.MeshLambertMaterial({ color: 'tan', side: THREE.DoubleSide, transparent: true, opacity: 0.05 })
-    const o = new THREE.Mesh(g, m)
+    const o = new THREE.Group()
     o.name = 'classroom'
     o.position.set(5, 15, 1.5)
     this.group.add(o)
-
-    const loader = new GLTFLoader()
-    const progressCb = (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded') }
-    const errCb = (error) => { console.error('An error happened', error) }
-    loader.load(animeClassroom, (data) => {
-      const classroom = data.scene
-      classroom.rotateX(Math.PI / 2)
-      classroom.position.set(-1, -2, -2.3)
-      classroom.scale.divideScalar(10)
-      o.add(classroom)
-    }, progressCb, errCb)
+    try {
+      const loader = new GLTFLoader()
+      const progressCb = (xhr) => {
+        // console.log((xhr.loaded / xhr.total * 100) + '% loaded')
+      }
+      const data = await loader.loadAsync(animeClassroom, progressCb)
+      const classroomScene = data.scene
+      classroomScene.rotateX(Math.PI / 2)
+      classroomScene.position.set(-1, -2, -2.3)
+      classroomScene.scale.divideScalar(10)
+      o.add(classroomScene)
+    } catch (error) {
+      console.error('Error loading classroom glb', error)
+    }
   }
 
   /**
+   * This little routine creates an elementary 5 x 10 grid for the kana
+   * of the Japanese language by combining the basic consonants and vowels
+   * then correcting the exceptions.
    *
-   * @returns this little routine creates an elementary 5 x 10 grid for the kana
-   * of the Japanese language - incorrect of course but mathematical!
+   * @returns {string[][]} array of kana in hepburn romanization
    */
   kanaGenerate () {
     const out = []
+    // cspell:ignore kstnhmyrw aiueo
     const col = ' kstnhmyrw'.split('')
     const row = 'aiueo'.split('')
     for (let i = 0; i < col.length; i++) {
@@ -237,7 +256,7 @@ class JapaneseStudy extends MiniGameBase {
         if (k === 'hu') k = 'fu'
         if (k === 'yi') k = '-'
         if (k === 'ye') k = '-'
-        if (k === 'wu') k = 'n' // for convenience
+        if (k === 'wu') k = 'n' // n is placed here for convenience
         out.push(k)
       }
     }
