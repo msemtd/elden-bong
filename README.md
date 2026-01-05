@@ -375,12 +375,7 @@ Layout based on game (from card game data) and user spacing preferences
 
 Many thanks to the many contributors to the many open source libraries and artworks used in this software. Quite especially...
 
-Sky/Cloud boxes created by Zachery "skiingpenguins" Slocum (freezurbern@gmail.com) http://www.freezurbern.com
-Content released under the Creative Commons Attribution-ShareAlike? 3.0 Unported License.
-http://creativecommons.org/licenses/by-sa/3.0/
+* Sky/Cloud boxes created by Zachery "skiingpenguins" Slocum (freezurbern@gmail.com) http://www.freezurbern.com https://opengameart.org/content/skiingpenguins-skybox-pack, license: Creative Commons Attribution-ShareAlike 3.0 Unported License (http://creativecommons.org/licenses/by-sa/3.0/)
+* Grass Texture by p0ss https://opengameart.org/node/9710, license: GPL 2.0 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+* Anime Classroom model by ArielCastilleroV (https://sketchfab.com/ArielCastilleroV) https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c, license: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 
-Grass Texture https://opengameart.org/node/9710
-
-Anime Classroom model by ArielCastilleroV (https://sketchfab.com/ArielCastilleroV)
-- "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)"
-- "source": "https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c"

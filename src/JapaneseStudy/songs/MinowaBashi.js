@@ -1,5 +1,4 @@
 export class MinowaBashi {
-
   // info: https://www.uta-net.com/song/162814/
 
   lyricsJp () {
@@ -32,7 +31,7 @@ export class MinowaBashi {
 `
   }
 
-  lyricsRomaji() {
+  lyricsRomaji () {
     return `
 
     Omae damatte tsuru o oru
