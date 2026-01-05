@@ -380,3 +380,7 @@ Content released under the Creative Commons Attribution-ShareAlike? 3.0 Unported
 http://creativecommons.org/licenses/by-sa/3.0/
 
 Grass Texture https://opengameart.org/node/9710
+
+Anime Classroom model by ArielCastilleroV (https://sketchfab.com/ArielCastilleroV)
+- "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)"
+- "source": "https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c"

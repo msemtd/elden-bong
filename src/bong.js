@@ -24,6 +24,7 @@ import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUt
 import { isInteger } from './wahWah'
 import { FileDrop } from './FileDrop'
 import { SoundBoard } from './SoundBoard'
+import { AboutBox } from './AboutBox'
 
 async function pick () {
   const info = await pickFile()
@@ -272,8 +273,7 @@ class Bong extends THREE.EventDispatcher {
   }
 
   helpAbout () {
-    // TODO - show a dialog with attribution, links, etc.
-    console.warn('TODO help about')
+    AboutBox.show()
   }
 
   whenReady () {
