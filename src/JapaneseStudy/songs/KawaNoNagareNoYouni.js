@@ -1,5 +1,8 @@
-export class KawaNoNagareNoYouni {
+import { AboutSongs } from './AboutSongs'
+
+export class KawaNoNagareNoYouni extends AboutSongs {
   constructor () {
+    super()
     // cspell: disable
 
     // https://www.uta-net.com/song/1420/
@@ -8,6 +11,8 @@ export class KawaNoNagareNoYouni {
       artist: 'Hibari Misora',
       year: 1989,
     }
+    const a = this.layouts
+    this.dataLayout = [a.ENGLISH, a.KANJI, a.ROMAJI]
     const data = `
 I walked in without knowing it
 知らず知らず 歩いて来た
@@ -106,7 +111,6 @@ While listening to the blue babbling forever
 Itsu made mo, Aoi seseragi wo kiki nagara
 `
     // cspell: enable
-
-    this.lines = data.split('\n\n')
+    this.lines = data.split('\n\n').filter(x => x.length)
   }
 }

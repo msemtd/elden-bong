@@ -1,100 +1,102 @@
-export class MinowaBashi {
+import { AboutSongs } from './AboutSongs'
+// cspell:words Minowa Bashi
+export class MinowaBashi extends AboutSongs {
   // info: https://www.uta-net.com/song/162814/
 
-  lyricsJp () {
-    return `
+  constructor () {
+    super()
+    this.lines = this.getAllLyrics()
+  }
+
+  getAllLyrics () {
+    // cspell:disable
+    const text = `
 
 おまえ 黙って鶴を折る
+Omae damatte tsuru o oru
+You fold paper cranes in silence.
+
 おれは 手酌で酒を飲む
+ore wa tejaku de sake wo nomu
+I drink sake poured for myself.
+
 別れる それとも やり直す
+wakareru soretomo yarinaosu
+Should we break up or start over?
+
 口には出せない ことばかり
+kuchi ni wa dasenai koto bakari
+There are so many things I can't say.
+
 都電 終点 三ノ輪橋
+toden shūten Minowa-bashi
+The Toden streetcar, last stop Minowabashi.
+
 おでん 熱燗 赤ちょうちん
+oden atsukan aka chō-chin
+Oden, hot sake, red lantern.
+
 赤ちょうちん
+aka chō-chin
+Red lantern.
 
 生まれ 故郷は もう他人
+Umare furusato wa mō tanin
+My hometown is now a stranger.
+
 帰る ところは もうないさ
+kaeru tokoro wa mō nai sa
+There's nowhere left to go back to.
+
 おまえとおれとの めぐりあい
+omae to ore to no meguriai
+You and I met,
+
 ぬくもり寄せ合い 住みついた
+nukumori yose ai sumitsuita
+we shared each other's warmth, and we settled down.
+
 都電 終点 三ノ輪橋
+toden shūten Minowa-bashi
+The Toden streetcar's last stop is Minowabashi.
+
 路地の奥にも 空がある
+roji no oku ni mo sora ga aru
+Even at the end of the alley, there's a sky.
+
 空がある
+sora ga aru
+There's a sky.
 
 表通りに 裏通り
+omotedōri ni uradōri
+On the main street, on the back street,
+
 雨の降る日も 風の日も
+ame no furu hi mo kaze no hi mo
+on rainy days, on windy days,
+
 しあわせ半分 それでいい
+shiawase hanbun sorede ī
+half happiness is fine,
+
 かなしみ半分 それでいい
+kanashimi hanbun sorede ī
+half sadness is fine,
+
 都電 終点 三ノ輪橋
+toden shūten Minowa-bashi
+on the Toden streetcar, at Minowabashi,
+
 始発電車で 夜が明ける
+shihatsu densha de yogaakeru
+the last stop, the night breaks on the first train,
+
 夜が明ける
-
-`
-  }
-
-  lyricsRomaji () {
-    return `
-
-    Omae damatte tsuru o oru
-    ore wa tejaku de sakewonomu
-    wakareru soretomo 
-    yarinaosu 
-    kuchi ni wa dasenai 
-    koto bakari 
-    
-    toden shūten Minowa-bashi
-    oden atsukan aka chō-chin
-    aka chō-chin
-      
-    umare furusato wa mō tanin 
-    kaeru tokoro wa mō nai sa 
-    omae to ore to no 
-    meguriai 
-    nukumori yose ai 
-    sumitsuita 
-    
-    toden shūten Minowa-bashi 
-    roji no oku ni mo sora ga aru 
-    sora ga aru 
-    
-    omotedōri ni uradōri 
-    ame no furu hi mo kaze no hi mo 
-    shiawase hanbun 
-    sorede ī 
-    kanashimi hanbun 
-    sorede ī 
-    
-    toden shūten Minowa-bashi 
-    shihatsu densha de yogaakeru 
-    yogaakeru
+yogaakeru
+the night breaks
 
     `
-  }
-
-  lyricsEn () {
-    return `
-
-    You fold cranes in silence,
-    and I drink sake poured for you. 
-    Should we break up, or start over?
-    There are so many things I can't put into words.
-
-    Toden, last stop, Minowabashi.
-    Oden, hot sake, red lantern,
-    red lantern.
-
-    The hometown where I was born is now a stranger,  
-    there's no place left to return to.
-    You and I met,
-    we shared warmth, we came together and settled down at
-
-    Toden, last stop, Minowabashi.
-    Even in the depths of the alleys, there's a sky , a sky.
-    From the main street to the back alleys. On rainy days and windy days,
-    half happiness is fine, half sadness is fine.
-
-    Toden, last stop, Minowabashi.
-    On the first train, dawn breaks, dawn breaks
-
-`
+    return text
   }
 }
