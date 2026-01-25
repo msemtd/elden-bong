@@ -6,6 +6,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { Banzuke, Rikishi } from './Banzuke'
 import { Dlg } from '../dlg'
 import { shellOpenPath, shellOpenExternal } from '../HandyApi'
+import { loadSettings, saveTheseSettings } from '../settings'
 import { filePathToMine } from '../util'
 import path from 'path-browserify'
 import { Text } from 'troika-three-text'
@@ -57,6 +58,12 @@ export class SumoDoyoh extends MiniGameBase {
     this.bobbleHeadGeometry = new THREE.IcosahedronGeometry(1, 2)
     this.sumoBodyProto = null
     this.clickableGuys = []
+    this.props = {
+      magazinesPattern: 'https://onitama.tv/gamemachine/pdf',
+    }
+    this.settings = loadSettings(this.name, this.props)
+    this.props = { ...this.props, ...this.settings }
+
     // this.screen.addMixer('SumoDoyoh', (delta) => { return this.animate(delta) })
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -69,7 +76,40 @@ export class SumoDoyoh extends MiniGameBase {
       this.gui.add(this, 'banzukeDialog').name('Banzuke Dialog')
       this.gui.add(this, 'isThereNewBanzuke').name('New Banzuke?')
       this.gui.add(this, 'urlOfficialMatchVideos').name('Official Match Videos')
+      if (this.settings.magazinesPattern) {
+        this.gui.add(this, 'downloadMagazines').name('downloadMagazines')
+        this.gui.add(this.props, 'magazinesPattern').name('magazinesPattern').onFinishChange((v) => {
+          console.log(`magazinesPattern set to ${v}`)
+          saveTheseSettings(this.name, this.props)
+        })
+      }
     })
+  }
+
+  downloadMagazines () {
+    if (!this.settings.magazinesPattern) {
+      console.warn('feature not enabled')
+      return
+    }
+    const year = 1977
+    // use curl on the command line in batch file
+    const bat = ['@ECHO OFF']
+    // a bi-monthly magazine at a predictable URL
+    const days = ['01', '15']
+    // const pause = 'timeout /t 6 /nobreak > NUL'
+    const pause = '"C:\\Program Files\\Git\\usr\\bin\\sleep.exe" 6'
+    for (let month = 1; month <= 12; month++) {
+      const mm = `${month}`.padStart(2, '0')
+      for (const dd of days) {
+        const f = `${year}${mm}${dd}p.pdf`
+        const d = this.settings.magazinesPattern
+        const line = `curl -v ${d}/${f} -o ${f}`
+        bat.push(line)
+        bat.push(pause)
+      }
+    }
+    console.log('Not yet implemented, however...\n\n')
+    console.log(bat.join('\n'))
   }
 
   urlOfficialMatchVideos () {
@@ -196,13 +236,13 @@ export class SumoDoyoh extends MiniGameBase {
     doyoh.name = 'doyoh'
     this.group.add(doyoh)
     const clayMaterial = new THREE.MeshLambertMaterial({
-      color: Colours.get('clay brown'),
+      color: Colours.get('sand brown'),
       polygonOffset: true,
       polygonOffsetFactor: 1,
       polygonOffsetUnits: 1
     })
     const sandMaterial = clayMaterial.clone()
-    sandMaterial.color.set(Colours.get('sand brown'))
+    sandMaterial.color.set(Colours.get('clay brown'))
     const edgeMaterial = new THREE.LineBasicMaterial({ color: 'black' })
 
     // A typical dohyō is a circle made of partially buried rice-straw bales 4.55 meters in diameter

@@ -120,7 +120,7 @@ class GamepadManager {
       axisDeltaFixed: 8,
       axisDeltaMultiplier: 2,
     }
-
+    // cspell:ignore gamepadconnected gamepaddisconnected
     window.addEventListener('gamepadconnected', this.gamepadConnected.bind(this))
     window.addEventListener('gamepaddisconnected', this.gamepadDisconnected.bind(this))
     // this.scanGamepads()

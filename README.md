@@ -249,6 +249,13 @@ e.g. a controllable depth into the 3D scene gives us more control.
 Add a sound board for webpack resource and on-disk files - see what the limits are.
 https://gist.github.com/PtrMan/b3ff012785ad9e93f7db1a0f031fc2b2
 
+## Data directory system
+- fetch 3rd-party stuff from URLs to add local content
+- caching in various folders on the user's machine: in the usual ~\AppData\Roaming\elden-bong and other user-designated directories
+- package ideas including encrypted blobs of bonus data served up from secure locations and github releases, tar.gz zip 7z
+- fetching in main process - providing data by transferable objects or by the
+  "mine://" URL protocol
+
 ## Development
 
 From scratch (Friday November 04 2022)...
@@ -359,15 +366,17 @@ Layout based on game (from card game data) and user spacing preferences
   - pnext/three-loaded has apparently caught up with Sheng's fork and has potree 2 support!
   - yarn add https://github.com/pnext/three-loader.git
   - TODO: add a cloud for testing in user-specified dir
-
 * Test data for LAS/e57/potree/COPC (https://validate.copc.io/)
-
-## Data directory system
-- fetch 3rd-party stuff from URLs to add local content
-- caching in various folders on the user's machine: in the usual ~\AppData\Roaming\elden-bong and other user-designated directories
-- package ideas including encrypted blobs of bonus data served up from secure locations and github releases, tar.gz zip 7z
-- fetching in main process - providing data by transferable objects or by the
-  "mine://" URL protocol
+  - COPC and laz-perf https://github.com/hobuinc/copc-validator https://github.com/copcio/copcio.github.io
+  - https://github.com/connormanning/copc.js
+* Microsoft Teams plugin: "I Feel Lucky" meeting button
+  Teams needs a button labelled "I Feel Lucky" that allows you to join a random
+  meeting in your company. If you win at 5 meetings you get an opportunity for
+  "Full Dicko Mode" that schedules an urgent meeting of at least 20 random
+  employees including at least one divisional leader or C-suite member and
+  5 important contacts from external businesses.
+  The machine-generated meeting title, agenda, and power-point presentation will
+  be full of hot-baity-topics about excellence and alignment.
 
 
 

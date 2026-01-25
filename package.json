@@ -46,6 +46,7 @@
     "@yatiac/name-that-color": "^1.1.0",
     "camera-controls": "^3.1.2",
     "cmu-pronouncing-dictionary": "^3.0.0",
+    "copc": "^0.0.8",
     "cubing": "^0.56.0",
     "debug": "^4.4.1",
     "dockview": "^1.17.2",
