@@ -3,8 +3,11 @@
 export class AshitaNoJoe {
   constructor () {
     this.singAlongVideo = 'https://www.youtube.com/watch?v=1EguOrIrZ4s&t=5s'
+    const a = this.layouts
+    this.dataLayout = [a.KANJI, a.ROMAJI]
     // cspell: disable
-    const d = `
+    this.data = `
+
 サンドバッグに 浮かんで消える
 Sandobaggu ni, ukande kieru
 
@@ -68,9 +71,8 @@ Ashita wa kitto nanika aru
 あしたは どっちだ
 Ashita wa docchi da
 
-`
+`.trim()
     // cspell: enable
-    this.data = d
-    this.lines = d.split('\n\n')
+    this.lines = this.data.split('\n\n').filter(x => x.length)
   }
 }

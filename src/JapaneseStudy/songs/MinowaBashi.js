@@ -1,16 +1,22 @@
 import { AboutSongs } from './AboutSongs'
-// cspell:words Minowa Bashi
+// cspell:words Minowa Bashi Koji Handa
 export class MinowaBashi extends AboutSongs {
   // info: https://www.uta-net.com/song/162814/
 
   constructor () {
     super()
-    this.lines = this.getAllLyrics()
-  }
+    // https://www.uta-net.com/song/1420/
+    this.songInfo = {
+      titleEn: 'Minowa Bashi',
+      titleJp: '三ノ輪橋',
+      artist: 'Koji Handa (半田浩二)',
+      year: 2014,
+    }
 
-  getAllLyrics () {
+    const a = this.layouts
+    this.dataLayout = [a.KANJI, a.ROMAJI, a.ENGLISH]
     // cspell:disable
-    const text = `
+    this.data = `
 
 おまえ 黙って鶴を折る
 Omae damatte tsuru o oru
@@ -96,7 +102,8 @@ the last stop, the night breaks on the first train,
 yogaakeru
 the night breaks
 
-    `
-    return text
+`.trim()
+    // cspell: enable
+    this.lines = this.data.split('\n\n').filter(x => x.length)
   }
 }

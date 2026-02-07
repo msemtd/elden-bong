@@ -1,10 +1,8 @@
 import { AboutSongs } from './AboutSongs'
-
+// cspell: disable
 export class KawaNoNagareNoYouni extends AboutSongs {
   constructor () {
     super()
-    // cspell: disable
-
     // https://www.uta-net.com/song/1420/
     this.songInfo = {
       titleEn: 'Kawa No Nagare No Youni',
@@ -14,6 +12,7 @@ export class KawaNoNagareNoYouni extends AboutSongs {
     const a = this.layouts
     this.dataLayout = [a.ENGLISH, a.KANJI, a.ROMAJI]
     const data = `
+
 I walked in without knowing it
 知らず知らず 歩いて来た
 Shirazu shirazu aruite kita
@@ -109,7 +108,8 @@ Aa kawa no nagare no you ni
 While listening to the blue babbling forever
 いつまでも 青いせせらぎを 聞きながら
 Itsu made mo, Aoi seseragi wo kiki nagara
-`
+
+`.trim()
     // cspell: enable
     this.lines = data.split('\n\n').filter(x => x.length)
   }
