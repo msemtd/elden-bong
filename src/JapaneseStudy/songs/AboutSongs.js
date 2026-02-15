@@ -33,4 +33,27 @@ export class AboutSongs {
       ROMAJI: 'Romaji',
     }
   }
+
+  launchMp3Player () {
+    // open overlay screen - semi-transparent
+    // present the list of loaded songs to choose from
+    // need test songs
+
+    // file stashing in main thread
+    // user-installed yt-dl
+    // C:\Users\msemt\Documents\dev\yt-dlp
+
+
+    // Lucky Star ED 16 - Misoji Misaki [FULL]
+    // https://www.youtube.com/watch?v=X0hq8bPUbJg
+    // Misoji Misaki · Akira Kogami (CV: Hiromi Konno)
+    // Misoji Misaki
+    // ℗ 2007 Lantis
+    // Released on: 2007-08-29
+    // Composer, Arranger: Satoru Kosaki
+    // Lyricist: Aki Hata
+
+    // https://github.com/goldfire/howler.js/tree/master/examples/player
+
+  }
 }
