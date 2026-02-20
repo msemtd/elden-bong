@@ -1,8 +1,8 @@
-import { AboutSongs } from './AboutSongs'
+import { AboutSongs, SongBase } from './AboutSongs'
 // cspell:words Sangatsu Kokonoka
-export class SangatsuKokonoka extends AboutSongs {
+export class SangatsuKokonoka extends SongBase {
   constructor () {
-    super()
+    super('3月9日 (March 9th)', 'レミオロメン (Remioromen)', 2005)
     this.misc = `
 
 3月9日
@@ -11,14 +11,7 @@ https://ja.wikipedia.org/wiki/3%E6%9C%889%E6%97%A5_(%E6%9B%B2)
 https://ja.wikipedia.org/wiki/%E3%83%AC%E3%83%9F%E3%82%AA%E3%83%AD%E3%83%A1%E3%83%B3
 
 `
-    this.songInfo = {
-      titleEn: 'March 9th',
-      titleJp: '3月9日',
-      artist: 'Remioromen (レミオロメン)',
-      year: 2005,
-    }
-
-    const a = this.layouts
+    const a = AboutSongs.layouts
     this.dataLayout = [a.ENGLISH, a.KANJI, a.ROMAJI]
     // cspell:disable
     this.data = `

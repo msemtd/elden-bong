@@ -1,15 +1,10 @@
-import { AboutSongs } from './AboutSongs'
+import { AboutSongs, SongBase } from './AboutSongs'
 // cspell: disable
-export class KawaNoNagareNoYouni extends AboutSongs {
+export class KawaNoNagareNoYouni extends SongBase {
   constructor () {
-    super()
+    super('Kawa No Nagare No Youni', '美空ひばり (Hibari Misora)', 1989)
     // https://www.uta-net.com/song/1420/
-    this.songInfo = {
-      titleEn: 'Kawa No Nagare No Youni',
-      artist: 'Hibari Misora',
-      year: 1989,
-    }
-    const a = this.layouts
+    const a = AboutSongs.layouts
     this.dataLayout = [a.ENGLISH, a.KANJI, a.ROMAJI]
     const data = `
 

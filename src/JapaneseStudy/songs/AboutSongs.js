@@ -19,19 +19,168 @@
  * - can I use howler to play and control an MP3? just try that
  * - set a song path load and play pause stop, etc
  *
- *
- *
- *
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+I'm supposed to be the one who laughs last
+
+Because of my sailor clothes ← That's the conclusion
+
+I'm in a bad mood, what to do?
+
+Even though it's Monday!
+
+Summer clothes'll fix it ← Cuuute! ^^v
+
+Of course
+
+I'm supposed to be the one who laughs last
+
+Because of my sailor clothes ← That's the conclusion
+
+A vague 3cm, ain't that a flexible rule? whoa!
+
+For rapping, a uniform... right! it isn't a disadvantage
+
+Gotta do our best! Gotta do it!
+
+That's when we wear our cap and jersey, ha
+
+If you can see our sweat through 'em darlin' darling be AMUSED!!
+
+
+
+
+
+
  */
 import { Howl } from 'howler'
 
 export class AboutSongs {
-  constructor () {
-    this.layouts = {
-      ENGLISH: 'English',
-      KANJI: 'Kanji',
-      ROMAJI: 'Romaji',
-    }
+  static layouts = {
+    ENGLISH: 'English',
+    KANJI: 'Kanji',
+    ROMAJI: 'Romaji',
   }
 
   launchMp3Player () {
@@ -42,7 +191,6 @@ export class AboutSongs {
     // file stashing in main thread
     // user-installed yt-dl
     // C:\Users\msemt\Documents\dev\yt-dlp
-
 
     // Lucky Star ED 16 - Misoji Misaki [FULL]
     // https://www.youtube.com/watch?v=X0hq8bPUbJg
@@ -55,5 +203,13 @@ export class AboutSongs {
 
     // https://github.com/goldfire/howler.js/tree/master/examples/player
 
+  }
+}
+
+export class SongBase {
+  constructor (title, artist, year) {
+    this.title = title
+    this.artist = artist
+    this.year = year
   }
 }

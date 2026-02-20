@@ -1,21 +1,13 @@
-import { AboutSongs } from './AboutSongs'
-// cspell:words Minowa Bashi Koji Handa
-export class MinowaBashi extends AboutSongs {
+import { AboutSongs, SongBase } from './AboutSongs'
+// cspell:disable
+export class MinowaBashi extends SongBase {
   // info: https://www.uta-net.com/song/162814/
 
   constructor () {
-    super()
+    super('三ノ輪橋 (Minowa Bashi)', '半田浩二 (Koji Handa)', 2014)
     // https://www.uta-net.com/song/1420/
-    this.songInfo = {
-      titleEn: 'Minowa Bashi',
-      titleJp: '三ノ輪橋',
-      artist: 'Koji Handa (半田浩二)',
-      year: 2014,
-    }
-
-    const a = this.layouts
+    const a = AboutSongs.layouts
     this.dataLayout = [a.KANJI, a.ROMAJI, a.ENGLISH]
-    // cspell:disable
     this.data = `
 
 おまえ 黙って鶴を折る
