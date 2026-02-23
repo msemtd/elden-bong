@@ -29,57 +29,33 @@ If so, then catch and release!
 ase (Fuu) ase (Fuu) no tanima ni Darlin' Darlin' FREE~!!
 I say (Hoo!) I say (Hoo!) In the valley Darlin' Darlin' FREE~!!
 
-
-
 なんかダるー なんかデるー
 nanka daru nanka deru
-Feeling kind of lazy, what should I eat. 
+Feeling kind of lazy, what should I eat.
 
 あいしテるー あれ一個が違ってるんるー
 aishiteru are ikko ga chigatterunruu
 I love you! Huh? one of those is wrong!
 
-
-********************* TODO: *********************
-
-
-Distress, a gymnastic high bar, Gluttonous!
-
-That's enough!
-
-She flew away feeling' hot,
-
-but she's just a normal girl?
-
-Was I the only one who's surprised?
-
-A second helping of that tender Tonkotsu!
-
-
-********************* TODO: *********************
-
-
 なやみン坊ー 高鉄棒ー
 nayminbou koutetsubou
+Distress, a gymnastic high bar,
 
 おいしん簿ー いーかげんにシナサイ
 oishinbou ii kagen ni shinasai
+Gluttonous! That's enough!
 
 飛んでったアイツの火照るカラダって
 tondetta aitsu no hoteru karada tte
+She flew away feeling' hot,
 
 所謂ふつーのおにゃのコ
 iwayuru futsu no onya no ko
+but she's just a normal girl?
 
 驚いたあたしだけ？ 豚骨ハリガネおかわりだだだだだ
 odoroita atashi dake? tonkotsu harigane okawari da-da-da-da-da!
-
-********************* TODO: *********************
-
-
-
-
-
+Was I the only one who's surprised? A second helping of that tender Tonkotsu!
 
 BON-BON おーえん団
 BON-BON ouendan
@@ -251,10 +227,10 @@ HI! Education!! Love is ABC
 
 うんだかだーうんだかだーうにゃうにゃ
 undakadaa undakadaa unyuunya
-It gets sunny, I fall in love, but it never comes to fruition
 
 はれってほれってひれんらー
 harette horette hirenraa
+It gets sunny, I fall in love, but it never comes to fruition
 
 もっていけ！
 motte ike!
@@ -262,45 +238,55 @@ Take it!
 
 最後に笑っちゃうのはあたしのはず
 saigo ni waracchau no wa atashi no hazu
+I'm supposed to be the one who laughs last
 
 セーラーふくだからです←結論
 SEIRAA fuku da kara desu ←ketsuron
+Because of my sailor clothes ← That's the conclusion
 
 月曜日なのに！
 getsuyoubi na no ni!
+Even though it's Monday!
 
 機嫌悪いのどうするよ？
 kigen warui no dou suru yo?
+I'm in a bad mood, what to do?
 
 夏服がいいのです←キャ？ ワ！ イイｖ
 natsu fuku ga ii no desu ←kyawaii
+Summer clothes'll fix it ← Cuuute! ^^v
 
 やっぱりね
 yappari ne
+Of course
 
 最後に笑っちゃうのはあたしのはず
 saigo ni waracchau no wa atashi no hazu
+I'm supposed to be the one who laughs last
 
 セーラーふくだからです←結論
 SEIRAA fuku da kara desu ←ketsuron
+Because of my sailor clothes ← That's the conclusion
 
 曖昧3センチ そりゃぷにってコトかい？ わお！
 aimai san-SENCHI sorya puni tte koto kai? wao!
+A vague 3cm, ain't that a flexible rule? whoa!
 
 らっぴんぐが制服…よぉし不利ってこたない ぽ。
 RAPPINGU ga seifuku... yooshi furi tte kotanai bo.
+For rapping, a uniform... right! it isn't a disadvantage
 
 がんばっちゃ やっちゃっちゃ
 ganbaccha yachaccha
+Gotta do our best! Gotta do it!
 
 あんときゃーっぷ＆ジャージで ハッ
 anto KYAAPPU & JAASHI de ha
+That's when we wear our cap and jersey, ha
 
 汗々で透けたら Darlin' darlin' amuse!!
 ase (Fuu) ase (Fuu) de suketara Darlin' darling AMUSE!!
-
-
-
+If you can see our sweat through 'em darlin' darling be AMUSED!!
 
 `.trim()
     // cspell: enable
