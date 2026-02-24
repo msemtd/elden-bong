@@ -1,4 +1,7 @@
 import { Howl } from 'howler'
+import van from 'vanjs-core/debug'
+import { Modal } from 'vanjs-ui'
+const { p, div, button } = van.tags
 
 // Karaoke player for language learning and fun
 
@@ -26,5 +29,22 @@ import { Howl } from 'howler'
 export class KaraokePlayer {
   constructor () {
     this.howl = new Howl({ html5: true })
+  }
+
+  popWindow () {
+    // https://vanjs.org/vanui#modal
+    // this won't easily overtake jBox until we can have a draggable/resizable window that looks like a window!
+    // maybe create a jbox window and replicate it in vanjs with CSS etc.
+
+    const closed = van.state(false)
+    van.add(document.body, Modal({ closed, blurBackground: true, clickBackgroundToClose: true },
+      p('Hello, World!'),
+      div({ style: 'display: flex; justify-content: center;' },
+        button({ onclick: () => { closed.val = true } }, 'Ok')
+      )
+    ))
+
+    // open overlay screen - semi-transparent
+    // present the list of loaded songs to choose from
   }
 }

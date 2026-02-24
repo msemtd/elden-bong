@@ -32,11 +32,13 @@ import { loadSettings, saveTheseSettings } from '../settings'
 import * as hepburn from 'hepburn'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import animeClassroom from '../../stuff/anime_classroom.glb'
+import { KaraokePlayer } from './songs/KaraokePlayer'
 
 class JapaneseStudy extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Japanese Study')
     this.sources = this.mkSources()
+    this.karaokePlayer = new KaraokePlayer()
     // set up some props from settings and defaults
     this.props = {
       kanjivgDir: ''
@@ -72,6 +74,7 @@ class JapaneseStudy extends MiniGameBase {
         console.log(`KanjiVG Dir set to ${v}`)
         saveTheseSettings(this.name, this.props)
       })
+      this.gui.add(this.karaokePlayer, 'popWindow').name('Karaoke Player')
     })
   }
 
