@@ -104,7 +104,7 @@ class Bong extends THREE.EventDispatcher {
     this.addStats(c)
     this.addCamInfo(c)
     this.fileDrop = new FileDrop()
-    this.fileDrop.init(c.container, this.fileDropHandler.bind(this))
+    this.fileDrop.init(c.container, this.fileDropHandler.bind(this), this.urlDropHandler.bind(this))
     // this.addDemoCube(c)
     this.miniGames = null
     this.makeGui()
@@ -358,6 +358,12 @@ class Bong extends THREE.EventDispatcher {
     }, undefined, function (error) {
       console.error(error)
     })
+  }
+
+  async urlDropHandler (urls, ev) {
+    console.log('url drop: ', urls)
+    const urlText = ev?.originalEvent?.dataTransfer?.getData?.('text')
+    console.dir(urlText)
   }
 
   async fileDropHandler (files) {

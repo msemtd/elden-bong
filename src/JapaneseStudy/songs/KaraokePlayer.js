@@ -1,7 +1,7 @@
 import { Howl } from 'howler'
 import van from 'vanjs-core/debug'
 import { Modal } from 'vanjs-ui'
-const { p, div, button } = van.tags
+const { p, div, button, span } = van.tags
 
 // Karaoke player for language learning and fun
 
@@ -38,10 +38,40 @@ export class KaraokePlayer {
 
     const closed = van.state(false)
     van.add(document.body, Modal({ closed, blurBackground: true, clickBackgroundToClose: true },
-      p('Hello, World!'),
-      div({ style: 'display: flex; justify-content: center;' },
-        button({ onclick: () => { closed.val = true } }, 'Ok')
-      )
+      
+      // <!-- Top Info -->
+      span({ id: 'title' },
+        span({ id: 'track' }, 'TRACK'),
+        span({ id: 'timer' }, '0:00'),
+        span({ id: 'duration' }, '0:00')
+      ),
+      // <!-- Controls -->
+      div({ class: 'controlsOuter' },
+        div({ class: 'controlsInner' },
+          div({ id: 'loading' }),
+          div({ class: 'btn', id: 'playBtn' }),
+          div({ class: 'btn', id: 'pauseBtn' }),
+          div({ class: 'btn', id: 'prevBtn' }),
+          div({ class: 'btn', id: 'nextBtn' })
+        ),
+        div({ class: 'btn', id: 'playlistBtn' }),
+        div({ class: 'btn', id: 'volumeBtn' })
+      ),
+      // <!-- Progress -->
+      div({ id: 'waveform' }),
+      div({ id: 'bar' }),
+      div({ id: 'progress' }),
+      // <!-- Playlist -->
+      div({ id: 'playlist' },
+        div({ id: 'list' })
+      ),
+      // <!-- Volume -->
+      div({ id: 'volume', class: 'fadeout' },
+        div({ id: 'barFull', class: 'bar' }),
+        div({ id: 'barEmpty', class: 'bar' }),
+        div({ id: 'sliderBtn', class: 'bar' })
+      ),
+      button({ onclick: () => { closed.val = true } }, 'OK')
     ))
 
     // open overlay screen - semi-transparent
