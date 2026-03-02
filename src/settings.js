@@ -1,5 +1,5 @@
 import yaml from 'js-yaml'
-
+import $ from 'jquery'
 // Provides some default settings to be updated from yaml in local storage.
 
 const defaultSettings = {
@@ -37,6 +37,7 @@ const defaultSettings = {
       showTitleText: true,
       showControllerSvg: true,
       showCameraPosition: true,
+      showFirstRegionName: true,
     },
   },
   maps: [
@@ -75,7 +76,7 @@ function loadSettings (localStorageKey, defaults) {
   if (!sy) { return saveTheseSettings(localStorageKey, defaults) }
   try {
     const incomingSettings = yaml.load(sy)
-    settings = { ...settings, ...incomingSettings }
+    settings = $.extend(true, {}, settings, incomingSettings)
   } catch (error) {
     console.error(`failed to load settings key as YAML: ${error}`)
     return saveTheseSettings(localStorageKey, defaults)

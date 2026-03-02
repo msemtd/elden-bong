@@ -255,6 +255,7 @@ class Bong extends THREE.EventDispatcher {
         sub.add(this.settings.scene.onScreen, 'showTitleText')
         sub.add(this.settings.scene.onScreen, 'showControllerSvg')
         sub.add(this.settings.scene.onScreen, 'showCameraPosition')
+        sub.add(this.settings.scene.onScreen, 'showFirstRegionName')
         fld.add(this, 'resetSettings').name('⚠️ Restore Default Settings! ⚠️')
       }
       {
@@ -282,7 +283,7 @@ class Bong extends THREE.EventDispatcher {
     if (this.settings.autoLoadMap) {
       this.loadMapJson(this.settings.autoLoadMap)
     }
-    if (this.settings?.gameState) {
+    if (this.settings?.gameState && this.settings?.scene?.onScreen?.showFirstRegionName) {
       this.restoreGameState(this.settings.gameState)
     }
     this.miniGames = new MiniGames(this)
