@@ -1,0 +1,14 @@
+
+{
+	"recommendations": [
+		"streetsidesoftware.code-spell-checker",
+    "esbenp.prettier-vscode",
+    "shardulm94.trailing-spaces",
+    "stuart.unique-window-colors",
+    "redhat.vscode-yaml",
+    "oderwat.indent-rainbow",
+    "ms-vscode.hexeditor",
+    "editorconfig.editorconfig",
+    "aaron-bond.better-comments",
+	]
+}
