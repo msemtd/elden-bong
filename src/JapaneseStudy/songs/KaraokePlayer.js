@@ -34,7 +34,10 @@ async function pick () {
  * adding files from local disk - drag and drop or file picker dialog
  * adding lyrics and saving playlist metadata to the DataDir
  * adding files from the internet - search and download from YouTube using
- * user-installed yt-dlp
+ * user-installed from
+ * https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+ * https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
+ *
  * C:\Users\whatever\Documents\dev\yt-dlp
  * https://www.youtube.com/results?search_query=whatever
  * generic yt-dlp wrapper functionality in the application
@@ -47,13 +50,18 @@ async function pick () {
  * https://lrcmaker.com/
  * timing button to capture the timing of each line as you sing along, then save that as a .lrc file or something
  * Anime opening and closing songs usually have lyrics already available in subtitles files
- * SRT to LRC conversion tools online
+ * SRT to LRC conversion tools online (https://github.com/magic-akari/lrc-maker)
+ *
+ * Associating mp3 with lyrics files via the playlist metadata, or by filename convention (same name but .lrc extension)
  */
 
 export class KaraokePlayer extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Karaoke Player')
-    this.howl = null // new Howl({ html5: true })
+    this.howl = null
+    this.playlist = []
+    this.nowPlaying = -1
+    // TODO: populate playlist from data dir and settings
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -109,11 +117,11 @@ export class KaraokePlayer extends MiniGameBase {
         */
         div({ class: 'controlsOuter' },
           div({ class: 'controlsInner' },
-            button({ class: 'prevBtn' }, 'previous'),
+            button({ class: 'prevBtn', onclick: this.prevBtn.bind(this)}, 'previous'),
             button({ class: 'playBtn', onclick: this.playBtn.bind(this) }, 'play'),
             button({ class: 'pauseBtn', onclick: this.pauseBtn.bind(this) }, 'pause'),
             button({ class: 'stopBtn', onclick: this.stopBtn.bind(this) }, 'stop'),
-            button({ class: 'nextBtn' }, 'next'),
+            button({ class: 'nextBtn', onclick: this.nextBtn.bind(this) }, 'next'),
             button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, 'open'),
           ),
           button({ class: 'playlistBtn' }, 'playlist'),
@@ -132,9 +140,33 @@ export class KaraokePlayer extends MiniGameBase {
     if (!fp) { return }
     const u = filePathToMine(fp)
     console.log(u)
+    // this.howl?.unload()
+    // if this process is OK then we add the file to the playlist and make the howl from the playlist items
+    // nah! howl only has a list for alternatives but not a playlist
+    // we will have to manage the files and the playlist position ourselves and
+    // create/destroy the howl object as required
+    this.playlist.push(new PlaylistItem(u))
+    this.setSong(this.playlist.length - 1)
+    // const songs = this.playlist.map(i => i.uri)
+    // this.howl = new Howl({
+    //   src: [...songs],
+    //   html5: false,
+    //   onplay: this.onHowlPlay.bind(this),
+    // })
+    // auto play on load?
+    // this.howl.play()
+  }
+
+  setSong (index) {
+    if (index < 0 || index >= this.playlist.length) {
+      console.warn('song index out of bounds', index)
+      return
+    }
+    this.nowPlaying = index
+    const song = this.playlist[index]
     this.howl?.unload()
     this.howl = new Howl({
-      src: [u],
+      src: [song.uri],
       html5: false,
       onplay: this.onHowlPlay.bind(this),
     })
@@ -143,16 +175,13 @@ export class KaraokePlayer extends MiniGameBase {
 
   onHowlPlay () {
     const d = this.howl.duration()
-    this.state.duration.val = this.formatTime(Math.round(d))
-  }
-
-  stopBtn () {
-    console.log('stopBtn')
-    this.howl?.stop()
+    this.state.duration.val = this.formatTime(d)
   }
 
   playBtn () {
     console.log('playBtn')
+    if (!this.playlist.length) { return }
+    if (this.howl?.playing()) { return }
     this.howl?.play()
   }
 
@@ -161,9 +190,39 @@ export class KaraokePlayer extends MiniGameBase {
     this.howl?.pause()
   }
 
-  formatTime (s) {
+  stopBtn () {
+    console.log('stopBtn')
+    this.howl?.stop()
+  }
+
+  nextBtn () {
+    console.log('nextBtn')
+    if (!this.playlist.length) { return }
+    let index = this.nowPlaying + 1
+    if (index >= this.playlist.length) { index = 0 }
+    this.setSong(index)
+  }
+
+  prevBtn () {
+    console.log('prevBtn')
+    if (!this.playlist.length) { return }
+    let index = this.nowPlaying - 1
+    if (index < 0) { index = this.playlist.length -1 }
+    this.setSong(index)
+  }
+
+  formatTime (t) {
+    const s = Math.round(t) || 0
     const minutes = Math.floor(s / 60) || 0
     const seconds = (s - minutes * 60) || 0
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds
+  }
+}
+
+class PlaylistItem {
+  constructor (uri) {
+    this.uri = uri
+    this.lyrics = null
+    this.title = ''
   }
 }
