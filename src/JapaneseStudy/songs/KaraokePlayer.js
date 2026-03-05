@@ -2,6 +2,7 @@ import { Howl } from 'howler'
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import van from 'vanjs-core/debug'
+import path from 'path-browserify'
 import { FloatingWindow } from 'vanjs-ui'
 import { MiniGameBase } from '../../MiniGameBase'
 import { pickFile } from '../../HandyApi'
@@ -9,7 +10,7 @@ import { filePathToMine } from '../../util'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
-const { p, div, button, span } = van.tags
+const { p, div, button, input, label } = van.tags
 
 async function pick () {
   const info = await pickFile()
@@ -89,12 +90,21 @@ export class KaraokePlayer extends MiniGameBase {
     this.state.lineNext = van.state('<next line>')
     van.add(document.body, FloatingWindow(
       { closed: this.state.closed, title: 'Karaoke Player', class: 'karaoke-player', width: 600, height: 500 },
-      div({ id: 'KaraokePlayer' },
+      div({ id: 'KaraokePlayer', style: 'display: flex; flex-direction: column; justify-content: center;' },
         // <!-- Top Info -->
-        div({ class: 'top' },
+        div({ class: 'top', style: 'width: 97%; padding: 0.5rem; background-color: yellow; border-style: double;' },
           p({ class: 'track' }, this.state.track),
           p({ class: 'timer' }, this.state.timer),
           p({ class: 'duration' }, this.state.duration),
+          div(
+            input({
+              type: 'range',
+              id: 'seek',
+              min: '0',
+              max: '100',
+              style: 'width: -webkit-fill-available;'
+            }),
+          )
         ),
         div({ class: 'lines' },
           p({ class: 'linePrevious' }, this.state.linePrevious),
@@ -117,7 +127,7 @@ export class KaraokePlayer extends MiniGameBase {
         */
         div({ class: 'controlsOuter' },
           div({ class: 'controlsInner' },
-            button({ class: 'prevBtn', onclick: this.prevBtn.bind(this)}, 'previous'),
+            button({ class: 'prevBtn', onclick: this.prevBtn.bind(this) }, 'previous'),
             button({ class: 'playBtn', onclick: this.playBtn.bind(this) }, 'play'),
             button({ class: 'pauseBtn', onclick: this.pauseBtn.bind(this) }, 'pause'),
             button({ class: 'stopBtn', onclick: this.stopBtn.bind(this) }, 'stop'),
@@ -125,7 +135,13 @@ export class KaraokePlayer extends MiniGameBase {
             button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, 'open'),
           ),
           button({ class: 'playlistBtn' }, 'playlist'),
-          button({ class: 'volumeBtn' }, 'volume'),
+          // button({ class: 'volumeBtn' }, 'volume'),
+          div(
+            input({ type: 'range', id: 'volume2', name: 'volume', min: '0', max: '11' }),
+            label({ for: 'volume2' },
+              'Volume',
+            ),
+          )
         ),
         // <!-- Playlist -->
         div({ class: 'playlist' },
@@ -140,21 +156,11 @@ export class KaraokePlayer extends MiniGameBase {
     if (!fp) { return }
     const u = filePathToMine(fp)
     console.log(u)
-    // this.howl?.unload()
-    // if this process is OK then we add the file to the playlist and make the howl from the playlist items
-    // nah! howl only has a list for alternatives but not a playlist
-    // we will have to manage the files and the playlist position ourselves and
-    // create/destroy the howl object as required
-    this.playlist.push(new PlaylistItem(u))
+    const pp = path.parse(u)
+    console.dir(pp)
+    this.playlist.push(new PlaylistItem(u, pp.name))
+    // auto-play this song
     this.setSong(this.playlist.length - 1)
-    // const songs = this.playlist.map(i => i.uri)
-    // this.howl = new Howl({
-    //   src: [...songs],
-    //   html5: false,
-    //   onplay: this.onHowlPlay.bind(this),
-    // })
-    // auto play on load?
-    // this.howl.play()
   }
 
   setSong (index) {
@@ -165,6 +171,7 @@ export class KaraokePlayer extends MiniGameBase {
     this.nowPlaying = index
     const song = this.playlist[index]
     this.howl?.unload()
+    this.state.track.val = song.title
     this.howl = new Howl({
       src: [song.uri],
       html5: false,
@@ -207,7 +214,7 @@ export class KaraokePlayer extends MiniGameBase {
     console.log('prevBtn')
     if (!this.playlist.length) { return }
     let index = this.nowPlaying - 1
-    if (index < 0) { index = this.playlist.length -1 }
+    if (index < 0) { index = this.playlist.length - 1 }
     this.setSong(index)
   }
 
@@ -220,9 +227,9 @@ export class KaraokePlayer extends MiniGameBase {
 }
 
 class PlaylistItem {
-  constructor (uri) {
+  constructor (uri, title = '') {
     this.uri = uri
+    this.title = title
     this.lyrics = null
-    this.title = ''
   }
 }
