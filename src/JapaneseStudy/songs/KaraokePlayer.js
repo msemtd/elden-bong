@@ -10,7 +10,7 @@ import { filePathToMine } from '../../util'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
-const { p, div, button, input, label } = van.tags
+const { p, div, button, input, label, span } = van.tags
 
 async function pick () {
   const info = await pickFile()
@@ -80,6 +80,7 @@ export class KaraokePlayer extends MiniGameBase {
       console.log('KaraokePlayer is already open')
       return
     }
+    const title = 'Karaoke Player'
     this.state = {}
     this.state.closed = van.state(false)
     this.state.track = van.state('<none>')
@@ -88,23 +89,16 @@ export class KaraokePlayer extends MiniGameBase {
     this.state.linePrevious = van.state('<previous line>')
     this.state.lineCurrent = van.state('<current line>')
     this.state.lineNext = van.state('<next line>')
-    van.add(document.body, FloatingWindow(
-      { closed: this.state.closed, title: 'Karaoke Player', class: 'karaoke-player', width: 600, height: 500 },
-      div({ id: 'KaraokePlayer', style: 'display: flex; flex-direction: column; justify-content: center;' },
+    van.add(document.body, FloatingWindow({ title, closed: this.state.closed, width: 600, height: 500 },
+      div({ id: 'KaraokePlayer', class: 'karaokePlayer' },
         // <!-- Top Info -->
-        div({ class: 'top', style: 'width: 97%; padding: 0.5rem; background-color: yellow; border-style: double;' },
-          p({ class: 'track' }, this.state.track),
-          p({ class: 'timer' }, this.state.timer),
-          p({ class: 'duration' }, this.state.duration),
-          div(
-            input({
-              type: 'range',
-              id: 'seek',
-              min: '0',
-              max: '100',
-              style: 'width: -webkit-fill-available;'
-            }),
-          )
+        div({ class: 'top' },
+          div({ class: 'track' }, this.state.track),
+          div(input({ type: 'range', class: 'seek', min: '0', max: '100', value: '50' })),
+          div({ class: 'times' },
+            span({ class: 'timer' }, this.state.timer),
+            span({ class: 'duration' }, this.state.duration),
+          ),
         ),
         div({ class: 'lines' },
           p({ class: 'linePrevious' }, this.state.linePrevious),
@@ -112,19 +106,6 @@ export class KaraokePlayer extends MiniGameBase {
           p({ class: 'lineNext' }, this.state.lineNext),
         ),
         // <!-- Controls -->
-
-        /*
-        cspell: ignore Themesberg
-  https://icones.js.org/collection/flowbite
-  <symbol viewBox="0 0 24 24" id="flowbite-backward-step-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6v12m8-12v12l-8-6z"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-play-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 18V6l8 6z"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-pause-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6H8a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1m7 0h-1a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-stop-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><rect width="12" height="12" x="6" y="6" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" rx="1"></rect></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-forward-step-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 6v12M8 6v12l8-6z"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-folder-open-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19V6a1 1 0 0 1 1-1h4.032a1 1 0 0 1 .768.36l1.9 2.28a1 1 0 0 0 .768.36H16a1 1 0 0 1 1 1v1M3 19l3-8h15l-3 8z"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-list-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M9 8h10M9 12h10M9 16h10M4.99 8H5m-.02 4h.01m0 4H5"></path></symbol>
-  <symbol viewBox="0 0 24 24" id="flowbite-volume-up-outline"><!-- Icon from Flowbite Icons by Themesberg - https://github.com/themesberg/flowbite-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.5 8.43A5 5 0 0 1 17 12a4.98 4.98 0 0 1-1.43 3.5m2.794 2.864A8.97 8.97 0 0 0 21 12a8.97 8.97 0 0 0-2.636-6.364M12 6.135v11.73a1 1 0 0 1-1.64.768L6 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2l4.36-3.633a1 1 0 0 1 1.64.768"></path></symbol>
-        */
         div({ class: 'controlsOuter' },
           div({ class: 'controlsInner' },
             button({ class: 'prevBtn', onclick: this.prevBtn.bind(this) }, 'previous'),
