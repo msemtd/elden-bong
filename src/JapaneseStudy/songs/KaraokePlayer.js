@@ -62,6 +62,8 @@ export class KaraokePlayer extends MiniGameBase {
     this.howl = null
     this.playlist = []
     this.nowPlaying = -1
+    this.volMin = 0
+    this.volMax = 11
     // TODO: populate playlist from data dir and settings
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
@@ -81,29 +83,51 @@ export class KaraokePlayer extends MiniGameBase {
       return
     }
     const title = 'Karaoke Player'
-    this.state = {}
-    this.state.closed = van.state(false)
-    this.state.track = van.state('<none>')
-    this.state.timer = van.state(this.formatTime(0))
-    this.state.duration = van.state(this.formatTime(0))
-    this.state.linePrevious = van.state('<previous line>')
-    this.state.lineCurrent = van.state('<current line>')
-    this.state.lineNext = van.state('<next line>')
-    van.add(document.body, FloatingWindow({ title, closed: this.state.closed, width: 600, height: 500 },
+    const preferredVolume = 10 // TODO get from settings or last used
+    const s = this.state = {}
+    s.closed = van.state(false)
+    s.track = van.state('<none>')
+    s.timer = van.state(this.formatTime(0))
+    s.duration = van.state(this.formatTime(0))
+    s.linePrevious = van.state('<previous line>')
+    s.lineCurrent = van.state('<current line>')
+    s.lineNext = van.state('<next line>')
+    s.volume = van.state(preferredVolume)
+    s.trackProgress = van.state(0)
+    van.add(document.body, FloatingWindow({ title, closed: s.closed, width: 600, height: 500 },
       div({ id: 'KaraokePlayer', class: 'karaokePlayer' },
         // <!-- Top Info -->
         div({ class: 'top' },
-          div({ class: 'track' }, this.state.track),
-          div(input({ type: 'range', class: 'seek', min: '0', max: '100', value: '50' })),
+          div({ class: 'track' }, s.track),
+          div(
+            input({ type: 'range', class: 'seek', value: s.trackProgress, step: 'any', onchange: () => { this.setSeekPct(s.trackProgress.val) } })
+          ),
           div({ class: 'times' },
-            span({ class: 'timer' }, this.state.timer),
-            span({ class: 'duration' }, this.state.duration),
+            span({ class: 'timer' }, s.timer),
+            span({ class: 'duration' }, s.duration),
+          ),
+          div(
+            input({
+              type: 'range',
+              id: 'volume2',
+              name: 'volume',
+              min: this.volMin,
+              max: this.volMax,
+              value: s.volume,
+              oninput: (e) => {
+                s.volume.val = Number(e.target.value)
+                this.volumeChange(s.volume.val)
+              }
+            }),
+            label({ for: 'volume2' },
+              'Volume:', s.volume
+            ),
           ),
         ),
         div({ class: 'lines' },
-          p({ class: 'linePrevious' }, this.state.linePrevious),
-          p({ class: 'lineCurrent' }, this.state.lineCurrent),
-          p({ class: 'lineNext' }, this.state.lineNext),
+          p({ class: 'linePrevious' }, s.linePrevious),
+          p({ class: 'lineCurrent' }, s.lineCurrent),
+          p({ class: 'lineNext' }, s.lineNext),
         ),
         // <!-- Controls -->
         div({ class: 'controlsOuter' },
@@ -116,13 +140,6 @@ export class KaraokePlayer extends MiniGameBase {
             button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, 'open'),
           ),
           button({ class: 'playlistBtn' }, 'playlist'),
-          // button({ class: 'volumeBtn' }, 'volume'),
-          div(
-            input({ type: 'range', id: 'volume2', name: 'volume', min: '0', max: '11' }),
-            label({ for: 'volume2' },
-              'Volume',
-            ),
-          )
         ),
         // <!-- Playlist -->
         div({ class: 'playlist' },
@@ -144,6 +161,35 @@ export class KaraokePlayer extends MiniGameBase {
     this.setSong(this.playlist.length - 1)
   }
 
+  volumeChange (val) {
+    // The volume value from the control is in the scale of min to max
+    // and howl wants zero to one
+    const range = this.volMax - this.volMin
+    const rVal = (val - this.volMin) / (range)
+    this.howl?.volume(rVal)
+  }
+
+  setSeekPct (val) {
+    // am I even playing?
+    console.log('setSeekPct ' + val)
+    // const p = this.howl?.seek() || 0
+    const d = this.howl?.duration() || 1
+    const newSeek = d / val
+    this.howl?.seek(newSeek)
+  }
+
+  animate () {
+    // based on the howler example
+    const p = this.howl?.seek() || 0
+    const d = this.howl?.duration() || 1
+    const newVal = this.formatTime(p)
+    this.state.timer.val = newVal // TODO is it worth checking against old value?
+    // TODO pct of song
+    const pct = (((p / d) * 100) || 0)
+    this.state.trackProgress.val = pct
+    requestAnimationFrame(this.animate.bind(this))
+  }
+
   setSong (index) {
     if (index < 0 || index >= this.playlist.length) {
       console.warn('song index out of bounds', index)
@@ -153,6 +199,7 @@ export class KaraokePlayer extends MiniGameBase {
     const song = this.playlist[index]
     this.howl?.unload()
     this.state.track.val = song.title
+    // TODO: get and set the volume level
     this.howl = new Howl({
       src: [song.uri],
       html5: false,
@@ -162,8 +209,10 @@ export class KaraokePlayer extends MiniGameBase {
   }
 
   onHowlPlay () {
-    const d = this.howl.duration()
+    this.volumeChange(this.state.volume.val)
+    const d = this.howl?.duration()
     this.state.duration.val = this.formatTime(d)
+    requestAnimationFrame(this.animate.bind(this))
   }
 
   playBtn () {

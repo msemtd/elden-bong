@@ -40,6 +40,10 @@ div.karaokePlayer {
     /* https://www.cssportal.com/style-input-range/ */
     input.seek {
       width: -webkit-fill-available;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: pointer;
     }
     .seek::-webkit-slider-runnable-track {
       height: 15px;
