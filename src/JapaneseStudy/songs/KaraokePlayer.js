@@ -100,19 +100,30 @@ export class KaraokePlayer extends MiniGameBase {
         div({ class: 'top' },
           div({ class: 'track' }, s.track),
           div(
-            input({ type: 'range', class: 'seek', value: s.trackProgress, step: 'any', onchange: () => { this.setSeekPct(s.trackProgress.val) } })
+            input({
+              type: 'range',
+              class: 'seek',
+              value: s.trackProgress,
+              step: 'any',
+              oninput: (e) => {
+                s.trackProgress.val = Number(e.target.value)
+                this.setSeekPct(s.trackProgress.val)
+              }
+            })
           ),
           div({ class: 'times' },
             span({ class: 'timer' }, s.timer),
             span({ class: 'duration' }, s.duration),
           ),
-          div(
+          div({ class: 'volumeArea' },
             input({
+              class: 'volumeInput',
               type: 'range',
               id: 'volume2',
               name: 'volume',
               min: this.volMin,
               max: this.volMax,
+              step: 0.25,
               value: s.volume,
               oninput: (e) => {
                 s.volume.val = Number(e.target.value)
@@ -170,24 +181,10 @@ export class KaraokePlayer extends MiniGameBase {
   }
 
   setSeekPct (val) {
-    // am I even playing?
-    console.log('setSeekPct ' + val)
-    // const p = this.howl?.seek() || 0
-    const d = this.howl?.duration() || 1
-    const newSeek = d / val
+    const d = this.howl?.duration() || 0
+    const newSeek = d * (val / 100)
+    // console.log(`setSeekPct ${val} = ${newSeek}`)
     this.howl?.seek(newSeek)
-  }
-
-  animate () {
-    // based on the howler example
-    const p = this.howl?.seek() || 0
-    const d = this.howl?.duration() || 1
-    const newVal = this.formatTime(p)
-    this.state.timer.val = newVal // TODO is it worth checking against old value?
-    // TODO pct of song
-    const pct = (((p / d) * 100) || 0)
-    this.state.trackProgress.val = pct
-    requestAnimationFrame(this.animate.bind(this))
   }
 
   setSong (index) {
@@ -199,11 +196,11 @@ export class KaraokePlayer extends MiniGameBase {
     const song = this.playlist[index]
     this.howl?.unload()
     this.state.track.val = song.title
-    // TODO: get and set the volume level
     this.howl = new Howl({
       src: [song.uri],
       html5: false,
       onplay: this.onHowlPlay.bind(this),
+      onend: this.nextBtn.bind(this),
     })
     this.howl.play()
   }
@@ -212,6 +209,18 @@ export class KaraokePlayer extends MiniGameBase {
     this.volumeChange(this.state.volume.val)
     const d = this.howl?.duration()
     this.state.duration.val = this.formatTime(d)
+    requestAnimationFrame(this.animate.bind(this))
+  }
+
+  animate () {
+    if (!this.howl?.playing()) { return }
+    // based on the howler example
+    const p = this.howl?.seek() || 0
+    const d = this.howl?.duration() || 1
+    const newVal = this.formatTime(p)
+    this.state.timer.val = newVal // TODO is it worth checking against old value?
+    const pct = (((p / d) * 100) || 0)
+    this.state.trackProgress.val = pct
     requestAnimationFrame(this.animate.bind(this))
   }
 
