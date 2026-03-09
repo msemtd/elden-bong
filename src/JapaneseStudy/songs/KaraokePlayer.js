@@ -4,12 +4,14 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import van from 'vanjs-core/debug'
 import path from 'path-browserify'
 import { FloatingWindow } from 'vanjs-ui'
+import { Dlg } from '../../dlg'
 import { MiniGameBase } from '../../MiniGameBase'
-import { pickFile } from '../../HandyApi'
+import { pickFile, shellOpenExternal } from '../../HandyApi'
 import { filePathToMine } from '../../util'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
+
 const { p, div, button, input, label, span } = van.tags
 
 async function pick () {
@@ -82,7 +84,7 @@ export class KaraokePlayer extends MiniGameBase {
       console.log('KaraokePlayer is already open')
       return
     }
-    const title = 'Karaoke Player'
+    const title = '🏮 Karaoke Player'
     const preferredVolume = 10 // TODO get from settings or last used
     const s = this.state = {}
     s.closed = van.state(false)
@@ -150,7 +152,8 @@ export class KaraokePlayer extends MiniGameBase {
             button({ class: 'nextBtn', onclick: this.nextBtn.bind(this) }, 'next'),
             button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, 'open'),
           ),
-          button({ class: 'playlistBtn' }, 'playlist'),
+          button({ class: 'playlistBtn', onclick: this.showPlaylist.bind(this) }, 'playlist'),
+          button({ class: 'searchBtn', onclick: this.searchDlg.bind(this) }, 'search'),
         ),
         // <!-- Playlist -->
         div({ class: 'playlist' },
@@ -255,6 +258,18 @@ export class KaraokePlayer extends MiniGameBase {
     let index = this.nowPlaying - 1
     if (index < 0) { index = this.playlist.length - 1 }
     this.setSong(index)
+  }
+
+  async searchDlg () {
+    const song = await Dlg.questionBox('Search for a song (on YouTube or similar) then drop the URL in here')
+    console.log(song)
+    const enc = encodeURIComponent(song)
+    const url = `https://www.youtube.com/results?search_query=${enc}`
+    shellOpenExternal(url)
+  }
+
+  showPlaylist () {
+    console.log('showPlaylist')
   }
 
   formatTime (t) {
