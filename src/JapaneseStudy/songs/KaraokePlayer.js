@@ -284,23 +284,24 @@ export class KaraokePlayer extends MiniGameBase {
 
   showPlaylist () {
     console.log('showPlaylist')
-    // TODO: use the technique used in the BanzukeDialog to swap div shown in
+    // Use the technique used in the BanzukeDialog to swap div shown in
     // the floating window. Show the playlist instead of the player controls,
     // showing a close button to return to the player view.
-    // JQuery
-    const cont = $('#KaraokePlayer')
-    const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(cont)
-    cont.hide()
+    const playlistDivId = 'KaraokePlayerPlaylist'
+    const contentDiv = $('#KaraokePlayer')
+    contentDiv.hide()
+    const closeBtnClicked = () => {
+      $(`#${playlistDivId}`).remove()
+      contentDiv.show()
+    }
+    const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(contentDiv)
     van.add(dlgDiv[0], div(
-      { id: 'KaraokePlayerPlaylist' },
+      { id: playlistDivId },
       p('Playlist data structure and editing UI goes here'),
-      button({
-        onclick: () => {
-          $('#KaraokePlayerPlaylist').remove()
-          cont.show()
-        }
-      }, 'Close')
-
+      p(this.props.playlist || 'No playlist file chosen'),
+      button({ onclick: () => { this.browseForPlaylistFile() } }, 'Choose Playlist File'),
+      p(),
+      button({ onclick: closeBtnClicked }, 'Close')
     ))
   }
 
