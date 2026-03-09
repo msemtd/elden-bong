@@ -25,6 +25,7 @@ export class AboutSongs {
   static layouts = {
     ENGLISH: 'English',
     KANJI: 'Kanji',
+    KANA: 'Kana',
     ROMAJI: 'Romaji',
   }
 }

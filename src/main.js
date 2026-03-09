@@ -168,7 +168,20 @@ async function pickFile (evt, options) {
     const res = await dialog.showSaveDialog(mainWindow, { defaultPath: options.saveAs })
     return res
   }
-  const res2 = await dialog.showOpenDialog(mainWindow, {})
+  const openDialogOptions = {}
+  if (Array.isArray(options?.filters)) {
+    openDialogOptions.filters = options.filters
+    // TODO don't just trust this - validate it and log if it's wrong
+    // see https://www.electronjs.org/docs/latest/api/dialog#dialogshowopendialogwindow-options
+    // filters: [
+    //   { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
+    //   { name: 'Movies', extensions: ['mkv', 'avi', 'mp4'] },
+    //   { name: 'Custom File Type', extensions: ['as'] },
+    //   { name: 'All Files', extensions: ['*'] }
+    // ]
+  }
+
+  const res2 = await dialog.showOpenDialog(mainWindow, openDialogOptions)
   return res2
 }
 

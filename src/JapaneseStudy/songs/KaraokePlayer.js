@@ -1,5 +1,6 @@
-import { Howl } from 'howler'
+import $ from 'jquery'
 import * as THREE from 'three'
+import { Howl } from 'howler'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import van from 'vanjs-core/debug'
 import path from 'path-browserify'
@@ -8,6 +9,7 @@ import { Dlg } from '../../dlg'
 import { MiniGameBase } from '../../MiniGameBase'
 import { pickFile, shellOpenExternal } from '../../HandyApi'
 import { filePathToMine } from '../../util'
+import { loadSettings, saveTheseSettings } from '../../settings'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
@@ -67,11 +69,22 @@ export class KaraokePlayer extends MiniGameBase {
     this.volMin = 0
     this.volMax = 11
     // TODO: populate playlist from data dir and settings
+    this.props = {
+      playlist: ''
+    }
+    this.settings = loadSettings(this.name, this.props)
+    this.props = { ...this.props, ...this.settings }
+
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
+      this.gui.add(this.props, 'playlist').name('Playlist File').onFinishChange((v) => {
+        console.log(`playlist set to ${v}`)
+        saveTheseSettings(this.name, this.props)
+      })
+      this.gui.add(this, 'browseForPlaylistFile').name('Choose Playlist File')
     })
   }
 
@@ -262,6 +275,7 @@ export class KaraokePlayer extends MiniGameBase {
 
   async searchDlg () {
     const song = await Dlg.questionBox('Search for a song (on YouTube or similar) then drop the URL in here')
+    if (!song) { return }
     console.log(song)
     const enc = encodeURIComponent(song)
     const url = `https://www.youtube.com/results?search_query=${enc}`
@@ -270,6 +284,36 @@ export class KaraokePlayer extends MiniGameBase {
 
   showPlaylist () {
     console.log('showPlaylist')
+    // TODO: use the technique used in the BanzukeDialog to swap div shown in
+    // the floating window. Show the playlist instead of the player controls,
+    // showing a close button to return to the player view.
+    // JQuery
+    const cont = $('#KaraokePlayer')
+    const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(cont)
+    cont.hide()
+    van.add(dlgDiv[0], div(
+      { id: 'KaraokePlayerPlaylist' },
+      p('Playlist data structure and editing UI goes here'),
+      button({
+        onclick: () => {
+          $('#KaraokePlayerPlaylist').remove()
+          cont.show()
+        }
+      }, 'Close')
+
+    ))
+  }
+
+  async browseForPlaylistFile () {
+    console.log('browseForPlaylistFile')
+    const fp = await pick({ filters: [{ name: 'Playlist Files', extensions: ['json'] }] })
+    if (!fp) { return }
+    console.log(fp)
+    this.props.playlist = fp
+    // update the GUI to show the new playlist file and save
+    const e = this.gui.children.find(x => x.property === 'playlist')
+    e?.updateDisplay()
+    saveTheseSettings(this.name, this.props)
   }
 
   formatTime (t) {

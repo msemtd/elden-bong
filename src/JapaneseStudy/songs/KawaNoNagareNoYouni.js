@@ -4,6 +4,7 @@ export class KawaNoNagareNoYouni extends SongBase {
   constructor () {
     super('Kawa No Nagare No Youni', '美空ひばり (Hibari Misora)', 1989)
     // https://www.uta-net.com/song/1420/
+    // https://www.youtube.com/watch?v=SOCjkXBeKRs
     const a = AboutSongs.layouts
     this.dataLayout = [a.ENGLISH, a.KANJI, a.ROMAJI]
     const data = `

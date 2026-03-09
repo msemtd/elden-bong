@@ -365,6 +365,13 @@ class Bong extends THREE.EventDispatcher {
     console.log('url drop: ', urls)
     const urlText = ev?.originalEvent?.dataTransfer?.getData?.('text')
     console.dir(urlText)
+    // TODO: add API to add and remove URL handlers by domain
+    // TODO: the first case is the VideoProcessor case - if it's a YouTube URL we want to offer to download it with yt-dlp and then load it in the karaoke player or something
+    const addr = new URL(urlText)
+    console.log('handler needed for ' + addr.hostname)
+    // TODO interactive - ask user if they want to extract audio
+    // ask for folder?
+    // default downloads dir?
   }
 
   async fileDropHandler (files) {
