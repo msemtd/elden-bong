@@ -7,17 +7,25 @@ import path from 'path-browserify'
 import { FloatingWindow } from 'vanjs-ui'
 import { Dlg } from '../../dlg'
 import { MiniGameBase } from '../../MiniGameBase'
-import { pickFile, shellOpenExternal } from '../../HandyApi'
+import { pickFile, shellOpenExternal, loadJsonFile } from '../../HandyApi'
 import { filePathToMine } from '../../util'
 import { loadSettings, saveTheseSettings } from '../../settings'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
 
-const { p, div, button, input, label, span } = van.tags
+const { p, div, button, input, label, span, table, tbody, thead, td, th, tr } = van.tags
 
-async function pick () {
-  const info = await pickFile()
+const Table = ({ head, data, tabProps }) => table(
+  tabProps || { border: '1px solid black', width: '100%' },
+  head ? thead({ align: 'left' }, tr(head.map(h => th(h)))) : [],
+  tbody(data.map(row => tr(
+    row.map(col => td(col))
+  )))
+)
+
+async function pick (options) {
+  const info = await pickFile(options)
   if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
   return info.filePaths[0]
 }
@@ -68,13 +76,11 @@ export class KaraokePlayer extends MiniGameBase {
     this.nowPlaying = -1
     this.volMin = 0
     this.volMax = 11
-    // TODO: populate playlist from data dir and settings
     this.props = {
       playlist: ''
     }
     this.settings = loadSettings(this.name, this.props)
     this.props = { ...this.props, ...this.settings }
-
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -158,12 +164,12 @@ export class KaraokePlayer extends MiniGameBase {
         // <!-- Controls -->
         div({ class: 'controlsOuter' },
           div({ class: 'controlsInner' },
-            button({ class: 'prevBtn', onclick: this.prevBtn.bind(this) }, 'previous'),
-            button({ class: 'playBtn', onclick: this.playBtn.bind(this) }, 'play'),
-            button({ class: 'pauseBtn', onclick: this.pauseBtn.bind(this) }, 'pause'),
-            button({ class: 'stopBtn', onclick: this.stopBtn.bind(this) }, 'stop'),
-            button({ class: 'nextBtn', onclick: this.nextBtn.bind(this) }, 'next'),
-            button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, 'open'),
+            button({ class: 'prevBtn', onclick: this.prevBtn.bind(this) }, '⏮️'),
+            button({ class: 'playBtn', onclick: this.playBtn.bind(this) }, '▶️'),
+            button({ class: 'pauseBtn', onclick: this.pauseBtn.bind(this) }, '⏸️'),
+            button({ class: 'stopBtn', onclick: this.stopBtn.bind(this) }, '⏹️'),
+            button({ class: 'nextBtn', onclick: this.nextBtn.bind(this) }, '⏭️'),
+            button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, '⏏️'),
           ),
           button({ class: 'playlistBtn', onclick: this.showPlaylist.bind(this) }, 'playlist'),
           button({ class: 'searchBtn', onclick: this.searchDlg.bind(this) }, 'search'),
@@ -282,8 +288,20 @@ export class KaraokePlayer extends MiniGameBase {
     shellOpenExternal(url)
   }
 
+  editLyricsFor (itm) {
+    console.dir(itm)
+    if (!itm.lyrics) {
+      console.log('no lyrics yet')
+    }
+  }
+
   showPlaylist () {
     console.log('showPlaylist')
+    //
+    const head = ['#', 'title', 'lyrics',]
+    const lyricsBtn = (itm) => button({ onclick: () => { this.editLyricsFor(itm) } }, '🎤')
+    const data = this.playlist.map((itm, idx) => [idx, itm.title, lyricsBtn(itm)])
+    const tabProps = { class: 'playlistTab', border: '1px solid black', width: '100%' }
     // Use the technique used in the BanzukeDialog to swap div shown in
     // the floating window. Show the playlist instead of the player controls,
     // showing a close button to return to the player view.
@@ -297,19 +315,26 @@ export class KaraokePlayer extends MiniGameBase {
     const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(contentDiv)
     van.add(dlgDiv[0], div(
       { id: playlistDivId },
-      p('Playlist data structure and editing UI goes here'),
+      Table({ head, data, tabProps }),
       p(this.props.playlist || 'No playlist file chosen'),
-      button({ onclick: () => { this.browseForPlaylistFile() } }, 'Choose Playlist File'),
-      p(),
-      button({ onclick: closeBtnClicked }, 'Close')
+      p(
+        button({ onclick: () => { this.browseForPlaylistFile() } }, 'Load Playlist File'),
+        button({ }, 'Save'),
+        button({ }, 'Save as'),
+      ),
+      button({ onclick: closeBtnClicked }, 'Close'),
     ))
   }
 
   async browseForPlaylistFile () {
     console.log('browseForPlaylistFile')
-    const fp = await pick({ filters: [{ name: 'Playlist Files', extensions: ['json'] }] })
-    if (!fp) { return }
+    const info = await pickFile({ filters: [{ name: 'Playlist Files', extensions: ['json'] }] })
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+    const fp = info.filePaths[0]
     console.log(fp)
+    // try loading it
+    const data = await loadJsonFile(fp)
+    // populate with data
     this.props.playlist = fp
     // update the GUI to show the new playlist file and save
     const e = this.gui.children.find(x => x.property === 'playlist')
