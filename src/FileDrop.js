@@ -25,10 +25,19 @@ function getFileDataTransferItems (ev) {
 }
 
 class FileDrop {
+  constructor () {
+    this.enable()
+  }
+
+  enable () { this.enabled = true }
+
+  disable () { this.enabled = false }
+
   init (element, dropCallback, urlCallback, dragOverSelector) {
     // first handle drag over for putting up the drop cloth
     const sel = dragOverSelector || element
     $(sel).on('dragover', (ev) => {
+      if (!this.enabled) { return }
       // only interested in file items
       if (getFileDataTransferItems(ev)) {
         $('#dropCloth').show()

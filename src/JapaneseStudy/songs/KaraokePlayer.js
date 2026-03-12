@@ -14,7 +14,7 @@ import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
 
-const { p, div, button, input, label, span, table, tbody, thead, td, th, tr } = van.tags
+const { p, div, button, input, label, span, table, tbody, thead, td, th, tr, br } = van.tags
 
 const Table = ({ head, data, tabProps }) => table(
   tabProps || { border: '1px solid black', width: '100%' },
@@ -115,6 +115,7 @@ export class KaraokePlayer extends MiniGameBase {
     s.lineNext = van.state('<next line>')
     s.volume = van.state(preferredVolume)
     s.trackProgress = van.state(0)
+    //
     van.add(document.body, FloatingWindow({ title, closed: s.closed, width: 600, height: 500 },
       div({ id: 'KaraokePlayer', class: 'karaokePlayer' },
         // <!-- Top Info -->
@@ -173,6 +174,12 @@ export class KaraokePlayer extends MiniGameBase {
           ),
           button({ class: 'playlistBtn', onclick: this.showPlaylist.bind(this) }, 'playlist'),
           button({ class: 'searchBtn', onclick: this.searchDlg.bind(this) }, 'search'),
+          br(),
+          button({ class: 'svgIcon svgPrev', onclick: this.stopBtn.bind(this) }),
+          button({ class: 'svgIcon svgPlay', onclick: this.stopBtn.bind(this) }),
+          button({ class: 'svgIcon svgPause', onclick: this.stopBtn.bind(this) }),
+          button({ class: 'svgIcon svgStop', onclick: this.stopBtn.bind(this) }),
+          button({ class: 'svgIcon svgNext', onclick: this.stopBtn.bind(this) }),
         ),
         // <!-- Playlist -->
         div({ class: 'playlist' },
