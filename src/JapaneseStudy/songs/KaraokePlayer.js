@@ -110,15 +110,16 @@ export class KaraokePlayer extends MiniGameBase {
     s.track = van.state('<none>')
     s.timer = van.state(this.formatTime(0))
     s.duration = van.state(this.formatTime(0))
+    s.volume = van.state(preferredVolume)
+    s.trackProgress = van.state(0)
     s.linePrevious = van.state('<previous line>')
     s.lineCurrent = van.state('<current line>')
     s.lineNext = van.state('<next line>')
-    s.volume = van.state(preferredVolume)
-    s.trackProgress = van.state(0)
     //
     van.add(document.body, FloatingWindow({ title, closed: s.closed, width: 600, height: 500 },
       div({ id: 'KaraokePlayer', class: 'karaokePlayer' },
-        // <!-- Top Info -->
+        // top div to remain in place while lyrics or playlist appears in the a
+        // scrolling area below it
         div({ class: 'top' },
           div({ class: 'track' }, s.track),
           div(
@@ -164,28 +165,19 @@ export class KaraokePlayer extends MiniGameBase {
             label({ for: 'volume2' }, s.volume),
           ),
         ),
-        div({ class: 'lines' },
-          p({ class: 'linePrevious' }, s.linePrevious),
-          p({ class: 'lineCurrent' }, s.lineCurrent),
-          p({ class: 'lineNext' }, s.lineNext),
+        div({ class: 'stretchyBit' },
+          div({ class: 'lyricsArea' },
+            p({ class: 'linePrevious' }, s.linePrevious),
+            p({ class: 'lineCurrent' }, s.lineCurrent),
+            p({ class: 'lineNext' }, s.lineNext),
+          ),
+          div({ class: 'playlistArea' },
+            p('Playlist goes here'),
+          ),
         ),
-        // <!-- Controls -->
-        div({ class: 'controlsOuter' },
-          // div({ class: 'controlsInner' },
-          //   button({ class: 'prevBtn', onclick: this.prevBtn.bind(this) }, '⏮️'),
-          //   button({ class: 'playBtn', onclick: this.playBtn.bind(this) }, '▶️'),
-          //   button({ class: 'pauseBtn', onclick: this.pauseBtn.bind(this) }, '⏸️'),
-          //   button({ class: 'stopBtn', onclick: this.stopBtn.bind(this) }, '⏹️'),
-          //   button({ class: 'nextBtn', onclick: this.nextBtn.bind(this) }, '⏭️'),
-          //   button({ class: 'ejectBtn', onclick: this.openFile.bind(this) }, '⏏️'),
-          // ),
+        div({ class: 'footer' },
           button({ class: 'playlistBtn', onclick: this.showPlaylist.bind(this) }, 'playlist'),
           button({ class: 'searchBtn', onclick: this.searchDlg.bind(this) }, 'search'),
-          br(),
-        ),
-        // <!-- Playlist -->
-        div({ class: 'playlist' },
-          div({ class: 'list' }),
         ),
       ),
     ))

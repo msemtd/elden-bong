@@ -312,7 +312,7 @@ The challenges it introduces: -
 * settings, menus, dialog boxes
 * lit-gui for rough test-mode menu
 * not going down the React route for now though I am enjoying Van-JS!
-* jBox for dialog boxes
+* jBox for dialog boxes - to be replaced with Van-JS FloatingWindow etc.
 * YAML for settings
 
 # MINI-GAMES
