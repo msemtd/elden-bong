@@ -115,8 +115,15 @@ export class KaraokePlayer extends MiniGameBase {
     s.linePrevious = van.state('<previous line>')
     s.lineCurrent = van.state('<current line>')
     s.lineNext = van.state('<next line>')
-    //
-    van.add(document.body, FloatingWindow({ title, closed: s.closed, width: 600, height: 500 },
+    van.derive(() => {
+      if (s.closed.val) {
+        console.log('shutdown the player!')
+      }
+    })
+
+    // Trick to allow our content to fill a FloatingWindow...
+    const childrenContainerStyleOverrides = { height: 'calc(100% - 60px)' }
+    van.add(document.body, FloatingWindow({ title, closed: s.closed, width: 600, height: 500, childrenContainerStyleOverrides },
       div({ id: 'KaraokePlayer', class: 'karaokePlayer' },
         // top div to remain in place while lyrics or playlist appears in the a
         // scrolling area below it
@@ -173,6 +180,7 @@ export class KaraokePlayer extends MiniGameBase {
           ),
           div({ class: 'playlistArea' },
             p('Playlist goes here'),
+            // have a state-derived table here
           ),
         ),
         div({ class: 'footer' },
