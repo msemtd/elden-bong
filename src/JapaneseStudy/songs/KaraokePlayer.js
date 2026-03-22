@@ -10,6 +10,8 @@ import { MiniGameBase } from '../../MiniGameBase'
 import { pickFile, shellOpenExternal, loadJsonFile } from '../../HandyApi'
 import { filePathToMine } from '../../util'
 import { loadSettings, saveTheseSettings } from '../../settings'
+import dragula from 'dragula'
+import 'dragula/dist/dragula.css'
 import './KaraokePlayer.css'
 
 /* eslint-disable @stylistic/comma-dangle */
@@ -23,12 +25,6 @@ const Table = ({ head, data, tabProps }) => table(
     row.map(col => td(col))
   )))
 )
-
-async function pick (options) {
-  const info = await pickFile(options)
-  if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-  return info.filePaths[0]
-}
 
 /**
  * Karaoke player for language learning and fun
@@ -98,6 +94,12 @@ export class KaraokePlayer extends MiniGameBase {
     this.popWindow()
   }
 
+  shutdownPlayer () {
+    console.log('shutdown the player!')
+    // TODO: save the state - volume, playlist, track, etc.
+    this.howl?.unload()
+  }
+
   popWindow () {
     if (document.getElementById('KaraokePlayer')) {
       console.log('KaraokePlayer is already open')
@@ -117,7 +119,7 @@ export class KaraokePlayer extends MiniGameBase {
     s.lineNext = van.state('<next line>')
     van.derive(() => {
       if (s.closed.val) {
-        console.log('shutdown the player!')
+        this.shutdownPlayer()
       }
     })
 
@@ -152,7 +154,7 @@ export class KaraokePlayer extends MiniGameBase {
             button({ class: 'svgIcon svgStop', onclick: this.stopBtn.bind(this) }),
             button({ class: 'svgIcon svgNext', onclick: this.nextBtn.bind(this) }),
             button({ class: 'svgIcon svgPlaylist', onclick: this.showPlaylist.bind(this) }),
-            button({ class: 'svgIcon svgLyrics', onclick: this.showPlaylist.bind(this) }),
+            button({ class: 'svgIcon svgLyrics', onclick: this.showLyrics.bind(this) }),
             button({ class: 'svgIcon svgOpen', onclick: this.openFile.bind(this) }),
             label({ for: 'volume2' }, 'Volume:'),
             input({
@@ -179,20 +181,54 @@ export class KaraokePlayer extends MiniGameBase {
             p({ class: 'lineNext' }, s.lineNext),
           ),
           div({ class: 'playlistArea' },
-            p('Playlist goes here'),
-            // have a state-derived table here
+            this.playlistComponent(),
           ),
         ),
         div({ class: 'footer' },
-          button({ class: 'playlistBtn', onclick: this.showPlaylist.bind(this) }, 'playlist'),
           button({ class: 'searchBtn', onclick: this.searchDlg.bind(this) }, 'search'),
         ),
       ),
     ))
   }
 
+  showLyrics () {
+    console.log('showLyrics')
+    $('#KaraokePlayer > div.stretchyBit > div.lyricsArea').show()
+    $('#KaraokePlayer > div.stretchyBit > div.playlistArea').hide()
+  }
+
+  showPlaylist () {
+    console.log('showPlaylist')
+    $('#KaraokePlayer > div.stretchyBit > div.lyricsArea').hide()
+    $('#KaraokePlayer > div.stretchyBit > div.playlistArea').show()
+  }
+
+  playlistComponent () {
+    if (!this.playlist.length) {
+      return p('no tunes loaded')
+    }
+    return this.playlist.map(x => this.playListItemComponent(x))
+  }
+
+  playListItemComponent (x) {
+    return div({ class: 'playlistItem' }, span(x.title), button('yo'))
+  }
+
   async openFile () {
-    const fp = await pick()
+    const options = {
+      filters: [
+        // { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
+        { name: 'MP3s', extensions: ['mp3'] },
+        // { name: 'Movies', extensions: ['mkv', 'avi', 'mp4'] },
+        // { name: 'Custom File Type', extensions: ['as'] },
+        // { name: 'All Files', extensions: ['*'] }
+      ]
+    }
+    // TODO add each file to playlist (if not already there!) and play the first one
+    // only picks one file - the option for multiSelections isn't passed yet
+    const info = await pickFile(options)
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+    const fp = info.filePaths[0]
     if (!fp) { return }
     const u = filePathToMine(fp)
     console.log(u)
@@ -302,37 +338,6 @@ export class KaraokePlayer extends MiniGameBase {
     if (!itm.lyrics) {
       console.log('no lyrics yet')
     }
-  }
-
-  showPlaylist () {
-    console.log('showPlaylist')
-    //
-    const head = ['#', 'title', 'lyrics',]
-    const lyricsBtn = (itm) => button({ onclick: () => { this.editLyricsFor(itm) } }, '🎤')
-    const data = this.playlist.map((itm, idx) => [idx, itm.title, lyricsBtn(itm)])
-    const tabProps = { class: 'playlistTab', border: '1px solid black', width: '100%' }
-    // Use the technique used in the BanzukeDialog to swap div shown in
-    // the floating window. Show the playlist instead of the player controls,
-    // showing a close button to return to the player view.
-    const playlistDivId = 'KaraokePlayerPlaylist'
-    const contentDiv = $('#KaraokePlayer')
-    contentDiv.hide()
-    const closeBtnClicked = () => {
-      $(`#${playlistDivId}`).remove()
-      contentDiv.show()
-    }
-    const dlgDiv = $('div.vanui-window > div.vanui-window-children').has(contentDiv)
-    van.add(dlgDiv[0], div(
-      { id: playlistDivId },
-      Table({ head, data, tabProps }),
-      p(this.props.playlist || 'No playlist file chosen'),
-      p(
-        button({ onclick: () => { this.browseForPlaylistFile() } }, 'Load Playlist File'),
-        button({ }, 'Save'),
-        button({ }, 'Save as'),
-      ),
-      button({ onclick: closeBtnClicked }, 'Close'),
-    ))
   }
 
   async browseForPlaylistFile () {

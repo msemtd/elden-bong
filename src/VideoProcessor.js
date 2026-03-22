@@ -18,7 +18,7 @@ export class VideoProcessor {
   // NB: to be run in main thread...
   // external tools download - use DataDir? nah!
   async getVid (url, options) {
-    const exe = 'C:/Users/msemt/Documents/dev/yt-dlp/yt-dlp.exe'
+    const exe = this.exePath
     // TODO: can I set the path in the env of the sub-process?
     // can provide it on command line
     // SET PATH=ffmpeg-master-latest-win64-gpl\bin;%PATH%
@@ -44,7 +44,6 @@ export class VideoProcessor {
     // TODO: where to download? User home dir will do for now...
     const info = os.userInfo()
     const dir = info.homedir
-
     const s = await awaitableSubProcess(exe, [url], dir, 'getVid')
     console.dir(s)
     const k = identifyDataParse(s)

@@ -16,7 +16,7 @@ import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
 import { Matcha } from './Matcha/Matcha'
 import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
-
+import { VideoCacheGui } from './VideoCache/VideoCacheGui'
 /**
  * Allow the mini-games wrapper provide a games room
  *
@@ -72,6 +72,7 @@ class MiniGames extends THREE.EventDispatcher {
       weatherForecastForecast: new WeatherForecastForecast(this),
       matcha: new Matcha(this),
       karaokePlayer: new KaraokePlayer(this),
+      videoCache: new VideoCacheGui(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''
