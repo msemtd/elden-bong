@@ -9,7 +9,7 @@ const readDir = handy.readDir
 const outputFile = handy.outputFile
 const shellOpenPath = handy.shellOpenPath
 const shellOpenExternal = handy.shellOpenExternal
-const videoProcessor = handy.shellOpenExternal
+const videoProcessor = handy.videoProcessor
 
 export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal, videoProcessor }
 
