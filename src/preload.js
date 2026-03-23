@@ -20,16 +20,17 @@ contextBridge.exposeInMainWorld('handy', {
   slurp: (filePath, options) => ipcRenderer.invoke('slurp', filePath, options),
   readDir: (path) => ipcRenderer.invoke('readDir', path),
   outputFile: (...args) => ipcRenderer.invoke('outputFile', ...args),
+  shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
+  shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
+  videoProcessor: (...args) => ipcRenderer.invoke('videoProcessor', ...args),
+  // File paths from File Drop API
+  getPathForFile: (file) => webUtils.getPathForFile(file),
   // Map support...
   // getMapTiles: () => ipcRenderer.invoke('getMapTiles'),
   sliceBigMap: (...args) => ipcRenderer.invoke('sliceBigMap', ...args),
   identifyImage: (...args) => ipcRenderer.invoke('identifyImage', ...args),
   getSkyBoxMineUrlList: (...args) => ipcRenderer.invoke('getSkyBoxMineUrlList', ...args),
   readE57: (...args) => ipcRenderer.invoke('readE57', ...args),
-  shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
-  shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
-  // File paths from File Drop API
-  getPathForFile: (file) => webUtils.getPathForFile(file),
 })
 
 contextBridge.exposeInMainWorld('settings', {

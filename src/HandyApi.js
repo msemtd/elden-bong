@@ -9,8 +9,9 @@ const readDir = handy.readDir
 const outputFile = handy.outputFile
 const shellOpenPath = handy.shellOpenPath
 const shellOpenExternal = handy.shellOpenExternal
+const videoProcessor = handy.shellOpenExternal
 
-export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal }
+export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal, videoProcessor }
 
 async function loadJsonFile (fp) { return await slurp(fp, { json: true }) }
 async function loadTextFile (fp) { return await slurp(fp, { text: true }) }

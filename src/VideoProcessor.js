@@ -9,7 +9,15 @@ import os from 'node:os'
  */
 export class VideoProcessor {
   constructor (exePath, ffmpegPath, nodePath) {
+    // various video downloading/processing tools can be used here: yt-dlp, ffmpeg, etc
     // https://github.com/yt-dlp/yt-dlp
+    // get it on windows...
+    // curl -L  https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o yt-dlp.exe
+    // https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
+    // install
+    // node available and decent version
+
+
     this.exePath = exePath || ''
     this.ffmpegPath = ffmpegPath || ''
     this.nodePath = nodePath || ''
@@ -44,10 +52,16 @@ export class VideoProcessor {
     // TODO: where to download? User home dir will do for now...
     const info = os.userInfo()
     const dir = info.homedir
+    if (url === 'help') {
+      const s = await awaitableSubProcess(exe, ['--help'], dir, 'getVid help')
+      return s
+    }
+    if (url === 'version') {
+      const s = await awaitableSubProcess(exe, ['--version'], dir, 'getVid version')
+      return s
+    }
     const s = await awaitableSubProcess(exe, [url], dir, 'getVid')
     console.dir(s)
-    const k = identifyDataParse(s)
-    console.dir(k)
     return s
   }
 }

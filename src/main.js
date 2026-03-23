@@ -7,6 +7,8 @@ import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'elect
 import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
+import { VideoProcessor } from './VideoProcessor'
+import { loadSettings } from './settings'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -68,6 +70,7 @@ app.whenReady().then(() => {
   ipcMain.handle('shellOpenExternal', async (event, ...args) => { return await shellOpenExternal(...args) })
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
   ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
+  ipcMain.handle('videoProcessor', async (event, ...args) => { return await videoProcessor(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -219,4 +222,15 @@ async function shellOpenPath (path) {
 
 async function shellOpenExternal (url) {
   return await shell.openExternal(url)
+}
+
+async function videoProcessor (...args) {
+  // get settings...
+  dbg('videoProcessor setup need settings From Renderer')
+  const settings = loadSettings('Video Cache', { exePath: '' })
+  const exePath = settings.exePath
+  const ffmpegPath = settings.ffmpegPath
+  const nodePath = settings.nodePath
+  const vp = new VideoProcessor(exePath, ffmpegPath, nodePath)
+  vp.getVid(...args)
 }
