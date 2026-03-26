@@ -64,10 +64,9 @@ export class VideoCacheGui extends MiniGameBase {
 
   async vpHelp () {
     // run vp --help and vp --version and show the output in a dialog
-    const exePath = this.props.exePath
-    const helpOutput = await videoProcessor('help')
-    const versionOutput = await videoProcessor('version')
-    const msg = `Help output:\n${helpOutput}\n\nVersion output:\n${versionOutput}`
+    const helpOutput = await videoProcessor('help', { exePath: this.props.exePath })
+    const msg = `Help output:\n${helpOutput}`
+    const vid = 'https://www.youtube.com/watch?v=UnqejtHwGLs'
     Dlg.awaitableDialog(msg, 'Video Processor Help and Version')
   }
 }

@@ -17,7 +17,6 @@ export class VideoProcessor {
     // install
     // node available and decent version
 
-
     this.exePath = exePath || ''
     this.ffmpegPath = ffmpegPath || ''
     this.nodePath = nodePath || ''
@@ -54,10 +53,6 @@ export class VideoProcessor {
     const dir = info.homedir
     if (url === 'help') {
       const s = await awaitableSubProcess(exe, ['--help'], dir, 'getVid help')
-      return s
-    }
-    if (url === 'version') {
-      const s = await awaitableSubProcess(exe, ['--version'], dir, 'getVid version')
       return s
     }
     const s = await awaitableSubProcess(exe, [url], dir, 'getVid')

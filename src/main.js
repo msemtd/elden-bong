@@ -8,7 +8,6 @@ import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
 import { VideoProcessor } from './VideoProcessor'
-import { loadSettings } from './settings'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -224,13 +223,14 @@ async function shellOpenExternal (url) {
   return await shell.openExternal(url)
 }
 
-async function videoProcessor (...args) {
-  // get settings...
-  dbg('videoProcessor setup need settings From Renderer')
-  const settings = loadSettings('Video Cache', { exePath: '' })
-  const exePath = settings.exePath
-  const ffmpegPath = settings.ffmpegPath
-  const nodePath = settings.nodePath
-  const vp = new VideoProcessor(exePath, ffmpegPath, nodePath)
-  vp.getVid(...args)
+let vp = null
+
+async function videoProcessor (url, options) {
+  // first call must have options
+  if (!vp && options instanceof Object) {
+    vp = new VideoProcessor(options.exePath, options.ffmpegPath, options.nodePath)
+  }
+  if (vp) {
+    vp.getVid(url)
+  }
 }
