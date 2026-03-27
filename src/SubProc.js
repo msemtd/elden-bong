@@ -75,3 +75,31 @@ export function awaitableSubProcess (exe, args, cwd, prefix, notifyFunc) {
   promise.s = s
   return promise
 }
+
+export function spawnProcess (executablePath, args = [], options = {}, onStdout, onStderr, onExit) {
+  let immediateError = ''
+  const childProcess = spawn(executablePath, args, options)
+  const stdoutLine = readline.createInterface({ input: childProcess.stdout, crlfDelay: Infinity })
+  stdoutLine.on('line', (msg) => { onStdout?.(msg) })
+  const stderrLine = readline.createInterface({ input: childProcess.stderr, crlfDelay: Infinity })
+  stderrLine.on('line', (err) => { onStderr?.(err) })
+  childProcess.on('close', (code, signal) => { onExit?.(Number(code), signal || immediateError) })
+  childProcess.on('error', (err) => { immediateError = err.message })
+  return childProcess
+}
+
+// future plans include returning a tuple of process and promise to allow
+// killing the process if needed, but for now we just return the promise
+export function spawnProcessPromise (executablePath, args = [], options = {}, onStdout, onStderr) {
+  return new Promise((resolve, reject) => {
+    try {
+      const onExit = (code, signal) => {
+        resolve({ code, signal })
+      }
+      // eslint-disable-next-line no-unused-vars
+      const childProcess = spawnProcess(executablePath, args, options, onStdout, onStderr, onExit)
+    } catch (error) {
+      reject((error instanceof Error) ? error : Error(`${error}`))
+    }
+  })
+}
