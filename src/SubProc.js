@@ -76,7 +76,17 @@ export function awaitableSubProcess (exe, args, cwd, prefix, notifyFunc) {
   return promise
 }
 
-export function spawnProcess (executablePath, args = [], options = {}, onStdout, onStderr, onExit) {
+/**
+ * Spawns a child process and returns a promise that resolves when the process exits.
+ * @param {string} executablePath - The path to the executable to run.
+ * @param {string[]} [args=[]] - An array of arguments to pass to the executable.
+ * @param {object} [options={}] - Options to pass to the spawn function.
+ * @param {function} [onStdout] - A callback function that is called with each line of stdout output.
+ * @param {function} [onStderr] - A callback function that is called with each line of stderr output.
+ * @param {function} [onExit] - A callback function that is called when the process exits.
+ * @returns {Promise<{code: number, signal: string}>} A promise that resolves with the exit code and signal when the process exits.
+ */
+export function spawnProc (executablePath, args = [], options = {}, onStdout, onStderr, onExit) {
   let immediateError = ''
   const childProcess = spawn(executablePath, args, options)
   const stdoutLine = readline.createInterface({ input: childProcess.stdout, crlfDelay: Infinity })
@@ -88,8 +98,6 @@ export function spawnProcess (executablePath, args = [], options = {}, onStdout,
   return childProcess
 }
 
-// future plans include returning a tuple of process and promise to allow
-// killing the process if needed, but for now we just return the promise
 export function spawnProcessPromise (executablePath, args = [], options = {}, onStdout, onStderr) {
   return new Promise((resolve, reject) => {
     try {
@@ -97,9 +105,42 @@ export function spawnProcessPromise (executablePath, args = [], options = {}, on
         resolve({ code, signal })
       }
       // eslint-disable-next-line no-unused-vars
-      const childProcess = spawnProcess(executablePath, args, options, onStdout, onStderr, onExit)
+      const childProcess = spawnProc(executablePath, args, options, onStdout, onStderr, onExit)
     } catch (error) {
       reject((error instanceof Error) ? error : Error(`${error}`))
     }
   })
+}
+
+/**
+   * Thin convenience wrapper around `ExternalProcess.spawnProcessPromise` to run
+   * a command and log the output with a prefix.
+   * Throws if the process exits with a non-zero code.
+   * @param {string} prefix log prefix to identify the source of the output
+   * @param {string} exe path to the executable to run
+   * @param {string[]} args arguments to pass to the executable
+   * @param {any} options options to pass to spawnProcessPromise (e.g. { cwd: 'someDir' })
+   * @param {Function} [outHandler] optional function to handle stdout lines, if not provided stdout will be logged with the prefix
+   * @returns {Promise<void>} resolves when the process exits successfully, rejects if it exits with a non-zero code
+   */
+export async function execSubProc (log, prefix, exe, args = [], options = {}, outHandler) {
+  const stdOut = (msg) => {
+    if (!msg) { return }
+    if (outHandler) {
+      outHandler(msg)
+    } else {
+      log.info(`${prefix}stdout ${msg}`)
+    }
+  }
+  const stdErr = (msg) => {
+    if (!msg) { return }
+    log.info(`${prefix}stderr ${msg}`)
+  }
+  const exitInfo = await spawnProcessPromise(exe, args, options, stdOut, stdErr)
+  const sig = (exitInfo.signal ? ` and signal ${exitInfo.signal}` : '')
+  const msg = `${prefix}exitCode ${exitInfo.code}${sig}`
+  log.info(msg)
+  if (exitInfo.code !== 0) {
+    throw Error(msg)
+  }
 }
