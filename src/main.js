@@ -231,6 +231,6 @@ async function videoProcessor (url, options) {
     vp = new VideoProcessor(options.exePath, options.ffmpegPath, options.nodePath)
   }
   if (vp) {
-    vp.getVid(url)
+    return await vp.getVid(url)
   }
 }

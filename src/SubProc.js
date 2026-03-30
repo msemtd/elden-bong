@@ -120,26 +120,22 @@ export function spawnProcessPromise (executablePath, args = [], options = {}, on
    * @param {string} exe path to the executable to run
    * @param {string[]} args arguments to pass to the executable
    * @param {any} options options to pass to spawnProcessPromise (e.g. { cwd: 'someDir' })
-   * @param {Function} [outHandler] optional function to handle stdout lines, if not provided stdout will be logged with the prefix
+   * @param {Function} [outHandler] function to handle output with the prefix
    * @returns {Promise<void>} resolves when the process exits successfully, rejects if it exits with a non-zero code
    */
-export async function execSubProc (log, prefix, exe, args = [], options = {}, outHandler) {
+export async function execSubProc (prefix, exe, args = [], options = {}, outHandler) {
   const stdOut = (msg) => {
     if (!msg) { return }
-    if (outHandler) {
-      outHandler(msg)
-    } else {
-      log.info(`${prefix}stdout ${msg}`)
-    }
+    outHandler(`${prefix}stdout ${msg}`)
   }
   const stdErr = (msg) => {
     if (!msg) { return }
-    log.info(`${prefix}stderr ${msg}`)
+    outHandler(`${prefix}stderr ${msg}`)
   }
   const exitInfo = await spawnProcessPromise(exe, args, options, stdOut, stdErr)
   const sig = (exitInfo.signal ? ` and signal ${exitInfo.signal}` : '')
   const msg = `${prefix}exitCode ${exitInfo.code}${sig}`
-  log.info(msg)
+  outHandler(msg)
   if (exitInfo.code !== 0) {
     throw Error(msg)
   }

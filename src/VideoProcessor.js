@@ -1,4 +1,4 @@
-import { awaitableSubProcess } from './SubProc'
+import { awaitableSubProcess, execSubProc } from './SubProc'
 import fs from 'fs-extra'
 import path from 'path'
 import { identifyDataParse, rxBetween, tileFile, xyToIndex, getPad } from './util'
@@ -24,7 +24,7 @@ export class VideoProcessor {
 
   // NB: to be run in main thread...
   // external tools download - use DataDir? nah!
-  async getVid (url, options) {
+  async getVid (url) {
     const exe = this.exePath
     // TODO: can I set the path in the env of the sub-process?
     // can provide it on command line
@@ -51,12 +51,17 @@ export class VideoProcessor {
     // TODO: where to download? User home dir will do for now...
     const info = os.userInfo()
     const dir = info.homedir
-    if (url === 'help') {
-      const s = await awaitableSubProcess(exe, ['--help'], dir, 'getVid help')
-      return s
+    const options = { cwd: dir }
+    const lines = []
+    // the output handler could be sending progress messages back to renderer!
+    const outHandler = (msg) => {
+      lines.push(msg)
     }
-    const s = await awaitableSubProcess(exe, [url], dir, 'getVid')
-    console.dir(s)
-    return s
+    if (url === 'help') {
+      await execSubProc('getVid:help:', exe, ['--help'], options, outHandler)
+    } else {
+      await execSubProc('getVid:url:', exe, [url], options, outHandler)
+    }
+    return lines.join('\n')
   }
 }
