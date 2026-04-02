@@ -61,7 +61,8 @@ class JapaneseStudy extends MiniGameBase {
       const links = {
         wpKyouikuKanji: () => { shellOpenExternal('https://en.wikipedia.org/wiki/Ky%C5%8Diku_kanji') },
         jisho: () => { shellOpenExternal('https://jisho.org/') },
-        kanjivg: () => { shellOpenExternal('https://kanjivg.tagaini.net/index.html') }
+        kanjivg: () => { shellOpenExternal('https://kanjivg.tagaini.net/index.html') },
+        wanikaniKanji: () => { shellOpenExternal('https://www.wanikani.com/kanji') },
       }
       this.gui.add(links, 'wpKyouikuKanji')
       this.gui.add(links, 'jisho')

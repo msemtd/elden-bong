@@ -28,9 +28,21 @@ It's terrible, yes, it's terrible
 watashi mo chotto taihen na no yo
 I too am a bit of a nightmare
 
+あいつのハート追いかけて
+aitsu no haato oikakete
+Chasing after his heart
 
+夏の日差しは恋のリズムなのに
+natsu no hizashi wa koi no rizumu na noni
+The summer sun is the rhythm of love, but
 
+どうしてなの一人じゃ踊れない
+doushite na no hitori ja odorenai
+Why is it that I can't dance alone?
 
+夏の動物園は忙しい
+natsu no doubutsuen wa isogashii
+The summer zoo is busy
 
 ゾウさん風引き
 zou-san kaze hiki
@@ -48,21 +60,9 @@ The bear stayed up all night
 me ni kuma ga dekita
 Bags under his eyes, the bear
 
-あいつのハート追いかけて
-夏の日差しは恋のリズムなのに
-どうしてなの一人じゃ踊れない
-
-**夏の動物園は忙しい
-サイのおしゃべり
-ウルサイ止めてください
-カエルのクロールにゃあきれカエル
 大変だそりゃ大変だ
-
-私もちょっと大変なのよ
-デートの約束したのに
-突然のキャンセルなんて
-どうしてなの話が違
-
+taihen da sorya taihen da
+It's terrible, yes, it's terrible
 
 `
     // cspell: enable
