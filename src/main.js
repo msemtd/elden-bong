@@ -229,6 +229,7 @@ async function videoProcessor (url, options) {
   // first call must have options
   if (!vp && options instanceof Object) {
     vp = new VideoProcessor(options.exePath, options.ffmpegPath, options.nodePath)
+    vp.rendererNotify = rendererNotify
   }
   if (vp) {
     return await vp.getVid(url)

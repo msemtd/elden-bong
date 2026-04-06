@@ -56,6 +56,9 @@ export class VideoProcessor {
     // the output handler could be sending progress messages back to renderer!
     const outHandler = (msg) => {
       lines.push(msg)
+      if (this.rendererNotify instanceof Function) {
+        this.rendererNotify('getVidFeedback', msg)
+      }
     }
     if (url === 'help') {
       await execSubProc('getVid:help:', exe, ['--help'], options, outHandler)

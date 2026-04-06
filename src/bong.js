@@ -521,7 +521,7 @@ class Bong extends THREE.EventDispatcher {
       }
       return
     }
-    console.log('main process says: ', topic, msg)
+    this.dispatchEvent({ type: topic, msg })
   }
 
   async setSkyBox (v) {

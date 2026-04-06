@@ -9,6 +9,7 @@ import { FloatingWindow } from 'vanjs-ui'
 import path from 'path-browserify'
 import { videoProcessor } from '../HandyApi'
 import { Dlg } from '../dlg'
+import { Bong } from '../bong'
 
 const { p, div, button, input, label, span, table, tbody, thead, td, th, tr, br } = van.tags
 
@@ -28,6 +29,11 @@ export class VideoCacheGui extends MiniGameBase {
       this.gui.add(this.props, 'exePath').name('exePath').onFinishChange((v) => {
         console.log(`exePath set to ${v}`)
         saveTheseSettings(this.name, this.props)
+      })
+      Bong.getInstance().addEventListener('getVidFeedback', (ev) => {
+        // TODO: add to active window if it exists
+        //  - get with jQuery add with Van.add
+        console.log('hello')
       })
     })
   }
@@ -57,6 +63,7 @@ export class VideoCacheGui extends MiniGameBase {
           p('yo'),
           button({ onclick: () => { this.vpHelp() } }, 'run help'),
           button({ onclick: () => { } }, 'find a video caching app'),
+          input({})
         ),
       )
     )
@@ -65,8 +72,11 @@ export class VideoCacheGui extends MiniGameBase {
   async vpHelp () {
     // run vp --help and vp --version and show the output in a dialog
     const helpOutput = await videoProcessor('help', { exePath: this.props.exePath })
-    const msg = `Help output:\n${helpOutput}`
+    const msg = `<pre>\n${helpOutput}\n</pre>`
     const vid = 'https://www.youtube.com/watch?v=UnqejtHwGLs'
+    // want something like a console output - a new floating window maybe with
+    // lines that update as data comes in
+
     Dlg.awaitableDialog(msg, 'Video Processor Help and Version')
   }
 }
