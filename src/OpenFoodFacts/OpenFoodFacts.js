@@ -5,6 +5,8 @@
 // https://world.openfoodfacts.org/data/food-products.duckdb
 // https://blog.openfoodfacts.org/en/news/food-transparency-in-the-palm-of-your-hand-explore-the-largest-open-food-database-using-duckdb-%f0%9f%a6%86x%f0%9f%8d%8a
 
+// also see https://github.com/openfoodfacts/openfoodfacts-js
+
 export class OpenFoodFacts {
   constructor () {
     this.apiUrl = 'https://world.openfoodfacts.org/api/v0/'

@@ -12,7 +12,7 @@
  * - simple HTML popup will be OK for now - links to open things in system browser
  * - 3D things might be fun too
  *
- * cSpell:words kanjivg heisig hepburn jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki
+ * cSpell:words kanjivg heisig hepburn jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki NihongoKantan Kyōiku
  */
 
 import * as THREE from 'three'
@@ -203,6 +203,11 @@ class JapaneseStudy extends MiniGameBase {
             }
 
           }
+        },
+        books: {
+          NihongoKantan: {
+            url: 'https://ppli.ie/nihongo_kantan_textbook_cd1/',
+          },
         }
       }
     }
