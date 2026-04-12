@@ -24,7 +24,7 @@ export class VideoProcessor {
 
   // NB: to be run in main thread...
   // external tools download - use DataDir? nah!
-  async getVid (url) {
+  async getVid (url, xa = false) {
     const exe = this.exePath
     // TODO: can I set the path in the env of the sub-process?
     // can provide it on command line
@@ -63,7 +63,17 @@ export class VideoProcessor {
     if (url === 'help') {
       await execSubProc('getVid:help:', exe, ['--help'], options, outHandler)
     } else {
-      await execSubProc('getVid:url:', exe, [url], options, outHandler)
+      const args = [url]
+      if (xa) {
+        args.push('--extract-audio', '--audio-format', 'mp3')
+      }
+      if (this.ffmpegPath) {
+        args.push('--ffmpeg-location', this.ffmpegPath)
+      }
+      if (this.nodePath) {
+        args.push('--js-runtimes', `node:"${this.ffmpegPath}"`)
+      }
+      await execSubProc('getVid:url:', exe, args, options, outHandler)
     }
     return lines.join('\n')
   }

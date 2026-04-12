@@ -17,7 +17,9 @@ export class VideoCacheGui extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Video Cache')
     this.props = {
-      exePath: ''
+      exePath: '',
+      ffmpegPath: '',
+      nodePath: '',
     }
     this.settings = loadSettings(this.name, this.props)
     this.props = { ...this.props, ...this.settings }
@@ -26,10 +28,12 @@ export class VideoCacheGui extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.gui.add(this, 'runTest')
-      this.gui.add(this.props, 'exePath').name('exePath').onFinishChange((v) => {
-        console.log(`exePath set to ${v}`)
+      const fld = this.gui.addFolder('settings').onFinishChange((v) => {
         saveTheseSettings(this.name, this.props)
       })
+      fld.add(this.props, 'exePath').name('exePath')
+      fld.add(this.props, 'ffmpegPath').name('ffmpegPath')
+      fld.add(this.props, 'nodePath').name('nodePath')
       Bong.getInstance().addEventListener('getVidFeedback', (ev) => {
         // TODO: add to active window if it exists
         //  - get with jQuery add with Van.add
@@ -57,13 +61,18 @@ export class VideoCacheGui extends MiniGameBase {
     const title = '📼 Video Cache'
     const width = 640
     const height = 480
+    const inputText = van.state('')
+    const xa = van.state(false)
+
     van.add(document.body,
       FloatingWindow({ title, closed, width, height, childrenContainerStyleOverrides },
         div({ id, class: 'videoCacheGui' },
           p('yo'),
           button({ onclick: () => { this.vpHelp() } }, 'run help'),
-          button({ onclick: () => { } }, 'find a video caching app'),
-          input({})
+          input({ type: 'text', value: inputText, oninput: e => { inputText.val = e.target.value } }),
+          'audio',
+          input({ type: 'checkbox', checked: xa, oninput: e => { xa.val = e.target.checked } }),
+          button({ onclick: () => { this.download(inputText.val, xa.val) } }, 'download'),
         ),
       )
     )
@@ -71,12 +80,14 @@ export class VideoCacheGui extends MiniGameBase {
 
   async vpHelp () {
     // run vp --help and vp --version and show the output in a dialog
-    const helpOutput = await videoProcessor('help', { exePath: this.props.exePath })
+    const helpOutput = await videoProcessor('help', { ...this.props })
     const msg = `<pre>\n${helpOutput}\n</pre>`
-    const vid = 'https://www.youtube.com/watch?v=UnqejtHwGLs'
-    // want something like a console output - a new floating window maybe with
-    // lines that update as data comes in
-
     Dlg.awaitableDialog(msg, 'Video Processor Help and Version')
+  }
+
+  async download (url, xa) {
+    const msg = await videoProcessor(url, { ...this.props, xa })
+    const msg2 = `<pre>\n${msg}\n</pre>`
+    Dlg.awaitableDialog(msg2, 'Video Processor output')
   }
 }
