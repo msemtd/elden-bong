@@ -2,6 +2,8 @@
  * BeansDb - do you like beans?
  * UK's cheapest brands of baked beans (the supermarket chains' own brands) are
  * way better that Heinz. FIGHT ME!
+ *
+ * https://kewey.furvect.com/sumo/beans/beans2.mp4
  */
 
 export class BeansDb {
