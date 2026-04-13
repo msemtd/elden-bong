@@ -7,7 +7,7 @@ import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'elect
 import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
-import { VideoProcessor } from './VideoProcessor'
+import { VideoCacheMain } from './VideoCache/VideoCacheMain'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -69,7 +69,7 @@ app.whenReady().then(() => {
   ipcMain.handle('shellOpenExternal', async (event, ...args) => { return await shellOpenExternal(...args) })
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
   ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
-  ipcMain.handle('videoProcessor', async (event, ...args) => { return await videoProcessor(...args) })
+  ipcMain.handle('videoCache', async (event, ...args) => { return await videoCache(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -225,13 +225,13 @@ async function shellOpenExternal (url) {
 
 let vp = null
 
-async function videoProcessor (url, options) {
+async function videoCache (url, options) {
   // first call must have options
   if (!vp && options instanceof Object) {
-    vp = new VideoProcessor(options.exePath, options.ffmpegPath, options.nodePath)
+    vp = new VideoCacheMain(options.exePath, options.ffmpegPath, options.nodePath)
     vp.rendererNotify = rendererNotify
   }
   if (vp) {
-    return await vp.getVid(url)
+    return await vp.getVid(url, options.xa)
   }
 }

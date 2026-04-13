@@ -1,13 +1,10 @@
-import { awaitableSubProcess, execSubProc } from './SubProc'
-import fs from 'fs-extra'
-import path from 'path'
-import { identifyDataParse, rxBetween, tileFile, xyToIndex, getPad } from './util'
+import { execSubProc } from '../SubProc'
 import os from 'node:os'
 
 /**
  * Uses Node APIs and so operates in the main thread (or worker)
  */
-export class VideoProcessor {
+export class VideoCacheMain {
   constructor (exePath, ffmpegPath, nodePath) {
     // various video downloading/processing tools can be used here: yt-dlp, ffmpeg, etc
     // https://github.com/yt-dlp/yt-dlp

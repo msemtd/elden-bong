@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('handy', {
   outputFile: (...args) => ipcRenderer.invoke('outputFile', ...args),
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
-  videoProcessor: (...args) => ipcRenderer.invoke('videoProcessor', ...args),
+  videoCache: (...args) => ipcRenderer.invoke('videoCache', ...args),
   // File paths from File Drop API
   getPathForFile: (file) => webUtils.getPathForFile(file),
   // Map support...

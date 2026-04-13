@@ -7,7 +7,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import van from 'vanjs-core/debug'
 import { FloatingWindow } from 'vanjs-ui'
 import path from 'path-browserify'
-import { videoProcessor } from '../HandyApi'
+import { videoCache } from '../HandyApi'
 import { Dlg } from '../dlg'
 import { Bong } from '../bong'
 
@@ -23,6 +23,7 @@ export class VideoCacheGui extends MiniGameBase {
     }
     this.settings = loadSettings(this.name, this.props)
     this.props = { ...this.props, ...this.settings }
+    this.jobId = 0
     parent.addEventListener('ready', (ev) => {
       this.onReady(ev)
       console.assert(this.gui instanceof GUI)
@@ -34,11 +35,7 @@ export class VideoCacheGui extends MiniGameBase {
       fld.add(this.props, 'exePath').name('exePath')
       fld.add(this.props, 'ffmpegPath').name('ffmpegPath')
       fld.add(this.props, 'nodePath').name('nodePath')
-      Bong.getInstance().addEventListener('getVidFeedback', (ev) => {
-        // TODO: add to active window if it exists
-        //  - get with jQuery add with Van.add
-        console.log('hello')
-      })
+      Bong.getInstance().addEventListener('getVidFeedback', (ev) => { this.vpFeedback(ev) })
     })
   }
 
@@ -80,14 +77,21 @@ export class VideoCacheGui extends MiniGameBase {
 
   async vpHelp () {
     // run vp --help and vp --version and show the output in a dialog
-    const helpOutput = await videoProcessor('help', { ...this.props })
+    const helpOutput = await videoCache('help', { ...this.props })
     const msg = `<pre>\n${helpOutput}\n</pre>`
-    Dlg.awaitableDialog(msg, 'Video Processor Help and Version')
+    Dlg.awaitableDialog(msg, 'Video Cache Help and Version')
   }
 
   async download (url, xa) {
-    const msg = await videoProcessor(url, { ...this.props, xa })
+    this.jobId++
+    const jobId = this.jobId
+    console.log(`Starting video cache job ${jobId} for url: ${url} with extract-audio: ${xa}`)
+    const msg = await videoCache(url, { ...this.props, xa, jobId })
     const msg2 = `<pre>\n${msg}\n</pre>`
-    Dlg.awaitableDialog(msg2, 'Video Processor output')
+    Dlg.awaitableDialog(msg2, 'Video cache output')
+  }
+
+  async vpFeedback (ev) {
+    console.log('Video cache feedback:', ev)
   }
 }
