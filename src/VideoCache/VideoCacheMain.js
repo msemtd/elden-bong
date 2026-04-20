@@ -1,5 +1,7 @@
-import { execSubProc } from '../SubProc'
+import { app, shell } from 'electron'
 import os from 'node:os'
+import path from 'node:path'
+import { execSubProc } from '../SubProc'
 
 /**
  * Uses Node APIs and so operates in the main thread (or worker)
@@ -45,15 +47,30 @@ export class VideoCacheMain {
     // REM ~ where node
     // %SP%\yt-dlp.exe --js-runtimes node:"C:\Program Files\Volta\node.exe" --ffmpeg-location %FFMPEG% --extract-audio --audio-format mp3 https://www.youtube.com/watch?v=SOCjkXBeKRs
 
-    // TODO: where to download? User home dir will do for now...
+    // TODO: where to download? User home dir or downloads dir will do for now...
+    // temp Temporary directory.
+    // desktop The current user's Desktop directory.
+    // documents Directory for a user's "My Documents".
+    // downloads Directory for a user's downloads.
+    // music Directory for a user's music.
+    // pictures Directory for a user's pictures.
+    // videos Directory for a user's videos.
     const info = os.userInfo()
-    const dir = info.homedir
+    const dir = app.getPath('downloads') || info.homedir
+    let fileDownloaded = ''
     const options = { cwd: dir }
     const lines = []
     // the output handler could be sending progress messages back to renderer!
     const outHandler = (msg) => {
       lines.push(msg)
       if (this.rendererNotify instanceof Function) {
+        // scan message for hints - e.g. grab video or audio output file name
+        if (xa) {
+          const mp3File = /Destination: (.+\.mp3)/.exec(msg)?.[1]
+          if (mp3File) {
+            fileDownloaded = path.join(dir, mp3File)
+          }
+        }
         this.rendererNotify('getVidFeedback', msg)
       }
     }
@@ -71,6 +88,7 @@ export class VideoCacheMain {
         args.push('--js-runtimes', `node:"${this.ffmpegPath}"`)
       }
       await execSubProc('getVid:url:', exe, args, options, outHandler)
+      shell.showItemInFolder(fileDownloaded || dir)
     }
     return lines.join('\n')
   }

@@ -2,6 +2,7 @@ import { AboutSongs, SongBase } from './AboutSongs'
 // cspell:disable
 export class MinowaBashi extends SongBase {
   // info: https://www.uta-net.com/song/162814/
+  // https://www.youtube.com/watch?v=8poIKbleJNg
 
   constructor () {
     super('三ノ輪橋 (Minowa Bashi)', '半田浩二 (Koji Handa)', 2014)
