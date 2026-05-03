@@ -68,6 +68,7 @@ const defaultSettings = {
   autoRunMiniGame: '',
   autoOpenGuiFolder: '',
   dataDir: '',
+  characterModelsDir: '',
 }
 
 function loadSettings (localStorageKey, defaults) {

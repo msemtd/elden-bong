@@ -164,7 +164,9 @@ class Bong extends THREE.EventDispatcher {
       const fld = this.gui.addFolder('Character').close()
       fld.add(this, 'testLoadCharacter')
       fld.add(this, 'deleteCharacter')
-      fld.add(this.PROPS.character, 'className', characterClasses)
+      fld.add(this.PROPS.character, 'className', characterClasses).onChange(v => {
+        this.changeCharacter(v)
+      })
     }
     {
       const fld = this.gui.addFolder('Test').close()
@@ -249,6 +251,7 @@ class Bong extends THREE.EventDispatcher {
         fld.add(this.settings, 'autoLoadMap')
         fld.add(this.settings, 'autoRunMiniGame')
         fld.add(this.settings, 'autoOpenGuiFolder')
+        fld.add(this.settings, 'characterModelsDir')
         const sub = fld.addFolder('onScreen').onFinishChange(() => {
           this.updateOnScreenGubbins()
         })
@@ -420,11 +423,15 @@ class Bong extends THREE.EventDispatcher {
     if (!fp) { return }
     const u = filePathToMine(fp)
     console.log(u)
+    await this.loadCharacter(fp)
+  }
+
+  async loadCharacter (fp) {
     const scene = this.screen.scene
     const e = scene.getObjectByName('character')
     if (e) {
-      Dlg.errorDialog('character already loaded')
-      return
+      depthFirstReverseTraverse(null, e, generalObj3dClean)
+      e.removeFromParent()
     }
     const loader = new GLTFLoader()
     // The GLTF loader doesn't like the mine URL type - texture loader seemed OK with it though!
@@ -441,10 +448,10 @@ class Bong extends THREE.EventDispatcher {
       // need to rotate it upright for our Z-up...
       gObj.scene.rotateX(Math.PI / 2)
       scene.add(charGroup)
-      this.redraw()
     }, undefined, function (error) {
       console.error(error)
     })
+    this.redraw()
   }
 
   deleteCharacter () {
@@ -454,6 +461,28 @@ class Bong extends THREE.EventDispatcher {
     depthFirstReverseTraverse(null, e, generalObj3dClean)
     e.removeFromParent()
     this.redraw()
+  }
+
+  changeCharacter (v) {
+    console.log('character class change: ' + v)
+    const characterMappings = {
+      Dork: 'Adventurer.glb',
+      Pleb: 'Animated Woman.glb',
+      Wuss: 'Medieval.glb',
+      Goon: 'Punk.glb',
+      Geek: 'Sci Fi Character.glb',
+      Jock: 'Soldier.glb',
+      Suit: 'Suit.glb',
+      Jerk: 'Witch.glb',
+      Nerd: 'Worker.glb',
+    }
+    const glb = characterMappings[v]
+    if (!glb) {
+      console.warn('no mapping for ' + v)
+      return
+    }
+    const fp = path.join(this.settings.characterModelsDir, glb)
+    this.loadCharacter(fp)
   }
 
   async testConfirmDialog () {
