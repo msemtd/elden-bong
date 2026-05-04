@@ -17,6 +17,7 @@ import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForeca
 import { Matcha } from './Matcha/Matcha'
 import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
 import { VideoCacheGui } from './VideoCache/VideoCacheGui'
+
 /**
  * Allow the mini-games wrapper provide a games room
  *

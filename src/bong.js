@@ -20,11 +20,12 @@ import { bongData } from './bongData'
 import { VanStuff } from './VanStuff'
 import { UserControls } from './Controls'
 import { MiniGames } from './MiniGames'
-import { depthFirstReverseTraverse, generalObj3dClean, addGrid } from './threeUtil'
+import { addGrid } from './threeUtil'
 import { isInteger } from './wahWah'
 import { FileDrop } from './FileDrop'
 import { SoundBoard } from './SoundBoard'
 import { AboutBox } from './AboutBox'
+import { Character } from './Character'
 
 async function pick () {
   const info = await pickFile()
@@ -107,6 +108,7 @@ class Bong extends THREE.EventDispatcher {
     this.fileDrop.init(c.container, this.fileDropHandler.bind(this), this.urlDropHandler.bind(this))
     // this.addDemoCube(c)
     this.miniGames = null
+    this.character = new Character(this)
     this.makeGui()
     this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
@@ -121,9 +123,14 @@ class Bong extends THREE.EventDispatcher {
     return instance
   }
 
+  // for regular character movement in character mode just store the current
+  // state of held keys?
   onKeyDown (ev) {
     if (isInputEvent(ev)) {
       console.log('apparently an input event')
+      return false
+    }
+    if (ev.isComposing || ev.keyCode === 229) {
       return false
     }
     // give mini-games the first refusal...
@@ -162,10 +169,10 @@ class Bong extends THREE.EventDispatcher {
     }
     {
       const fld = this.gui.addFolder('Character').close()
-      fld.add(this, 'testLoadCharacter')
-      fld.add(this, 'deleteCharacter')
+      fld.add(this.character, 'testLoadCharacter')
+      fld.add(this.character, 'deleteCharacter')
       fld.add(this.PROPS.character, 'className', characterClasses).onChange(v => {
-        this.changeCharacter(v)
+        this.character.changeCharacter(v)
       })
     }
     {
@@ -409,80 +416,6 @@ class Bong extends THREE.EventDispatcher {
   async loadE57File (fp) {
     const info = await window.handy.readE57(fp)
     console.dir(info)
-  }
-
-  /**
-   * Load a third-party character model and try to make it useful.
-   * Add it to a new group called 'character'.
-   * When loaded the user should be able to examine it and tweak it.
-   * Get a list of animations and test them.
-   * When user is happy with their edits they can save it in a known game format.
-   */
-  async testLoadCharacter () {
-    const fp = await pick()
-    if (!fp) { return }
-    const u = filePathToMine(fp)
-    console.log(u)
-    await this.loadCharacter(fp)
-  }
-
-  async loadCharacter (fp) {
-    const scene = this.screen.scene
-    const e = scene.getObjectByName('character')
-    if (e) {
-      depthFirstReverseTraverse(null, e, generalObj3dClean)
-      e.removeFromParent()
-    }
-    const loader = new GLTFLoader()
-    // The GLTF loader doesn't like the mine URL type - texture loader seemed OK with it though!
-    // Load the file in main as binary and pass the ArrayBuffer
-    const buffer = await loadBinaryFile(fp)
-    loader.parse(buffer.buffer, '', (gObj) => {
-      const charGroup = new THREE.Group()
-      charGroup.name = 'character'
-      // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
-      // For the ones I have here, the scene is the model
-      charGroup.add(gObj.scene)
-      // the object contains the animations and other stuff which may be useful!
-      charGroup.userData = gObj
-      // need to rotate it upright for our Z-up...
-      gObj.scene.rotateX(Math.PI / 2)
-      scene.add(charGroup)
-    }, undefined, function (error) {
-      console.error(error)
-    })
-    this.redraw()
-  }
-
-  deleteCharacter () {
-    const scene = this.screen.scene
-    const e = scene.getObjectByName('character')
-    if (!e) { return }
-    depthFirstReverseTraverse(null, e, generalObj3dClean)
-    e.removeFromParent()
-    this.redraw()
-  }
-
-  changeCharacter (v) {
-    console.log('character class change: ' + v)
-    const characterMappings = {
-      Dork: 'Adventurer.glb',
-      Pleb: 'Animated Woman.glb',
-      Wuss: 'Medieval.glb',
-      Goon: 'Punk.glb',
-      Geek: 'Sci Fi Character.glb',
-      Jock: 'Soldier.glb',
-      Suit: 'Suit.glb',
-      Jerk: 'Witch.glb',
-      Nerd: 'Worker.glb',
-    }
-    const glb = characterMappings[v]
-    if (!glb) {
-      console.warn('no mapping for ' + v)
-      return
-    }
-    const fp = path.join(this.settings.characterModelsDir, glb)
-    this.loadCharacter(fp)
   }
 
   async testConfirmDialog () {
