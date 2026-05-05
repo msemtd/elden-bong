@@ -4069,6 +4069,11 @@ hepburn@^1.2.1:
   dependencies:
     bulk-replace "0.0.1"
 
+hold-event@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/hold-event/-/hold-event-1.1.2.tgz#4e8916fc939590e3af67fdd77499f0865960b44c"
+  integrity sha512-Bx0A6OBY70cs23orUWk0DuBAAeJjEbmyg8Gnye9+M8+XeWy2CcmRyfiJhTnQQz9s25r9SYjici3URy176MFs5A==
+
 hosted-git-info@^2.1.4:
   version "2.8.9"
   resolved "https://registry.npmjs.org/hosted-git-info/-/hosted-git-info-2.8.9.tgz"
