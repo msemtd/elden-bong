@@ -59,6 +59,10 @@ Basic layout is a full-screen three canvas with a lil-gui widget but much more c
   * stats manager
   * weapons/items to hold
   * https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN
+  * Ultimate Modular Women Pack by Quaternius [CC-BY] via Poly Pizza
+      https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN
+      https://poly.pizza/u/Quaternius
+      https://creativecommons.org/licenses/by/3.0/
 
 * gradients - https://cssgradient.io/
 * look at toon materials

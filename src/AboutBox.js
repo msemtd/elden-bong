@@ -28,6 +28,13 @@ export class AboutBox {
             link('http://creativecommons.org/licenses/by-sa/3.0/'), ')'
           ),
           li(
+            'Ultimate Modular Women Pack by Quaternius [CC-BY] via Poly Pizza ',
+            link('https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN'),
+            ' ', link('https://poly.pizza/u/Quaternius'),
+            ', license: CC BY 3.0 (',
+            link('https://creativecommons.org/licenses/by/3.0/'), ')'
+          ),
+          li(
             'Grass Texture by p0ss ', link('https://opengameart.org/node/9710'),
             ', license: GPL 2.0 (',
             link('http://www.gnu.org/licenses/old-licenses/gpl-2.0.html'), ')'

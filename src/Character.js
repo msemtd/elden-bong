@@ -6,7 +6,7 @@ import { filePathToMine } from './util'
 import { pickFile, loadBinaryFile } from './HandyApi'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import path from 'path-browserify'
-
+import { Dlg } from './dlg'
 /**
  * Having Character as a MiniGame - good idea?
  * Well, character functionality could do with being abstracted
@@ -36,6 +36,11 @@ export class Character {
     const glb = characterMappings[v]
     if (!glb) {
       console.warn('no mapping for ' + v)
+      return
+    }
+    if (!this.bong.settings.characterModelsDir) {
+      Dlg.popup('Please set the character models directory in settings before trying to load a character model.', 'No character models directory set')
+      console.warn('no character models dir set')
       return
     }
     const fp = path.join(this.bong.settings.characterModelsDir, glb)
