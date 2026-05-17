@@ -7,36 +7,46 @@ import { pickFile, loadBinaryFile } from './HandyApi'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import path from 'path-browserify'
 import { Dlg } from './dlg'
+
 /**
- * Having Character as a MiniGame - good idea?
- * Well, character functionality could do with being abstracted
- * - remove heavy code from bong.js
+ * Character classes functionality abstracted from bong.js
  * - at startup load character for game state we are loading
  * - initial game states
  * - floor, sky, area name, mood, music
  */
+
+const characterMappings = {
+  Dork: 'Adventurer.glb',
+  Pleb: 'Animated Woman.glb',
+  Bozo: 'Animated Woman-nIItLV9nxS.glb',
+  Wuss: 'Medieval.glb',
+  Goon: 'Punk.glb',
+  Geek: 'Sci Fi Character.glb',
+  Jock: 'Soldier.glb',
+  Suit: 'Suit.glb',
+  Jerk: 'Witch.glb',
+  Nerd: 'Worker.glb',
+}
+
 export class Character {
   constructor (bong) {
     this.bong = bong
   }
 
+  static classNames () {
+    return Object.keys(characterMappings)
+  }
+
   changeCharacter (v) {
     console.log('character class change: ' + v)
-    const characterMappings = {
-      Dork: 'Adventurer.glb',
-      Pleb: 'Animated Woman.glb',
-      Wuss: 'Medieval.glb',
-      Goon: 'Punk.glb',
-      Geek: 'Sci Fi Character.glb',
-      Jock: 'Soldier.glb',
-      Suit: 'Suit.glb',
-      Jerk: 'Witch.glb',
-      Nerd: 'Worker.glb',
-    }
     const glb = characterMappings[v]
     if (!glb) {
       console.warn('no mapping for ' + v)
       return
+    }
+    if (this.bong.mainDirs.staticDir) {
+      const d = path.join(this.bong.mainDirs.staticDir, 'models', 'character')
+      console.warn('load instead from ' + d)
     }
     if (!this.bong.settings.characterModelsDir) {
       Dlg.popup('Please set the character models directory in settings before trying to load a character model.', 'No character models directory set')

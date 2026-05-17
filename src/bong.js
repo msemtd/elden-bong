@@ -33,7 +33,6 @@ async function pick () {
   return info.filePaths[0]
 }
 
-const characterClasses = bongData.characterClasses
 const regionNames = bongData.regions.map(x => x.name)
 let instance = null
 
@@ -41,6 +40,7 @@ class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
     super()
     instance = this
+    this.mainDirs = {} // gets set soon
     this.settings = loadSettings('eldenBong', defaultSettings)
     distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
@@ -171,7 +171,8 @@ class Bong extends THREE.EventDispatcher {
       const fld = this.gui.addFolder('Character').close()
       fld.add(this.character, 'testLoadCharacter')
       fld.add(this.character, 'deleteCharacter')
-      fld.add(this.PROPS.character, 'className', characterClasses).onChange(v => {
+      console.dir(bongData)
+      fld.add(this.PROPS.character, 'className', bongData.characterClasses).onChange(v => {
         this.character.changeCharacter(v)
       })
     }
@@ -482,6 +483,9 @@ class Bong extends THREE.EventDispatcher {
         this.setSkyBox(this.settings.scene.background.skyBox)
       }
       return
+    }
+    if (topic === 'mainDirs') {
+      this.mainDirs = msg
     }
     this.dispatchEvent({ type: topic, msg })
   }

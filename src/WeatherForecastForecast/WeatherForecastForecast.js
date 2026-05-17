@@ -1,16 +1,14 @@
-import path from 'path-browserify'
+import 'path-browserify'
 import * as THREE from 'three'
-import van from 'vanjs-core/debug'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { MiniGameBase } from '../MiniGameBase'
+import van from 'vanjs-core/debug'
 import { Dlg } from '../dlg'
-import { shellOpenPath, shellOpenExternal } from '../HandyApi'
-import { filePathToMine } from '../util'
+import { shellOpenExternal } from '../HandyApi'
+import { MiniGameBase } from '../MiniGameBase'
 import { FloatingWindow } from 'vanjs-ui'
 import { WeatherForecast } from './WeatherForecast'
-import { DataDir } from '../DataDir'
 
-const { p, div, button, label, textarea, progress, table, tbody, thead, td, th, tr } = van.tags
+const { p, div, button, textarea, table, tbody, thead, td, th, tr } = van.tags
 
 export class WeatherForecastForecast extends MiniGameBase {
   constructor (parent) {

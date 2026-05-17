@@ -113,6 +113,7 @@ async function settingsFromRenderer (settings) {
   const skyBoxList = await getSkyBoxList(path.join(staticDir, 'skyBoxes'))
   dbg('skyBoxList', skyBoxList)
   mainWindow.webContents.send('renderer-notify', 'skyBoxList', skyBoxList)
+  mainWindow.webContents.send('renderer-notify', 'mainDirs', { staticDir, dataDir: dataDir.dir })
 }
 
 function skyBoxFileNames (n) {

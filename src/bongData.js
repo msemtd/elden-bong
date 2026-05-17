@@ -1,4 +1,7 @@
+import { Character } from './Character'
+
 const bongData = {
+  characterClasses: Character.classNames(),
   themes: [
     'mildly amusing puns',
     '70s, 80s, 90s music and television (UK)',
@@ -86,7 +89,5 @@ const bongData = {
   // Leyndell, Capital of Ash
   // Subterranean Shunning-grounds
   // Endings
-  characterClasses: ['Dork', 'Nerd', 'Jerk', 'Goon', 'Jock', 'Geek', 'Wuss'],
-
 }
 export { bongData }
