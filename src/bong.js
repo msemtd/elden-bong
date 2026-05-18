@@ -171,7 +171,6 @@ class Bong extends THREE.EventDispatcher {
       const fld = this.gui.addFolder('Character').close()
       fld.add(this.character, 'testLoadCharacter')
       fld.add(this.character, 'deleteCharacter')
-      console.dir(bongData)
       fld.add(this.PROPS.character, 'className', bongData.characterClasses).onChange(v => {
         this.character.changeCharacter(v)
       })

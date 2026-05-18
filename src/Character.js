@@ -45,8 +45,9 @@ export class Character {
       return
     }
     if (this.bong.mainDirs.staticDir) {
-      const d = path.join(this.bong.mainDirs.staticDir, 'models', 'character')
-      console.warn('load instead from ' + d)
+      const fp = path.join(path.join(this.bong.mainDirs.staticDir, 'models', 'character'), glb)
+      this.loadCharacter(fp)
+      return
     }
     if (!this.bong.settings.characterModelsDir) {
       Dlg.popup('Please set the character models directory in settings before trying to load a character model.', 'No character models directory set')

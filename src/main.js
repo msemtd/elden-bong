@@ -43,7 +43,8 @@ const createWindow = () => {
   mainWindow.removeMenu()
   // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
-  mainWindow.webContents.openDevTools()
+  // to open DevTools at startup...
+  // mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12' && !input.control && !input.alt && !input.meta && !input.shift) {
       mainWindow.webContents.openDevTools()
@@ -55,6 +56,9 @@ const createWindow = () => {
       mainWindow.setFullScreen(!mainWindow.isFullScreen())
       event.preventDefault()
     }
+  })
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('renderer-notify', 'mainDirs', { staticDir, dataDir: dataDir.dir })
   })
 }
 
@@ -113,7 +117,6 @@ async function settingsFromRenderer (settings) {
   const skyBoxList = await getSkyBoxList(path.join(staticDir, 'skyBoxes'))
   dbg('skyBoxList', skyBoxList)
   mainWindow.webContents.send('renderer-notify', 'skyBoxList', skyBoxList)
-  mainWindow.webContents.send('renderer-notify', 'mainDirs', { staticDir, dataDir: dataDir.dir })
 }
 
 function skyBoxFileNames (n) {
