@@ -27,6 +27,11 @@
     "@babel/helper-string-parser" "^7.25.9"
     "@babel/helper-validator-identifier" "^7.25.9"
 
+"@dimforge/rapier3d@^0.19.3":
+  version "0.19.3"
+  resolved "https://registry.yarnpkg.com/@dimforge/rapier3d/-/rapier3d-0.19.3.tgz#eca704398f98e1740f5e5c823654e340d96d1c58"
+  integrity sha512-tkD1tvHTDML0W9s9rUYAsx0btO9LbVTnMBKJWVgOsas5haGFbYY+pzr5hbwYysv/IJmgmMrIFoVWIcsaCUE9ow==
+
 "@electron-forge/cli@^7.8.3":
   version "7.8.3"
   resolved "https://registry.yarnpkg.com/@electron-forge/cli/-/cli-7.8.3.tgz#22eb1409047f747a9f2a8b697c1e2c5f461d2d84"

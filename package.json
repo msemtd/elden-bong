@@ -41,6 +41,7 @@
     "webpack": "5.1.0"
   },
   "dependencies": {
+    "@dimforge/rapier3d": "^0.19.3",
     "@pnext/three-loader": "https://github.com/pnext/three-loader.git",
     "@svgdotjs/svg.js": "^3.2.0",
     "@yatiac/name-that-color": "^1.1.0",
