@@ -12,7 +12,7 @@ rules.push({ test: /\.css$/, use: [{ loader: 'style-loader' }, { loader: 'css-lo
   {
     test: /\.(glb|gltf)$/,
     type: 'asset/resource',
-  },
+  }
 )
 
 module.exports = {
@@ -46,6 +46,9 @@ module.exports = {
       // vm: require.resolve('vm-browserify'),
       // zlib: require.resolve('browserify-zlib'),
     },
+  },
+  experiments: {
+    asyncWebAssembly: true,
   },
 
 }

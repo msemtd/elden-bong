@@ -26,6 +26,7 @@ import { FileDrop } from './FileDrop'
 import { SoundBoard } from './SoundBoard'
 import { AboutBox } from './AboutBox'
 import { Character } from './Character'
+import { Physics } from './Physics'
 
 async function pick () {
   const info = await pickFile()
@@ -296,6 +297,11 @@ class Bong extends THREE.EventDispatcher {
     if (this.settings?.gameState && this.settings?.scene?.onScreen?.showFirstRegionName) {
       this.restoreGameState(this.settings.gameState)
     }
+    this.physics = new Physics(this.screen.scene, this.mainDirs.staticDir)
+    this.physics.init().then(() => {
+      console.log('physics is init-ed!')
+    })
+
     this.miniGames = new MiniGames(this)
     if (this.settings.autoRunMiniGame) {
       this.miniGames.autoRunMiniGame = this.settings.autoRunMiniGame
@@ -485,6 +491,7 @@ class Bong extends THREE.EventDispatcher {
     }
     if (topic === 'mainDirs') {
       this.mainDirs = msg
+      return
     }
     this.dispatchEvent({ type: topic, msg })
   }

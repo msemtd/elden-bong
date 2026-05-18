@@ -44,7 +44,7 @@ const createWindow = () => {
   // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
   // to open DevTools at startup...
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12' && !input.control && !input.alt && !input.meta && !input.shift) {
       mainWindow.webContents.openDevTools()
