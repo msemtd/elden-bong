@@ -1,12 +1,10 @@
+import path from 'path-browserify'
 import * as THREE from 'three'
-// eslint-disable-next-line no-unused-vars
-import { Screen } from './Screen'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { Dlg } from './dlg'
+import { getMainDirs, loadBinaryFile, pickFile } from './HandyApi'
 import { depthFirstReverseTraverse, generalObj3dClean } from './threeUtil'
 import { filePathToMine } from './util'
-import { pickFile, loadBinaryFile } from './HandyApi'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import path from 'path-browserify'
-import { Dlg } from './dlg'
 
 /**
  * Character classes functionality abstracted from bong.js
@@ -37,16 +35,17 @@ export class Character {
     return Object.keys(characterMappings)
   }
 
-  changeCharacter (v) {
+  async changeCharacter (v) {
     console.log('character class change: ' + v)
     const glb = characterMappings[v]
     if (!glb) {
       console.warn('no mapping for ' + v)
       return
     }
-    if (this.bong.mainDirs.staticDir) {
-      const fp = path.join(path.join(this.bong.mainDirs.staticDir, 'models', 'character'), glb)
-      this.loadCharacter(fp)
+    const mainDirs = await getMainDirs()
+    if (mainDirs.staticDir) {
+      const fp = path.join(mainDirs.staticDir, 'models', 'character', glb)
+      await this.loadCharacter(fp)
       return
     }
     if (!this.bong.settings.characterModelsDir) {
@@ -55,7 +54,7 @@ export class Character {
       return
     }
     const fp = path.join(this.bong.settings.characterModelsDir, glb)
-    this.loadCharacter(fp)
+    await this.loadCharacter(fp)
   }
 
   async loadCharacter (fp) {
@@ -74,12 +73,15 @@ export class Character {
       charGroup.name = 'character'
       // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
       // For the ones I have here, the scene is the model
-      charGroup.add(gObj.scene)
+      const model = gObj.scene
+      model.rotateX(Math.PI / 2)
+      charGroup.add(model)
       // the object contains the animations and other stuff which may be useful!
       charGroup.userData = gObj
       // need to rotate it upright for our Z-up...
-      gObj.scene.rotateX(Math.PI / 2)
       scene.add(charGroup)
+      const aa = gObj.animations
+      console.dir(aa)
     }, undefined, function (error) {
       console.error(error)
     })

@@ -38,6 +38,7 @@ const createWindow = () => {
     webPreferences: {
       // eslint-disable-next-line no-undef
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      // additionalArguments: ['--staticDir=' + staticDir, '--dataDir=' + dataDir.dir],
     },
   })
   mainWindow.removeMenu()
@@ -56,9 +57,6 @@ const createWindow = () => {
       mainWindow.setFullScreen(!mainWindow.isFullScreen())
       event.preventDefault()
     }
-  })
-  mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('renderer-notify', 'mainDirs', { staticDir, dataDir: dataDir.dir })
   })
 }
 
@@ -81,6 +79,7 @@ app.whenReady().then(() => {
   ipcMain.handle('getSkyBoxMineUrlList', (event, ...args) => { return getSkyBoxMineUrlList(...args) })
   ipcMain.handle('luaTest', (event, ...args) => { return luaTest(...args) })
   ipcMain.handle('readE57', (event, ...args) => { return E57.readE57(...args) })
+  ipcMain.handle('getMainDirs', (event, ...args) => { return { staticDir, dataDir: dataDir.dir } })
   dataDir.setupIpcMainHandlers()
   createWindow()
 })

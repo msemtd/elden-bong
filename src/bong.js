@@ -40,7 +40,6 @@ class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
     super()
     instance = this
-    this.mainDirs = {} // gets set soon
     this.settings = loadSettings('eldenBong', defaultSettings)
     distributeSettings(this.settings)
     this.screen = new Screen(appDiv)
@@ -482,10 +481,6 @@ class Bong extends THREE.EventDispatcher {
       if (this.settings.scene.background?.skyBox) {
         this.setSkyBox(this.settings.scene.background.skyBox)
       }
-      return
-    }
-    if (topic === 'mainDirs') {
-      this.mainDirs = msg
       return
     }
     this.dispatchEvent({ type: topic, msg })

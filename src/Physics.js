@@ -3,8 +3,8 @@ import path from 'path-browserify'
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { MiniGameBase } from './MiniGameBase'
-import { Bong } from './bong'
 import { filePathToMine } from './util'
+import { getMainDirs } from './HandyApi'
 
 // cspell: words dimforge heightfield
 
@@ -25,12 +25,13 @@ export class Physics extends MiniGameBase {
       console.assert(this.gui instanceof GUI)
       console.assert(this.group instanceof THREE.Group)
       this.scene = this.group
-      this.staticDir = Bong.getInstance().mainDirs.staticDir
+      // this.staticDir = Bong.getInstance().mainDirs.staticDir
       this.gui.add(this, 'runTest')
     })
   }
 
   async init () {
+    this.staticDir = (await getMainDirs()).staticDir
     import('@dimforge/rapier3d').then(RAPIER => {
       console.log('import done')
       this.world = new RAPIER.World({ x: 0.0, y: 0.0, z: -9.81 })
