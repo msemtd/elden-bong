@@ -1,7 +1,10 @@
-import * as THREE from 'three'
 import { RigidBody, World } from '@dimforge/rapier3d'
-import { filePathToMine } from './util'
 import path from 'path-browserify'
+import * as THREE from 'three'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { MiniGameBase } from './MiniGameBase'
+import { Bong } from './bong'
+import { filePathToMine } from './util'
 
 // cspell: words dimforge heightfield
 
@@ -13,11 +16,18 @@ function loadTexture (path) {
   return texture
 }
 
-export class Physics {
-  constructor (scene, staticDir) {
-    this.scene = scene
-    this.staticDir = staticDir
+export class Physics extends MiniGameBase {
+  constructor (parent) {
+    super(parent, 'Physics')
     this.world = null
+    parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
+      console.assert(this.gui instanceof GUI)
+      console.assert(this.group instanceof THREE.Group)
+      this.scene = this.group
+      this.staticDir = Bong.getInstance().mainDirs.staticDir
+      this.gui.add(this, 'runTest')
+    })
   }
 
   async init () {
@@ -28,19 +38,23 @@ export class Physics {
     })
   }
 
+  async runTest () {
+    this.activate()
+    await this.init()
+  }
+
   generateTerrain (nSubDivs, scale, RAPIER) {
     const heights = []
-
-    // three plane
     const threeFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(scale.x, scale.y, nSubDivs, nSubDivs),
       new THREE.MeshStandardMaterial({
-        // map: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_basecolor.png'))),
-        // normalMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_normal.png'))),
-        // aoMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_ambientOcclusion.png'))),
-        // roughnessMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_roughness.png'))),
+        map: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_baseColor.png'))),
+        normalMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_normal.png'))),
+        aoMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_ambientOcclusion.png'))),
+        roughnessMap: loadTexture(filePathToMine(path.join(this.staticDir, 'floors', 'Cobblestone_Irregular_Floor_001_roughness.png'))),
         roughness: 0.6
-      }))
+      })
+    )
     // threeFloor.rotateX(-Math.PI / 2)
     threeFloor.receiveShadow = true
     threeFloor.castShadow = true

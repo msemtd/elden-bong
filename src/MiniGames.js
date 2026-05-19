@@ -1,22 +1,23 @@
 import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { CardsDude } from './CardsDude/CardsDude'
-import { MoanSwooper } from './MoanSwooper/MoanSwooper'
-import { ShedBuilder } from './ShedBuilder/ShedBuilder'
-import { Screen } from './Screen'
+import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
+import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
+import { Culture } from './Marain/Culture'
+import { Matcha } from './Matcha/Matcha'
+import { MiniGameBase } from './MiniGameBase'
+import { MoanSwooper } from './MoanSwooper/MoanSwooper'
 import { NekoHerder } from './NekoHerder/NekoHerder'
+import { Physics } from './Physics'
 import { PiTrain } from './PiTrain/PiTrain'
+import { Screen } from './Screen'
+import { ShedBuilder } from './ShedBuilder/ShedBuilder'
 import { Sudoku } from './Sudoku/Sudoku'
 import { SumoDoyoh } from './SumoDoyoh/SumoDoyoh'
-import { Culture } from './Marain/Culture'
 import { Tetris } from './Tetris/Tetris'
-import { MiniGameBase } from './MiniGameBase'
-import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
-import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
-import { Matcha } from './Matcha/Matcha'
-import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
 import { VideoCacheGui } from './VideoCache/VideoCacheGui'
+import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
 
 /**
  * Allow the mini-games wrapper provide a games room
@@ -74,6 +75,7 @@ class MiniGames extends THREE.EventDispatcher {
       matcha: new Matcha(this),
       karaokePlayer: new KaraokePlayer(this),
       videoCache: new VideoCacheGui(this),
+      physics: new Physics(this)
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''

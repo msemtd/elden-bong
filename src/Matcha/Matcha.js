@@ -1198,7 +1198,6 @@ export class Matcha extends MiniGameBase {
     // img, name, rank, etc.
     // the big list - per-rank pages
     // name search
-    
 
   }
 }
