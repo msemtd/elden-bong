@@ -9,8 +9,9 @@ import { filePathToMine } from './util'
 /**
  * Character classes functionality abstracted from bong.js
  * - at startup load character for game state we are loading
- * - initial game states
- * - floor, sky, area name, mood, music
+ * - using built in character models for ease of setup
+ * - check animations and other features of the model with...
+ *   https://github.com/donmccurdy/three-gltf-viewer
  */
 
 const characterMappings = {
