@@ -74,8 +74,14 @@ class Bong extends THREE.EventDispatcher {
       // this needs to be validated surely?
       gameState: { ...this.settings.gameState },
     }
-    this.mapMan = new MapMan()
+    // With regards to map-mode and character-mode:
+    // - character mode is really just "anything that isn't map mode"! Or use of
+    //   a perspective camera rather than an orthographic camera, covering any
+    //   free-camera-movement gameplay, exploration, etc.
+    // - maybe map-mode can be munged into the mini-game model?
     this.mapModeData = null
+    this.characterModeData = null
+    this.mapMan = new MapMan()
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     this.slicerDialog = null

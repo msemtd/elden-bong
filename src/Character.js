@@ -8,10 +8,19 @@ import { filePathToMine } from './util'
 
 /**
  * Character classes functionality abstracted from bong.js
- * - at startup load character for game state we are loading
  * - using built in character models for ease of setup
+ * - mapping player character classes to models from
+ *   Ultimate Modular Women Pack by Quaternius [CC-BY] via Poly Pizza
+ *   https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN
+ *   https://poly.pizza/u/Quaternius
+ *   license: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+ *
+ * cspell: ignore Quaternius
+ * This has a lot of common character model loading functionality so could be
+ * used for NPC, enemy, player, etc.
  * - check animations and other features of the model with...
  *   https://github.com/donmccurdy/three-gltf-viewer
+ *
  */
 
 const characterMappings = {
@@ -27,9 +36,22 @@ const characterMappings = {
   Nerd: 'Worker.glb',
 }
 
+let animationKeys = null
+
 export class Character {
   constructor (bong) {
     this.bong = bong
+    // when we switch characters we want to fix up all the objects
+    this.mixer = null
+    this.currentAction = null
+    this.animationsMap = null
+    // start off with an OrbitControls or go straight to camera-controls
+    // how to mesh with the existing camera and controls which is managed by
+    // Screen object - just replicate the work in the example
+    // in character playing mode we will be following the character
+    // The existing modes in bong.js need to be developed
+    // we will always need a free-moving mode for exploration
+    // anyhow, mini-games can take control anything
   }
 
   static classNames () {
@@ -78,11 +100,18 @@ export class Character {
       model.rotateX(Math.PI / 2)
       charGroup.add(model)
       // the object contains the animations and other stuff which may be useful!
-      charGroup.userData = gObj
+      // charGroup.userData = gObj
       // need to rotate it upright for our Z-up...
       scene.add(charGroup)
       const aa = gObj.animations
-      console.dir(aa)
+      const ak = aa.map(x => x.name)
+      console.log(ak)
+      if (!animationKeys) {
+        animationKeys = ak
+      } else {
+        // manual check for common animation names matching across all the built-in models
+        console.assert(ak.join(' | ') === animationKeys.join(' | '), 'different animations?')
+      }
     }, undefined, function (error) {
       console.error(error)
     })

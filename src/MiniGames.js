@@ -36,7 +36,7 @@ import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForeca
  * - add your own lil-gui folder to gui
  * - add your group to the given group
  * - save the redraw request function
- * - hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
+ * - formally hook into the screen features: animation mixers, controls, mouse clicks, selection, ray-tracing, etc.
  *
  * ## tempted to have a MiniGame base class
  * actually done but more TODO

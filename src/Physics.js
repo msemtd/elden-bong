@@ -8,14 +8,23 @@ import { getMainDirs } from './HandyApi'
 
 // cspell: words dimforge heightfield
 
-function loadTexture (path) {
-  const texture = new THREE.TextureLoader().load(path)
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.x = 10
-  texture.repeat.y = 10
-  return texture
-}
-
+/**
+ * This is a journey into the world of game physics using Rapier3D (for now).
+ *
+ * For 3D adventure game world navigation and object interaction.
+ * Get to grips with the ideas in Rapier3D - limited world, manual copying of
+ * results of physics
+ *
+ * I'm copying the example code at https://github.com/tamani-coding/threejs-rapier3d-character-terrain-movement/
+ * with changes to suit my player-character, game-controls, camera-controls, animation-loop, etc.
+ * The MiniGames system is used for convenience:
+ * - ensure readiness at startup
+ * - runTest feature, enable/disable, menu
+ * - add and remove work in the animation loop
+ * - own settings
+ *
+ *
+ */
 export class Physics extends MiniGameBase {
   constructor (parent) {
     super(parent, 'Physics')
@@ -96,4 +105,12 @@ export class Physics extends MiniGameBase {
     )
     this.world.createCollider(groundCollider, groundBody.handle)
   }
+}
+
+function loadTexture (path) {
+  const texture = new THREE.TextureLoader().load(path)
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.x = 10
+  texture.repeat.y = 10
+  return texture
 }
