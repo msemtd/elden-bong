@@ -3,8 +3,8 @@ import { AboutSongs, SongBase } from './AboutSongs'
 
 export class Seno extends SongBase {
   constructor () {
-    super('せーのっ!', '', 1970)
-    // this.singAlongVideo = 'https://www.youtube.com/watch?v='
+    super('せーのっ!', '作詞:ふわりP 作曲:ふわりP 歌:情報処理部 (大久保瑠美、津田美波、種田梨沙)', 2011)
+    // this.singAlongVideo = 'https://www.youtube.com/watch?v=Wx_g2jN0rY0'
     const a = AboutSongs.layouts
     this.dataLayout = [a.KANJI]
     this.data = `
