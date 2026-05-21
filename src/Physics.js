@@ -45,6 +45,9 @@ export class Physics extends MiniGameBase {
       console.log('import done')
       this.world = new RAPIER.World({ x: 0.0, y: 0.0, z: -9.81 })
       this.generateTerrain(20, new RAPIER.Vector3(70.0, 70.0, 3.0), RAPIER)
+      // drop some objects to interact with - just for testing - no performance considerations right now
+      // this.generateJunk()
+      // this could be done at any time! Same with adding the player character
     })
   }
 
@@ -65,6 +68,7 @@ export class Physics extends MiniGameBase {
         roughness: 0.6
       })
     )
+    threeFloor.name = 'physicsFloorPlane'
     // threeFloor.rotateX(-Math.PI / 2)
     threeFloor.receiveShadow = true
     threeFloor.castShadow = true

@@ -1,7 +1,7 @@
 import path from 'path-browserify'
 import * as THREE from 'three'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import { Dlg } from './dlg'
 import { getMainDirs, loadBinaryFile, pickFile } from './HandyApi'
 import { depthFirstReverseTraverse, generalObj3dClean } from './threeUtil'
 import { filePathToMine } from './util'
@@ -36,8 +36,6 @@ const characterMappings = {
   Nerd: 'Worker.glb',
 }
 
-let animationKeys = null
-
 export class Character {
   constructor (bong) {
     this.bong = bong
@@ -45,6 +43,7 @@ export class Character {
     this.mixer = null
     this.currentAction = null
     this.animationsMap = null
+    this.staticCharacterModelsDir = ''
     // start off with an OrbitControls or go straight to camera-controls
     // how to mesh with the existing camera and controls which is managed by
     // Screen object - just replicate the work in the example
@@ -58,31 +57,48 @@ export class Character {
     return Object.keys(characterMappings)
   }
 
-  async changeCharacter (v) {
+  async changeCharacter (v, fld) {
     console.log('character class change: ' + v)
     const glb = characterMappings[v]
     if (!glb) {
       console.warn('no mapping for ' + v)
       return
     }
-    const mainDirs = await getMainDirs()
-    if (mainDirs.staticDir) {
-      const fp = path.join(mainDirs.staticDir, 'models', 'character', glb)
-      await this.loadCharacter(fp)
-      return
+    if (!this.staticCharacterModelsDir) {
+      const mainDirs = await getMainDirs()
+      this.staticCharacterModelsDir = mainDirs.staticDir
     }
-    if (!this.bong.settings.characterModelsDir) {
-      Dlg.popup('Please set the character models directory in settings before trying to load a character model.', 'No character models directory set')
-      console.warn('no character models dir set')
-      return
+    const fp = path.join(this.staticCharacterModelsDir, glb)
+    const model = await this.loadCharacter(fp)
+    // GUI folder fun...
+    if (fld instanceof GUI) {
+      this.mixer = new THREE.AnimationMixer(model)
+      this.animationsMap = new Map()
+      model.animations.forEach(a => {
+        this.animationsMap.set(a.name, a)
+      })
+      const PROPS = { animation: '[none]' }
+      const animations = Array.from(this.animationsMap.keys())
+      console.log(animations)
+      animations.unshift(PROPS.animation)
+      const existingController = fld.controllers.find(c => c.property === 'animation')
+      if (existingController) {
+        const existingValue = existingController.getValue()
+        if (PROPS.animation !== existingValue && animations.includes(existingValue)) {
+          PROPS.animation = existingValue
+        }
+        existingController.destroy()
+      }
+      fld.add(PROPS, 'animation', animations).onChange(v => {
+        console.log('animation change: ' + v)
+      })
     }
-    const fp = path.join(this.bong.settings.characterModelsDir, glb)
-    await this.loadCharacter(fp)
   }
 
   async loadCharacter (fp) {
     const scene = this.bong.screen.scene
-    const e = scene.getObjectByName('character')
+    const name = 'character'
+    const e = scene.getObjectByName(name)
     if (e) {
       depthFirstReverseTraverse(null, e, generalObj3dClean)
       e.removeFromParent()
@@ -91,31 +107,15 @@ export class Character {
     // The GLTF loader doesn't like the mine URL type - texture loader seemed OK with it though!
     // Load the file in main as binary and pass the ArrayBuffer
     const buffer = await loadBinaryFile(fp)
-    loader.parse(buffer.buffer, '', (gObj) => {
-      const charGroup = new THREE.Group()
-      charGroup.name = 'character'
-      // TODO Are we guaranteed a scene? It looks like there can be multiple scenes in the GLTF
-      // For the ones I have here, the scene is the model
-      const model = gObj.scene
-      model.rotateX(Math.PI / 2)
-      charGroup.add(model)
-      // the object contains the animations and other stuff which may be useful!
-      // charGroup.userData = gObj
-      // need to rotate it upright for our Z-up...
-      scene.add(charGroup)
-      const aa = gObj.animations
-      const ak = aa.map(x => x.name)
-      console.log(ak)
-      if (!animationKeys) {
-        animationKeys = ak
-      } else {
-        // manual check for common animation names matching across all the built-in models
-        console.assert(ak.join(' | ') === animationKeys.join(' | '), 'different animations?')
-      }
-    }, undefined, function (error) {
-      console.error(error)
-    })
+    const gObj = await loader.parseAsync(buffer.buffer, '')
+    const model = gObj.scene
+    model.rotateX(Math.PI / 2)
+    model.name = name
+    // attach the animations to the model Object3D
+    model.animations = gObj.animations
+    scene.add(model)
     this.bong.redraw()
+    return model
   }
 
   deleteCharacter () {

@@ -177,7 +177,7 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this.character, 'testLoadCharacter')
       fld.add(this.character, 'deleteCharacter')
       fld.add(this.PROPS.character, 'className', bongData.characterClasses).onChange(v => {
-        this.character.changeCharacter(v)
+        this.character.changeCharacter(v, fld)
       })
     }
     {
@@ -263,7 +263,6 @@ class Bong extends THREE.EventDispatcher {
         fld.add(this.settings, 'autoLoadMap')
         fld.add(this.settings, 'autoRunMiniGame')
         fld.add(this.settings, 'autoOpenGuiFolder')
-        fld.add(this.settings, 'characterModelsDir')
         const sub = fld.addFolder('onScreen').onFinishChange(() => {
           this.updateOnScreenGubbins()
         })
