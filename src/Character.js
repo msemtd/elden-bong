@@ -66,7 +66,7 @@ export class Character {
     }
     if (!this.staticCharacterModelsDir) {
       const mainDirs = await getMainDirs()
-      this.staticCharacterModelsDir = mainDirs.staticDir
+      this.staticCharacterModelsDir = path.join(mainDirs.staticDir, 'models', 'character')
     }
     const fp = path.join(this.staticCharacterModelsDir, glb)
     const model = await this.loadCharacter(fp)
