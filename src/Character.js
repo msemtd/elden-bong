@@ -113,6 +113,11 @@ export class Character {
     model.name = name
     // attach the animations to the model Object3D
     model.animations = gObj.animations
+    model.animations.forEach(a => {
+      if (a.name.startsWith('CharacterArmature|')) {
+        a.name = a.name.replace('CharacterArmature|', '')
+      }
+    })
     scene.add(model)
     this.bong.redraw()
     return model
