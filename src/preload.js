@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('handy', {
   shellOpenPath: (...args) => ipcRenderer.invoke('shellOpenPath', ...args),
   shellOpenExternal: (...args) => ipcRenderer.invoke('shellOpenExternal', ...args),
   videoCache: (...args) => ipcRenderer.invoke('videoCache', ...args),
+  listZipFileContents: (...args) => ipcRenderer.invoke('listZipFileContents', ...args),
   // File paths from File Drop API
   getPathForFile: (file) => webUtils.getPathForFile(file),
   // Map support...

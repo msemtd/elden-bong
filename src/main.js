@@ -8,6 +8,7 @@ import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
 import { VideoCacheMain } from './VideoCache/VideoCacheMain'
+import yauzl from 'yauzl-promise'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -72,6 +73,7 @@ app.whenReady().then(() => {
   ipcMain.handle('readDir', async (event, ...args) => { return await readDir(...args) })
   ipcMain.handle('outputFile', async (event, ...args) => { return await outputFile(...args) })
   ipcMain.handle('videoCache', async (event, ...args) => { return await videoCache(...args) })
+  ipcMain.handle('listZipFileContents', async (event, ...args) => { return await listZipFileContents(...args) })
   // map-related functionality...
   ipcMain.handle('sliceBigMap', (event, ...args) => { return mainMap.sliceBigMap(...args) })
   ipcMain.handle('identifyImage', (event, ...args) => { return mainMap.identifyImage(...args) })
@@ -224,6 +226,18 @@ async function shellOpenPath (path) {
 
 async function shellOpenExternal (url) {
   return await shell.openExternal(url)
+}
+
+async function listZipFileContents (fp) {
+  // use yauzl or similar to list zip file contents without extracting
+  // this is needed for examining dropped zip files and asking the user what they want to do with them
+  const entries = []
+  const zip = await yauzl.open(fp)
+  for await (const entry of zip) {
+    entries.push(`Entry '${entry.filename}' is ${entry.uncompressedSize} b ${entry.compressedSize} b compressed.`)
+  }
+  zip.close()
+  return entries
 }
 
 let vp = null

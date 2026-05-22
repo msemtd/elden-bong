@@ -27,12 +27,6 @@ import { SoundBoard } from './SoundBoard'
 import { AboutBox } from './AboutBox'
 import { Character } from './Character'
 
-async function pick () {
-  const info = await pickFile()
-  if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-  return info.filePaths[0]
-}
-
 const regionNames = bongData.regions.map(x => x.name)
 let instance = null
 
@@ -161,9 +155,6 @@ class Bong extends THREE.EventDispatcher {
     }
     {
       const fld = this.gui.addFolder('Maps').close()
-      fld.add(this, 'sliceBigMap').name('slice big map')
-      fld.add(this, 'loadMapJson').name('load map json')
-      fld.add(this, 'loadMapIcons').name('load map icons')
       const loc = {
         location: regionNames[this.PROPS.gameState.region]
       }
@@ -171,6 +162,9 @@ class Bong extends THREE.EventDispatcher {
         const i = regionNames.findIndex(x => x === v)
         this.changeRegionByNumber(i)
       })
+      fld.add(this, 'sliceBigMap').name('slice big map')
+      fld.add(this, 'loadMapJson').name('load map json')
+      fld.add(this, 'loadMapIcons').name('load map icons')
     }
     {
       const fld = this.gui.addFolder('Character').close()
@@ -350,8 +344,9 @@ class Bong extends THREE.EventDispatcher {
   // - then allow user to save the params for loading next time
   // - with a transform etc.
   async loadTokyo () {
-    const fp = await pick()
-    if (!fp) { return }
+    const info = await pickFile()
+    if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length || !info.filePaths[0]) return
+    const fp = info.filePaths[0]
     const u = filePathToMine(fp)
     console.log(u)
     const scene = this.screen.scene
@@ -406,7 +401,16 @@ class Bong extends THREE.EventDispatcher {
       console.log('eat me: ', f)
       console.log('path: ', fp)
       const pp = path.parse(fp)
-      const h = handlers[pp.ext.toLowerCase()]
+      const ext = pp.ext.toLowerCase()
+      if (ext === '.zip') {
+        // TODO mechanism to examine file contents and guess what it's for
+        // also register file handler
+        // the EventDispatcher from THREE is OK but can't tell you if an event was claimed or not
+        // when there are multiple handlers for a file it would be nice to interactively ask the user what they want to do with it
+        this.dispatchEvent({ type: 'zipFileDropped', filePath: fp })
+        continue
+      }
+      const h = handlers[ext]
       if (h) {
         await h(fp)
       } else {
@@ -535,8 +539,9 @@ class Bong extends THREE.EventDispatcher {
       Dlg.errorDialog('busy doing something else!')
       return
     }
-    const fp = await pick()
-    if (!fp) { return }
+    const p = await pickFile()
+    if (p.canceled || !Array.isArray(p.filePaths) || !p.filePaths.length || !p.filePaths[0]) return
+    const fp = p.filePaths[0]
     try {
       // pop persistent dialog that should stay up until end of job, receive
       // progress notifications, etc.
@@ -567,8 +572,9 @@ class Bong extends THREE.EventDispatcher {
   }
 
   async testIdentify () {
-    const fp = await pick()
-    if (!fp) { return }
+    const p = await pickFile()
+    if (p.canceled || !Array.isArray(p.filePaths) || !p.filePaths.length || !p.filePaths[0]) return
+    const fp = p.filePaths[0]
     const magick = this.settings.tools.magick
     try {
       const result = await window.handy.identifyImage({ fp, magick })
@@ -584,6 +590,11 @@ class Bong extends THREE.EventDispatcher {
 
   async loadMapJson (fileIn) {
     try {
+      async function pick () {
+        const info = await pickFile()
+        if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
+        return info.filePaths[0]
+      }
       const fp = fileIn || await pick()
       if (!fp) { return }
       const data = await loadJsonFile(fp)
@@ -600,8 +611,9 @@ class Bong extends THREE.EventDispatcher {
       if (pg.getObjectByName('mapIconSets')) {
         throw Error('group named \'mapIconSets\' already exists')
       }
-      const fp = await pick()
-      if (!fp) { return }
+      const pi = await pickFile()
+      if (pi.canceled || !Array.isArray(pi.filePaths) || !pi.filePaths.length || !pi.filePaths[0]) return
+      const fp = pi.filePaths[0]
       const lines = await loadTextFileLines(fp)
       const data = this.mapMan.iconsFromText(lines)
       const mapIconSets = new THREE.Group()
@@ -659,7 +671,7 @@ class Bong extends THREE.EventDispatcher {
 
   mapMode () {
     if (this.mapModeData) {
-      return Dlg.errorDialog('mapMode already activated!')
+      return Dlg.popup('mapMode already activated!', 'Hmm')
     }
     const s = this.screen
     const mmd = this.mapModeData = {
@@ -687,7 +699,7 @@ class Bong extends THREE.EventDispatcher {
 
   mapModeOff () {
     if (!this.mapModeData) {
-      return Dlg.errorDialog('mapMode not activated!')
+      return Dlg.popup('mapMode not activated!', 'Hmm')
     }
     const s = this.screen
     // const oc = s.camera

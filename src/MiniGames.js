@@ -4,6 +4,7 @@ import { CardsDude } from './CardsDude/CardsDude'
 import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
+import { MapMode } from './MapMode/MapMode'
 import { Culture } from './Marain/Culture'
 import { Matcha } from './Matcha/Matcha'
 import { MiniGameBase } from './MiniGameBase'
@@ -75,7 +76,8 @@ class MiniGames extends THREE.EventDispatcher {
       matcha: new Matcha(this),
       karaokePlayer: new KaraokePlayer(this),
       videoCache: new VideoCacheGui(this),
-      physics: new Physics(this)
+      physics: new Physics(this),
+      mapMode: new MapMode(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''
@@ -191,3 +193,4 @@ class MiniGames extends THREE.EventDispatcher {
 }
 
 export { MiniGames }
+

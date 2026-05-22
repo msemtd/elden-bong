@@ -11,7 +11,8 @@ const shellOpenPath = handy.shellOpenPath
 const shellOpenExternal = handy.shellOpenExternal
 const videoCache = handy.videoCache
 const getMainDirs = handy.getMainDirs
-export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal, videoCache, getMainDirs }
+const listZipFileContents = handy.listZipFileContents
+export { pickFile, slurp, readDir, outputFile, shellOpenPath, shellOpenExternal, videoCache, getMainDirs, listZipFileContents }
 
 async function loadJsonFile (fp) { return await slurp(fp, { json: true }) }
 async function loadTextFile (fp) { return await slurp(fp, { text: true }) }
