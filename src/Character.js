@@ -3,6 +3,8 @@ import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { getMainDirs, loadBinaryFile, pickFile } from './HandyApi'
+import { MiniGameBase } from './MiniGameBase'
+import { Screen } from './Screen'
 import { depthFirstReverseTraverse, generalObj3dClean } from './threeUtil'
 import { filePathToMine } from './util'
 
@@ -36,14 +38,18 @@ const characterMappings = {
   Nerd: 'Worker.glb',
 }
 
-export class Character {
-  constructor (bong) {
-    this.bong = bong
-    this.screen = bong.screen
-    this.name = 'character'
+export class Character extends MiniGameBase {
+  static classNames () {
+    return Object.keys(characterMappings)
+  }
+
+  constructor (parent) {
+    super(parent, 'Character')
+    this.objName = 'playerCharacter'
+    this.characterClass = Character.classNames()[0]
+    this.currentAction = '[none]'
     // when we switch characters we want to fix up all the objects
     this.animationMixer = null
-    this.currentAction = '[none]'
     this.animationsMap = null
     this.fadeDuration = 0.25
     this.staticCharacterModelsDir = ''
@@ -54,10 +60,25 @@ export class Character {
     // The existing modes in bong.js need to be developed
     // we will always need a free-moving mode for exploration
     // anyhow, mini-games can take control anything
+    parent.addEventListener('ready', (ev) => {
+      this.onReady(ev)
+      console.assert(this.gui instanceof GUI)
+      console.assert(this.group instanceof THREE.Group)
+      console.assert(this.screen instanceof Screen)
+      const fld = this.gui
+      fld.add(this, 'runTest')
+      // TODO add the character class and animation testing
+      fld.add(this, 'testLoadCharacter')
+      fld.add(this, 'deleteCharacter')
+      fld.add(this, 'characterClass', Character.classNames()).onChange(v => { this.changeCharacter(v, fld) })
+    })
   }
 
-  static classNames () {
-    return Object.keys(characterMappings)
+  async runTest () {
+    console.log('runTest in character')
+    // TODO load the default character - one saved in settings perhaps
+    this.activate()
+    this.changeCharacter(this.characterClass, this.gui)
   }
 
   async changeCharacter (v, fld) {
@@ -94,6 +115,7 @@ export class Character {
         existingGuiController.destroy()
       }
       fld.add(PROPS, 'animation', animations).onChange(v => { this.changeAnimation(v) })
+      this.changeAnimation(PROPS.animation)
     }
   }
 
@@ -112,8 +134,7 @@ export class Character {
   }
 
   async loadCharacter (fp) {
-    const scene = this.bong.screen.scene
-    const e = scene.getObjectByName(this.name)
+    const e = this.group.getObjectByName(this.objName)
     if (e) {
       depthFirstReverseTraverse(null, e, generalObj3dClean)
       e.removeFromParent()
@@ -125,7 +146,7 @@ export class Character {
     const gObj = await loader.parseAsync(buffer.buffer, '')
     const model = gObj.scene
     model.rotateX(Math.PI / 2)
-    model.name = this.name
+    model.name = this.objName
     // attach the animations to the model Object3D
     model.animations = gObj.animations
     model.animations.forEach(a => {
@@ -133,19 +154,18 @@ export class Character {
         a.name = a.name.replace('CharacterArmature|', '')
       }
     })
-    scene.add(model)
-    this.bong.redraw()
+    this.group.add(model)
+    this.redraw()
     return model
   }
 
   deleteCharacter () {
-    const scene = this.bong.screen.scene
-    const e = scene.getObjectByName(this.name)
+    const e = this.group.getObjectByName(this.name)
     if (!e) { return }
     depthFirstReverseTraverse(null, e, generalObj3dClean)
     e.removeFromParent()
     this.screen.removeMixer(this.name)
-    this.bong.redraw()
+    this.redraw()
   }
 
   /**

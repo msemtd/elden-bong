@@ -1,6 +1,6 @@
-import { MiniGameBase } from './MiniGameBase'
 import * as THREE from 'three'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { MiniGameBase } from './MiniGameBase'
 import { Screen } from './Screen'
 
 export class DemoCube extends MiniGameBase {

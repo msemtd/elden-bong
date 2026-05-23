@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { CardsDude } from './CardsDude/CardsDude'
+import { Character } from './Character'
 import { DemoCube } from './DemoCube'
 import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
@@ -53,7 +54,7 @@ import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForeca
  * TODO: common game state changes - pause, resume, reset, game over, win, lose
  * TODO: common requirements - sound, music, high scores, settings
  */
-class MiniGames extends THREE.EventDispatcher {
+export class MiniGames extends THREE.EventDispatcher {
   constructor (parent) {
     super()
     console.assert(parent instanceof THREE.EventDispatcher)
@@ -63,6 +64,7 @@ class MiniGames extends THREE.EventDispatcher {
     // cSpell:ignore Tetris Doyoh Marain
     this.games = {
       demoCube: new DemoCube(this),
+      character: new Character(this),
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),
@@ -193,6 +195,3 @@ class MiniGames extends THREE.EventDispatcher {
     }
   }
 }
-
-export { MiniGames }
-

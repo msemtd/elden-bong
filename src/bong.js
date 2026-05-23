@@ -25,7 +25,6 @@ import { isInteger } from './wahWah'
 import { FileDrop } from './FileDrop'
 import { SoundBoard } from './SoundBoard'
 import { AboutBox } from './AboutBox'
-import { Character } from './Character'
 
 const regionNames = bongData.regions.map(x => x.name)
 let instance = null
@@ -74,7 +73,6 @@ class Bong extends THREE.EventDispatcher {
     //   free-camera-movement gameplay, exploration, etc.
     // - maybe map-mode can be munged into the mini-game model?
     this.mapModeData = null
-    this.characterModeData = null
     this.mapMan = new MapMan()
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
@@ -106,7 +104,6 @@ class Bong extends THREE.EventDispatcher {
     this.fileDrop = new FileDrop()
     this.fileDrop.init(c.container, this.fileDropHandler.bind(this), this.urlDropHandler.bind(this))
     this.miniGames = null
-    this.character = new Character(this)
     this.makeGui()
     this.gui.close()
     const overlay = $('<div id="overlay"><div id="you-died">YOU DIED</div><div id="region-intro" class="big-elden-text">This Region!</div></div>').appendTo('body')
@@ -149,8 +146,6 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this.PROPS, 'resetCamera')
       fld.add(this, 'mapMode')
       fld.add(this, 'mapModeOff')
-      fld.add(this, 'characterMode')
-      fld.add(this, 'characterModeOff')
     }
     {
       const fld = this.gui.addFolder('Maps').close()
@@ -164,14 +159,6 @@ class Bong extends THREE.EventDispatcher {
       fld.add(this, 'sliceBigMap').name('slice big map')
       fld.add(this, 'loadMapJson').name('load map json')
       fld.add(this, 'loadMapIcons').name('load map icons')
-    }
-    {
-      const fld = this.gui.addFolder('Character').close()
-      fld.add(this.character, 'testLoadCharacter')
-      fld.add(this.character, 'deleteCharacter')
-      fld.add(this.PROPS.character, 'className', bongData.characterClasses).onChange(v => {
-        this.character.changeCharacter(v, fld)
-      })
     }
     {
       const fld = this.gui.addFolder('Test').close()
@@ -700,38 +687,6 @@ class Bong extends THREE.EventDispatcher {
     this.mapModeData.mapControls.dispose()
     this.mapModeData = null
     s.resizeRequired = true
-  }
-
-  characterMode () {
-    if (this.mapModeData) {
-      this.mapModeOff()
-    }
-    if (this.characterModeData) {
-      return Dlg.errorDialog('characterMode already activated!')
-    }
-    const s = this.screen
-    // target the character and be behind it
-    // set up controls just so
-    this.characterModeData = {
-      // position and direction is implicit but animations need to be tracked
-      loadedCharacter: s.scene.getObjectByName('character')
-    }
-    // add a mixer for live character movement
-    s.addMixer('characterLive', (_delta) => {
-      // read inputs - figure out what happened and act
-      const redraw = this.userControls.characterActOnInputs(this.characterModeData?.loadedCharacter, _delta)
-      return redraw
-    })
-  }
-
-  characterModeOff () {
-    if (!this.characterModeData) {
-      return Dlg.errorDialog('characterMode not activated!')
-    }
-    // TODO whatever is required to do whatever
-    this.characterModeData = null
-    const s = this.screen
-    s.removeMixer('characterLive')
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
