@@ -2,7 +2,7 @@ import { MiniGameBase } from '../MiniGameBase'
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import * as THREE from 'three'
 import { Bong } from '../bong.js'
-import { WorldMap, MapMan } from '../WorldMap'
+import { WorldMap, MapMan } from './WorldMap'
 import { DataDir } from '../DataDir'
 import { listZipFileContents } from '../HandyApi'
 /**

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { CardsDude } from './CardsDude/CardsDude'
+import { DemoCube } from './DemoCube'
 import { GeoRefMiniGame } from './GeoRef/GeoRefMiniGame'
 import { JapaneseStudy } from './JapaneseStudy/JapaneseStudy'
 import { KaraokePlayer } from './JapaneseStudy/songs/KaraokePlayer'
@@ -61,6 +62,7 @@ class MiniGames extends THREE.EventDispatcher {
     this.group.name = 'Mini-Games'
     // cSpell:ignore Tetris Doyoh Marain
     this.games = {
+      demoCube: new DemoCube(this),
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),

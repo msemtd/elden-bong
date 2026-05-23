@@ -20,10 +20,6 @@ const defaultSettings = {
     axes: {
       visible: true,
     },
-    demoCube: {
-      rotating: true,
-      visible: true,
-    },
     background: {
       colour: '#000000',
       x11Colour: 'black',

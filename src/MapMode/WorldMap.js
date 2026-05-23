@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { tileFile, getPad } from './util'
+import { tileFile, getPad } from '../util'
 
 class WorldMap extends THREE.Group {
   constructor (name) {

@@ -1,7 +1,7 @@
-import { awaitableSubProcess } from './SubProc'
+import { awaitableSubProcess } from '../SubProc'
 import fs from 'fs-extra'
 import path from 'path'
-import { identifyDataParse, rxBetween, tileFile, xyToIndex, getPad } from './util'
+import { identifyDataParse, rxBetween, tileFile, xyToIndex, getPad } from '../util'
 
 /**
  * Main process map support

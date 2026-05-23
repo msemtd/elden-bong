@@ -1,7 +1,7 @@
 import debug from 'debug'
 import fs from 'fs-extra'
 import path from 'path'
-import { MainMap } from './MainMap'
+import { MainMap } from './MapMode/MainMap'
 import { mineToFilePath, filePathToMine } from './util'
 import { app, BrowserWindow, ipcMain, net, protocol, dialog, shell } from 'electron'
 import { LuaFengari } from './LuaFengari'

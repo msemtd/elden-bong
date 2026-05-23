@@ -9,7 +9,7 @@ import ntc from '@yatiac/name-that-color'
 import path from 'path-browserify'
 
 import { Screen } from './Screen'
-import { MapMan } from './WorldMap'
+import { MapMan } from './MapMode/WorldMap'
 import { GamepadManager } from './GamepadManager'
 import { pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile } from './HandyApi'
 import { filePathToMine, isInputEvent } from './util'
@@ -105,7 +105,6 @@ class Bong extends THREE.EventDispatcher {
     this.addCamInfo(c)
     this.fileDrop = new FileDrop()
     this.fileDrop.init(c.container, this.fileDropHandler.bind(this), this.urlDropHandler.bind(this))
-    // this.addDemoCube(c)
     this.miniGames = null
     this.character = new Character(this)
     this.makeGui()
@@ -238,14 +237,6 @@ class Bong extends THREE.EventDispatcher {
         const fld = s.addFolder('Axes')
         fld.add(sp.axes, 'visible').onChange(v => {
           const g = this.screen.scene.getObjectByName('axesHelper')
-          if (g) g.visible = v
-        })
-      }
-      {
-        const fld = s.addFolder('Demo Cube')
-        fld.add(sp.demoCube, 'rotating')
-        fld.add(sp.demoCube, 'visible').onChange(v => {
-          const g = this.screen?.scene?.getObjectByName('demoCube')
           if (g) g.visible = v
         })
       }
@@ -774,21 +765,6 @@ class Bong extends THREE.EventDispatcher {
       }
     }, 100)
     c.updateCamInfo()
-  }
-
-  addDemoCube (c) {
-    const p = this.PROPS.scene.demoCube
-    const geometry = new THREE.BoxGeometry(1.2, 1.2, 0.5)
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-    const cube = new THREE.Mesh(geometry, material)
-    cube.name = 'demoCube'
-    c.scene.add(cube)
-    c.addMixer('demoCube', (_delta) => {
-      if (!p.rotating) return false
-      // cube.rotation.x += 0.01;
-      cube.rotation.z += 0.01
-      return true
-    })
   }
 
   singleClick (ev, mousePos) {

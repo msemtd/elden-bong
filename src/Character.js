@@ -39,10 +39,13 @@ const characterMappings = {
 export class Character {
   constructor (bong) {
     this.bong = bong
+    this.screen = bong.screen
+    this.name = 'character'
     // when we switch characters we want to fix up all the objects
-    this.mixer = null
-    this.currentAction = null
+    this.animationMixer = null
+    this.currentAction = '[none]'
     this.animationsMap = null
+    this.fadeDuration = 0.25
     this.staticCharacterModelsDir = ''
     // start off with an OrbitControls or go straight to camera-controls
     // how to mesh with the existing camera and controls which is managed by
@@ -70,35 +73,47 @@ export class Character {
     }
     const fp = path.join(this.staticCharacterModelsDir, glb)
     const model = await this.loadCharacter(fp)
-    // GUI folder fun...
+    // set up animation clips/actions/whatever
+    this.animationMixer = new THREE.AnimationMixer(model)
+    this.animationsMap = new Map()
+    model.animations.forEach(a => { this.animationsMap.set(a.name, this.animationMixer.clipAction(a)) })
+    this.screen.removeMixer(this.name)
+    this.screen.addMixer(this.name, this.animationLoop.bind(this))
+    // GUI folder fixup...
     if (fld instanceof GUI) {
-      this.mixer = new THREE.AnimationMixer(model)
-      this.animationsMap = new Map()
-      model.animations.forEach(a => {
-        this.animationsMap.set(a.name, a)
-      })
       const PROPS = { animation: '[none]' }
       const animations = Array.from(this.animationsMap.keys())
       console.log(animations)
       animations.unshift(PROPS.animation)
-      const existingController = fld.controllers.find(c => c.property === 'animation')
-      if (existingController) {
-        const existingValue = existingController.getValue()
+      const existingGuiController = fld.controllers.find(c => c.property === 'animation')
+      if (existingGuiController) {
+        const existingValue = existingGuiController.getValue()
         if (PROPS.animation !== existingValue && animations.includes(existingValue)) {
           PROPS.animation = existingValue
         }
-        existingController.destroy()
+        existingGuiController.destroy()
       }
-      fld.add(PROPS, 'animation', animations).onChange(v => {
-        console.log('animation change: ' + v)
-      })
+      fld.add(PROPS, 'animation', animations).onChange(v => { this.changeAnimation(v) })
     }
+  }
+
+  changeAnimation (v) {
+    console.log(`animation change: from '${this.currentAction}' to ${v}`)
+    const currentClip = this.animationsMap.get(this.currentAction)
+    currentClip?.fadeOut(0.2)
+    const newClip = this.animationsMap.get(v)
+    newClip?.reset().fadeIn(0.2).play()
+    this.currentAction = v
+  }
+
+  animationLoop (delta) {
+    this.animationMixer?.update(delta)
+    return true
   }
 
   async loadCharacter (fp) {
     const scene = this.bong.screen.scene
-    const name = 'character'
-    const e = scene.getObjectByName(name)
+    const e = scene.getObjectByName(this.name)
     if (e) {
       depthFirstReverseTraverse(null, e, generalObj3dClean)
       e.removeFromParent()
@@ -110,7 +125,7 @@ export class Character {
     const gObj = await loader.parseAsync(buffer.buffer, '')
     const model = gObj.scene
     model.rotateX(Math.PI / 2)
-    model.name = name
+    model.name = this.name
     // attach the animations to the model Object3D
     model.animations = gObj.animations
     model.animations.forEach(a => {
@@ -125,10 +140,11 @@ export class Character {
 
   deleteCharacter () {
     const scene = this.bong.screen.scene
-    const e = scene.getObjectByName('character')
+    const e = scene.getObjectByName(this.name)
     if (!e) { return }
     depthFirstReverseTraverse(null, e, generalObj3dClean)
     e.removeFromParent()
+    this.screen.removeMixer(this.name)
     this.bong.redraw()
   }
 
