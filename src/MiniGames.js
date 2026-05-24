@@ -65,6 +65,7 @@ export class MiniGames extends THREE.EventDispatcher {
     this.games = {
       demoCube: new DemoCube(this),
       character: new Character(this),
+      mapMode: new MapMode(this),
       cardsDude: new CardsDude(this),
       moanSwooper: new MoanSwooper(this),
       shedBuilder: new ShedBuilder(this),
@@ -81,7 +82,6 @@ export class MiniGames extends THREE.EventDispatcher {
       karaokePlayer: new KaraokePlayer(this),
       videoCache: new VideoCacheGui(this),
       physics: new Physics(this),
-      mapMode: new MapMode(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''

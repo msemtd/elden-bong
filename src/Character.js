@@ -104,7 +104,6 @@ export class Character extends MiniGameBase {
     if (fld instanceof GUI) {
       const PROPS = { animation: '[none]' }
       const animations = Array.from(this.animationsMap.keys())
-      console.log(animations)
       animations.unshift(PROPS.animation)
       const existingGuiController = fld.controllers.find(c => c.property === 'animation')
       if (existingGuiController) {
@@ -115,7 +114,7 @@ export class Character extends MiniGameBase {
         existingGuiController.destroy()
       }
       fld.add(PROPS, 'animation', animations).onChange(v => { this.changeAnimation(v) })
-      this.changeAnimation(PROPS.animation)
+      this.changeAnimation(PROPS.animation) // also start the animation
     }
   }
 

@@ -1,35 +1,32 @@
 // cSpell:ignore yatiac
+import ntc from '@yatiac/name-that-color'
+import $ from 'jquery'
+import path from 'path-browserify'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import Stats from 'three/addons/libs/stats.module.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import $ from 'jquery'
-import ntc from '@yatiac/name-that-color'
-import path from 'path-browserify'
-
-import { Screen } from './Screen'
-import { MapMan } from './MapMode/WorldMap'
-import { GamepadManager } from './GamepadManager'
-import { pickFile, loadJsonFile, loadTextFileLines, loadBinaryFile } from './HandyApi'
-import { filePathToMine, isInputEvent } from './util'
-import { defaultSettings, loadSettings, saveTheseSettings, distributeSettings } from './settings'
-import { Dlg } from './dlg'
-import { Mouse } from './Mouse'
-import { bongData } from './bongData'
-import { VanStuff } from './VanStuff'
-import { UserControls } from './Controls'
-import { MiniGames } from './MiniGames'
-import { addGrid } from './threeUtil'
-import { isInteger } from './wahWah'
-import { FileDrop } from './FileDrop'
-import { SoundBoard } from './SoundBoard'
 import { AboutBox } from './AboutBox'
+import { bongData } from './bongData'
+import { UserControls } from './Controls'
+import { Dlg } from './dlg'
+import { FileDrop } from './FileDrop'
+import { GamepadManager } from './GamepadManager'
+import { loadBinaryFile, pickFile } from './HandyApi'
+import { MiniGames } from './MiniGames'
+import { Mouse } from './Mouse'
+import { Screen } from './Screen'
+import { defaultSettings, distributeSettings, loadSettings, saveTheseSettings } from './settings'
+import { SoundBoard } from './SoundBoard'
+import { addGrid } from './threeUtil'
+import { filePathToMine, isInputEvent } from './util'
+import { VanStuff } from './VanStuff'
+import { isInteger } from './wahWah'
 
 const regionNames = bongData.regions.map(x => x.name)
 let instance = null
 
-class Bong extends THREE.EventDispatcher {
+export class Bong extends THREE.EventDispatcher {
   constructor (appDiv) {
     super()
     instance = this
@@ -67,13 +64,6 @@ class Bong extends THREE.EventDispatcher {
       // this needs to be validated surely?
       gameState: { ...this.settings.gameState },
     }
-    // With regards to map-mode and character-mode:
-    // - character mode is really just "anything that isn't map mode"! Or use of
-    //   a perspective camera rather than an orthographic camera, covering any
-    //   free-camera-movement gameplay, exploration, etc.
-    // - maybe map-mode can be munged into the mini-game model?
-    this.mapModeData = null
-    this.mapMan = new MapMan()
     // track what we are busy doing here - enforce only one job at a time...
     this.busyDoing = ''
     this.slicerDialog = null
@@ -156,9 +146,6 @@ class Bong extends THREE.EventDispatcher {
         const i = regionNames.findIndex(x => x === v)
         this.changeRegionByNumber(i)
       })
-      fld.add(this, 'sliceBigMap').name('slice big map')
-      fld.add(this, 'loadMapJson').name('load map json')
-      fld.add(this, 'loadMapIcons').name('load map icons')
     }
     {
       const fld = this.gui.addFolder('Test').close()
@@ -452,17 +439,17 @@ class Bong extends THREE.EventDispatcher {
   // TODO make this an event listener interface?
   notifyFromMain (event, topic, msg) {
     // specifics for job topics...
-    if (topic === 'sliceBigMap') {
-      console.log('main: ', topic, msg)
-      // TODO find progress bar and update it
-      if (this.slicerDialog) {
-        // get the content and replace it
-        let p = msg.replace('stdout: ', '')
-        p = p.replace(topic, '')
-        this.slicerDialog.setContent(`progress: ${p}`, true)
-      }
-      return
-    }
+    // if (topic === 'sliceBigMap') {
+    //   console.log('main: ', topic, msg)
+    //   // TODO find progress bar and update it
+    //   if (this.slicerDialog) {
+    //     // get the content and replace it
+    //     let p = msg.replace('stdout: ', '')
+    //     p = p.replace(topic, '')
+    //     this.slicerDialog.setContent(`progress: ${p}`, true)
+    //   }
+    //   return
+    // }
     if (topic === 'skyBoxList') {
       this.setSkyBoxList(msg)
       if (this.settings.scene.background?.skyBox) {
@@ -512,43 +499,6 @@ class Bong extends THREE.EventDispatcher {
     }
   }
 
-  async sliceBigMap () {
-    if (this.busyDoing) {
-      Dlg.errorDialog('busy doing something else!')
-      return
-    }
-    const p = await pickFile()
-    if (p.canceled || !Array.isArray(p.filePaths) || !p.filePaths.length || !p.filePaths[0]) return
-    const fp = p.filePaths[0]
-    try {
-      // pop persistent dialog that should stay up until end of job, receive
-      // progress notifications, etc.
-      const id = 'slicerDialog'
-      if (!$(`#${id}`).length) {
-        const h = `<div id="${id}" style="display:none;width:600px;">`
-        const div = $(h).appendTo(this.screen.container)
-        div.append('Starting to slice...')
-      }
-      this.slicerDialog = Dlg.tempDialogShow({ title: 'Map Slicing', theme: 'tpDialog' }, $(`#${id}`))
-      const magick = this.settings.tools.magick
-      const sliceCommand = this.settings.tools.sliceCommand
-      const prefix = 'aSplitMapMyPrefix-'
-      const tileSize = 256
-      const identifyData = await window.handy.identifyImage({ fp, magick })
-      console.dir(identifyData)
-      this.busyDoing = ''
-      const mapJsonFile = await window.handy.sliceBigMap({ fp, magick, sliceCommand, prefix, tileSize, identifyData })
-      this.busyDoing = ''
-      this.slicerDialog?.close()
-      // const response = Dlg.prompt('Map processed. Load it?', ['Y', 'N'])
-      // if (response !== 'Y') { return }
-      // await loadMapJson2(mapJsonFile)
-    } catch (error) {
-      console.log('nah mate')
-      console.log(error)
-    }
-  }
-
   async testIdentify () {
     const p = await pickFile()
     if (p.canceled || !Array.isArray(p.filePaths) || !p.filePaths.length || !p.filePaths[0]) return
@@ -564,129 +514,6 @@ class Bong extends THREE.EventDispatcher {
 
   redraw () {
     this.screen.forceRedraw = true
-  }
-
-  async loadMapJson (fileIn) {
-    try {
-      async function pick () {
-        const info = await pickFile()
-        if (info.canceled || !Array.isArray(info.filePaths) || !info.filePaths.length) return
-        return info.filePaths[0]
-      }
-      const fp = fileIn || await pick()
-      if (!fp) { return }
-      const data = await loadJsonFile(fp)
-      const pp = path.parse(fp)
-      this.mapMan.loadMapData(data, filePathToMine(pp.dir), this.screen.scene, () => { this.redraw() })
-    } catch (error) {
-      Dlg.errorDialog(error)
-    }
-  }
-
-  async loadMapIcons () {
-    try {
-      const pg = this.screen.scene
-      if (pg.getObjectByName('mapIconSets')) {
-        throw Error('group named \'mapIconSets\' already exists')
-      }
-      const pi = await pickFile()
-      if (pi.canceled || !Array.isArray(pi.filePaths) || !pi.filePaths.length || !pi.filePaths[0]) return
-      const fp = pi.filePaths[0]
-      const lines = await loadTextFileLines(fp)
-      const data = this.mapMan.iconsFromText(lines)
-      const mapIconSets = new THREE.Group()
-      mapIconSets.name = 'mapIconSets'
-      this.screen.scene.add(mapIconSets)
-      const fld = this.gui.addFolder('mapIconSets')
-      fld.add(mapIconSets, 'visible')
-      fld.onChange(() => { this.redraw() })
-      for (const [k, v] of Object.entries(data.mapIds)) {
-        const g = new THREE.Group()
-        g.name = k
-        g.userData = v
-        mapIconSets.add(g)
-        const fld2 = fld.addFolder(k)
-        fld2.add(g, 'visible')
-        fld2.add(g, 'userData').disable()
-      }
-      this.mapMan.addCoolIcons(data.myCoolIcons, mapIconSets)
-      const v = 0.017
-      const p = {
-        scaleFactor: v,
-        iconType: 'all',
-        translate: {
-          x: 0,
-          y: 31.5,
-          z: 0,
-        }
-      }
-      const d = p.translate
-      mapIconSets.scale.set(v, -v, v)
-      mapIconSets.position.set(d.x, d.y, d.z)
-      const allIconTypes = ['all', ...Object.keys(data.iconTypes)]
-      fld.add(p, 'iconType', allIconTypes).onChange((v) => {
-        for (const map of mapIconSets.children) {
-          for (const icon of map.children) {
-            icon.visible = (v === 'all' || icon.userData?.iconType === v)
-          }
-        }
-      })
-      fld.add(p, 'scaleFactor', 0.010, 0.050, 0.001).onChange((v) => {
-        mapIconSets.scale.set(v, -v, v)
-      })
-      fld.add(p.translate, 'x').onChange((v) => {
-        mapIconSets.position.setX(v)
-      })
-      fld.add(p.translate, 'y').onChange((v) => {
-        mapIconSets.position.setY(v)
-      })
-      this.mapIconSets = mapIconSets
-    } catch (error) {
-      Dlg.errorDialog(error)
-    }
-    this.redraw()
-  }
-
-  mapMode () {
-    if (this.mapModeData) {
-      return Dlg.popup('mapMode already activated!', 'Hmm')
-    }
-    const s = this.screen
-    const mmd = this.mapModeData = {
-      savedCamera: s.camera,
-      mapControls: null,
-    }
-    s.cameraControls.enabled = false
-    const oc = new THREE.OrthographicCamera()
-    oc.position.z = 5
-    s.camera = oc
-    const mc = new OrbitControls(oc, s.container)
-    mc.enableRotate = false
-    mc.mouseButtons = {
-      LEFT: THREE.MOUSE.PAN,
-      MIDDLE: THREE.MOUSE.ZOOM,
-      RIGHT: THREE.MOUSE.PAN,
-    }
-    mmd.mapControls = mc
-    s.addMixer('mapControls', (_delta) => {
-      mc.update()
-      return true
-    })
-    s.resizeRequired = true
-  }
-
-  mapModeOff () {
-    if (!this.mapModeData) {
-      return Dlg.popup('mapMode not activated!', 'Hmm')
-    }
-    const s = this.screen
-    // const oc = s.camera
-    s.removeMixer('mapControls')
-    s.camera = this.mapModeData.savedCamera
-    s.cameraControls.enabled = true
-    this.mapModeData.mapControls.dispose()
-    this.mapModeData = null
-    s.resizeRequired = true
   }
 
   testDialog () { Dlg.errorDialog("that wasn't great!") }
@@ -768,5 +595,3 @@ class Bong extends THREE.EventDispatcher {
     p.add(g)
   }
 }
-
-export { Bong }
