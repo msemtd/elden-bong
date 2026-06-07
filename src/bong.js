@@ -130,15 +130,8 @@ export class Bong extends THREE.EventDispatcher {
   }
 
   makeGui () {
-    this.gui.add(this.light, 'intensity', 0, 15, 0.01).onChange(this.redraw.bind(this))
     {
       const fld = this.gui.addFolder('Base Actions').close()
-      fld.add(this.PROPS, 'resetCamera')
-      fld.add(this, 'mapMode')
-      fld.add(this, 'mapModeOff')
-    }
-    {
-      const fld = this.gui.addFolder('Maps').close()
       const loc = {
         location: regionNames[this.PROPS.gameState.region]
       }
@@ -146,6 +139,8 @@ export class Bong extends THREE.EventDispatcher {
         const i = regionNames.findIndex(x => x === v)
         this.changeRegionByNumber(i)
       })
+      fld.add(this.PROPS, 'resetCamera')
+      fld.add(this.light, 'intensity', 0, 15, 0.01).onChange(this.redraw.bind(this))
     }
     {
       const fld = this.gui.addFolder('Test').close()
