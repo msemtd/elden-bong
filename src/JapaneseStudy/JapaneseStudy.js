@@ -15,23 +15,23 @@
  * cSpell:words kanjivg heisig hepburn jlpt Misa Jisho Keita Wanikani kumo jgrpg Kyouiku Anki NihongoKantan Kyōiku
  */
 
-import * as THREE from 'three'
-import { generalObj3dClean } from '../threeUtil'
-import { Bong } from '../bong'
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
-import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
-import { MiniGameBase } from '../MiniGameBase'
-import { getN5KanjiTab, getN5VocabTab } from './jlptN5Help'
-import $ from 'jquery'
-import { shellOpenExternal, loadTextFile } from '../HandyApi'
-import { Screen } from '../Screen'
 import CameraControls from 'camera-controls'
-import { KanjiByFrequency } from './KanjiByFrequency'
-import { filePathToMine } from '../util'
-import { loadSettings, saveTheseSettings } from '../settings'
 import * as hepburn from 'hepburn'
+import $ from 'jquery'
+import * as THREE from 'three'
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js'
 import animeClassroom from '../../stuff/anime_classroom.glb'
+import { Bong } from '../bong'
+import { loadTextFile, shellOpenExternal } from '../HandyApi'
+import { MiniGameBase } from '../MiniGameBase'
+import { Screen } from '../Screen'
+import { loadSettings, saveTheseSettings } from '../settings'
+import { depthFirstReverseTraverse, generalObj3dClean } from '../threeUtil'
+import { filePathToMine } from '../util'
+import { getN5KanjiTab, getN5VocabTab } from './jlptN5Help'
+import { KanjiByFrequency } from './KanjiByFrequency'
 
 class JapaneseStudy extends MiniGameBase {
   constructor (parent) {
@@ -309,10 +309,16 @@ class JapaneseStudy extends MiniGameBase {
     const f = `${kvgDir}/kanji/${cp}.svg`
     const url = filePathToMine(f)
     const alreadyGotData = await loadTextFile(f)
-    await this.loadSvg(url, this.screen.scene, alreadyGotData)
+
+    depthFirstReverseTraverse(null, this.screen.scene.getObjectByName('trySomeSvg'), generalObj3dClean)
+    const parent = new THREE.Group()
+    parent.name = 'trySomeSvg'
+    this.screen.scene.add(parent)
+    // TODO - place on the blackboard in the classroom!
+    await this.loadSvg(url, parent, alreadyGotData)
   }
 
-  async loadSvg (url, scene, alreadyGotData) {
+  async loadSvg (url, parent, alreadyGotData) {
     // taken from https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_svg.html
     const guiData = {
       currentURL: '',
@@ -325,9 +331,10 @@ class JapaneseStudy extends MiniGameBase {
     const callback = (data) => {
       const group = new THREE.Group()
       group.scale.multiplyScalar(0.1)
-      group.position.x = 5
-      group.position.y = 5
-      group.position.z = 1
+      // let the parent do the positioning
+      // group.position.x = 5
+      // group.position.y = 5
+      // group.position.z = 1
       group.scale.y *= -1
       let renderOrder = 0
       for (const path of data.paths) {
@@ -369,7 +376,7 @@ class JapaneseStudy extends MiniGameBase {
           }
         }
       }
-      scene.add(group)
+      parent.add(group)
     }
     if (alreadyGotData) {
       const parsedData = loader.parse(alreadyGotData)

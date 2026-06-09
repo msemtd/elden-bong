@@ -5,6 +5,7 @@ export class SoreGaDaiji extends SongBase {
   constructor () {
     super('それが大事 (Sore Ga Daiji)', 'DaijiMAN Brothers Band', 2007)
     this.video = 'https://www.youtube.com/watch?v=aCMt0H31msk'
+    // https://medley.bepis.io/wiki/Sore_ga_Daiji
     this.music = 'https://www.hooktheory.com/theorytab/view/daijiman-brothers-band/sore-ga-daiji'
 
     const a = AboutSongs.layouts
