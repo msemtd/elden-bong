@@ -250,6 +250,8 @@ Primitive object creation and property hacking is handy and creating objects
 located relative to the camera is super cool.
 e.g. a controllable depth into the 3D scene gives us more control.
 
+TODO: add a ViewHelper (sometimes though of as a compass) for certain modes examples/jsm/helpers/ViewHelper.js
+
 Add a sound board for webpack resource and on-disk files - see what the limits are.
 https://gist.github.com/PtrMan/b3ff012785ad9e93f7db1a0f031fc2b2
 
@@ -337,6 +339,7 @@ I can just bundle all my other throwaway junk apps in here and use this app as a
 * some sort of integration of Crochet Parade https://www.crochetparade.org/Manual.html
 * Kikkoman bottle https://youtu.be/pBl4YXzCxXg
 * Matcha - tile swapping matching 3-in-a-row game
+* Jun Togawa's (戸川純) influential Washlet (ウォシュレット) commercial of 1982 (https://www.youtube.com/watch?v=xi-r2AqDasQ)
 
 2D game mode with "mostly" fixed camera - allow user to choose a nice camera position (relative to gameplay board) and save it in a list of favourites. Pause and resume of sub-games.
 Maybe tie into the Elden Bong narrative and use them as side-quests!
