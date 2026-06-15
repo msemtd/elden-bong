@@ -79,7 +79,7 @@ export class VideoCacheMain {
     } else {
       const args = [url]
       if (xa) {
-        args.push('--extract-audio', '--audio-format', 'mp3')
+        args.push('-t', 'mp3')
       }
       if (this.ffmpegPath) {
         args.push('--ffmpeg-location', this.ffmpegPath)

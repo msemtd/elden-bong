@@ -11,7 +11,7 @@ import { videoCache } from '../HandyApi'
 import { Dlg } from '../dlg'
 import { Bong } from '../bong'
 
-const { p, div, button, input, label, span, table, tbody, thead, td, th, tr, br } = van.tags
+const { p, div, button, input, textarea, label, span, table, tbody, thead, td, th, tr, br } = van.tags
 
 export class VideoCacheGui extends MiniGameBase {
   constructor (parent) {
@@ -43,6 +43,9 @@ export class VideoCacheGui extends MiniGameBase {
     this.popWindow()
   }
 
+  /**
+   * Dialog with captured console output - resizeable
+   */
   popWindow () {
     // exe path configured?
     if (!this.props.exePath) { return Dlg.errorDialog('Please set the exePath in the settings before running this.') }
@@ -64,12 +67,17 @@ export class VideoCacheGui extends MiniGameBase {
     van.add(document.body,
       FloatingWindow({ title, closed, width, height, childrenContainerStyleOverrides },
         div({ id, class: 'videoCacheGui' },
-          p('yo'),
-          button({ onclick: () => { this.vpHelp() } }, 'run help'),
-          input({ type: 'text', value: inputText, oninput: e => { inputText.val = e.target.value } }),
-          'audio',
-          input({ type: 'checkbox', checked: xa, oninput: e => { xa.val = e.target.checked } }),
-          button({ onclick: () => { this.download(inputText.val, xa.val) } }, 'download'),
+          div({ class: 'topBit' },
+            p('yo'),
+            button({ onclick: () => { this.vpHelp() } }, 'run help'),
+            input({ type: 'text', value: inputText, oninput: e => { inputText.val = e.target.value } }),
+            'mp3',
+            input({ type: 'checkbox', checked: xa, oninput: e => { xa.val = e.target.checked } }),
+            button({ onclick: () => { this.download(inputText.val, xa.val) } }, 'download'),
+          ),
+          div({ class: 'consoleBit' },
+            textarea({ style: 'width: 100%; height: 100%, overflow-y: auto;', rows: 20, }),
+          )
         ),
       )
     )
