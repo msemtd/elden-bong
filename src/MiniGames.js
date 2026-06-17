@@ -21,6 +21,7 @@ import { SumoDoyoh } from './SumoDoyoh/SumoDoyoh'
 import { Tetris } from './Tetris/Tetris'
 import { VideoCacheGui } from './VideoCache/VideoCacheGui'
 import { WeatherForecastForecast } from './WeatherForecastForecast/WeatherForecastForecast'
+import { SceneEditor } from './SceneEditor/SceneEditor'
 
 /**
  * Allow the mini-games wrapper provide a games room
@@ -82,6 +83,7 @@ export class MiniGames extends THREE.EventDispatcher {
       karaokePlayer: new KaraokePlayer(this),
       videoCache: new VideoCacheGui(this),
       physics: new Physics(this),
+      sceneEditor: new SceneEditor(this),
     }
     this.autoRunMiniGame = ''
     this.autoOpenGuiFolder = ''
@@ -146,6 +148,11 @@ export class MiniGames extends THREE.EventDispatcher {
     }
   }
 
+  /**
+   * Currently the individual games that are interested must be added here.
+   * There can be multiple "active" games. What "active" actually means is
+   * broadly up to the individual game I suppose.
+   */
   stealIntersectForGame (ev, mousePos, raycaster) {
     if (this.games.cardsDude.active) {
       return this.games.cardsDude.stealIntersectForGame(ev, mousePos, raycaster)
@@ -157,6 +164,9 @@ export class MiniGames extends THREE.EventDispatcher {
   }
 
   offerDoubleClick (ev, mousePos, raycaster) {
+    if (this.games.sceneEditor.active) {
+      return this.games.sceneEditor.doubleClick(ev, mousePos, raycaster)
+    }
     if (this.games.sudoku.active) {
       return this.games.sudoku.offerDoubleClick(ev, mousePos, raycaster)
     }
