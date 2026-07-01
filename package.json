@@ -72,7 +72,8 @@
     "vanjs-core": "^1.5.0",
     "vanjs-ui": "^0.10.0",
     "yargs-parser": "^21.1.1",
-    "yauzl-promise": "^4.0.0"
+    "yauzl-promise": "^4.0.0",
+    "zipperdeedoodah": "^0.0.1"
   },
   "volta": {
     "node": "22.21.1",

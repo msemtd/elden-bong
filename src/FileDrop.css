@@ -1,7 +1,7 @@
 /* FileDrop.css */
 
 
-div#dropCloth {
+div#dropCloth.dropCloth {
   position: absolute;
   background: rgb(0, 0, 0);
   color: rgb(64, 225, 128);
@@ -29,4 +29,36 @@ div#dropZone {
   color: rgb(114, 252, 165);
   text-shadow: 3px 2px 9px #2baf62;
   user-select: none;
+}
+
+div#dropCloth.dropClothNew {
+  position: absolute;
+  background: rgb(0, 0, 0);
+  color: rgb(64, 225, 128);
+  opacity: 0.8;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  /* box-shadow: 0 0 2px rgba(0,0,0,0.5); */
+  text-align: center;
+  display: grid;
+  z-index: 5000;
+}
+
+div#dropCloth.dropClothNew > #div1 {
+	grid-area: 1/1/2/2;
+	background-color: rgba(61,73,130, 0.5);
+}
+div#dropCloth.dropClothNew > #div2 {
+	grid-area: 1/2/2/3;
+	background-color: rgba(150,127,178, 0.5);
+}
+div#dropCloth.dropClothNew > #div3 {
+	grid-area: 2/1/3/2;
+	background-color: rgba(170,204,133, 0.5);
+}
+div#dropCloth.dropClothNew > #div4 {
+	grid-area: 2/2/3/3;
+	background-color: rgba(47,190,104, 0.5);
 }

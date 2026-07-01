@@ -24,6 +24,8 @@ function getFileDataTransferItems (ev) {
   return files.length ? files : false
 }
 
+const tryNewStyle = true
+
 class FileDrop {
   constructor () {
     this.enable()
@@ -44,8 +46,10 @@ class FileDrop {
       }
     })
     // define the drop cloth
-    const html = '<div id="dropCloth" class="dropCloth"><div id="dropZone" class="dropZone">DROP FILES TO LOAD</div></div>'
-    const dc = $(html).appendTo(element)
+    const html = tryNewStyle
+      ? '<div id="dropCloth" class="dropClothNew"><div id="div1">div1</div><div id="div2">div2</div><div id="div3">div3</div><div id="div4">div4</div></div>'
+      : '<div id="dropCloth" class="dropCloth"><div id="dropZone" class="dropZone">DROP FILES TO LOAD</div></div>'
+    const dc = $(html).appendTo(element).hide()
     dc.on('dragover', false)
     dc.on('dragenter', false)
     dc.on('dragleave click', (_ev) => {
