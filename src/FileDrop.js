@@ -36,29 +36,42 @@ class FileDrop {
   disable () { this.enabled = false }
 
   init (element, dropCallback, urlCallback, dragOverSelector) {
-    // first handle drag over for putting up the drop cloth
+    // disable events for entire window?
+    $(window).on('drop', false)
+    $(window).on('dragover', false)
+    $(window).on('dragenter', false)
+    // handle drag enter for putting up the drop cloth
+    // see https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
     const sel = dragOverSelector || element
-    $(sel).on('dragover', (ev) => {
+    $(sel).on('dragenter', (ev) => {
       if (!this.enabled) { return }
       // only interested in file items
       if (getFileDataTransferItems(ev)) {
-        $('#dropCloth').show()
+        // $('#dropCloth').show()
+        ev.originalEvent.dataTransfer.effectAllowed = 'copyLink'
       }
     })
+    // TODO bad flashing if hide on leave
+    // $(sel).on('dragleave', (ev) => {
+    //   $('#dropCloth').hide()
+    // })
     // define the drop cloth
-    const html = tryNewStyle
-      ? '<div id="dropCloth" class="dropClothNew"><div id="div1">div1</div><div id="div2">div2</div><div id="div3">div3</div><div id="div4">div4</div></div>'
-      : '<div id="dropCloth" class="dropCloth"><div id="dropZone" class="dropZone">DROP FILES TO LOAD</div></div>'
-    const dc = $(html).appendTo(element).hide()
-    dc.on('dragover', false)
-    dc.on('dragenter', false)
-    dc.on('dragleave click', (_ev) => {
-      $('#dropCloth').hide()
-      return false
-    })
-    dc.on('drop', (ev) => {
+    // const html = tryNewStyle
+    //   ? '<div id="dropCloth" class="dropClothNew"><div id="div1">div1</div><div id="div2">div2</div><div id="div3">div3</div><div id="div4">div4</div></div>'
+    //   : '<div id="dropCloth" class="dropCloth"><div id="dropZone" class="dropZone">DROP FILES TO LOAD</div></div>'
+    // const dc = $(html).appendTo(element).hide()
+    // dc.on('dragover', false)
+    // dc.on('dragenter', false)
+    // dc.on('dragleave click', (_ev) => {
+    //   console.log('dc dragleave click')
+    //   // TODO gets triggered when moving cursor over child elements and borders for some reason
+    //   // TODO adding a delay to dropCloth show and hide highlights the issue
+    //   $('#dropCloth').hide()
+    //   return false
+    // })
+    $(sel).on('drop', (ev) => {
       ev.preventDefault()
-      $('#dropCloth').hide()
+      // $('#dropCloth').hide()
       const items = getFileDataTransferItems(ev)
       if (!items) { return false }
       // here upon drop (on electron at least) we have access to getAsFile() on items

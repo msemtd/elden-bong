@@ -46,6 +46,11 @@ div#dropCloth.dropClothNew {
   z-index: 5000;
 }
 
+div#dropCloth.dropClothNew > .div {
+  vertical-align: middle;
+  height: 100%;
+}
+
 div#dropCloth.dropClothNew > #div1 {
 	grid-area: 1/1/2/2;
 	background-color: rgba(61,73,130, 0.5);
