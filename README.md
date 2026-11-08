@@ -274,11 +274,12 @@ updated with an overhaul Saturday November 07 2026
 - try to do a clean build maybe - adding functionality bit by bit?
 
 ```BASH
+# use latest electron-forge (whatever that brings) and webpack
 npx create-electron-app@latest elden-bong --template=webpack
 cd elden-bong
 volta pin node@24
 # adding webpack explicitly here even though already installed implicitly above
-npm add -D webpack copy-webpack-plugin
+npm add -D webpack
 npm add -D neostandard eslint
 # add the rest - latest versions...
 npm add three camera-controls jquery js-yaml jbox fs-extra path-browserify debug

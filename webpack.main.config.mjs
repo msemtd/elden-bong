@@ -11,6 +11,6 @@ export default {
     rules,
   },
   output: {
-    copy: [{ from: 'static', to: 'public' }],
+    copy: [{ from: 'static', to: 'static' }],
   },
 }
