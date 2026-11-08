@@ -8,7 +8,6 @@ import { LuaFengari } from './LuaFengari'
 import { E57 } from './e57'
 import { DataDirMain } from './DataDirMain'
 import { VideoCacheMain } from './VideoCache/VideoCacheMain'
-import yauzl from 'yauzl-promise'
 
 const dbg = debug('main')
 debug.enable('main')
@@ -40,6 +39,7 @@ const createWindow = () => {
       // eslint-disable-next-line no-undef
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       // additionalArguments: ['--staticDir=' + staticDir, '--dataDir=' + dataDir.dir],
+      sandbox: false,
     },
   })
   mainWindow.removeMenu()
@@ -232,11 +232,11 @@ async function listZipFileContents (fp) {
   // use yauzl or similar to list zip file contents without extracting
   // this is needed for examining dropped zip files and asking the user what they want to do with them
   const entries = []
-  const zip = await yauzl.open(fp)
-  for await (const entry of zip) {
-    entries.push(`Entry '${entry.filename}' is ${entry.uncompressedSize} b ${entry.compressedSize} b compressed.`)
-  }
-  zip.close()
+  // const zip = await yauzl.open(fp)
+  // for await (const entry of zip) {
+  //   entries.push(`Entry '${entry.filename}' is ${entry.uncompressedSize} b ${entry.compressedSize} b compressed.`)
+  // }
+  // zip.close()
   return entries
 }
 

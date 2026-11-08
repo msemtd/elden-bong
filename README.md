@@ -265,22 +265,32 @@ https://gist.github.com/PtrMan/b3ff012785ad9e93f7db1a0f031fc2b2
 ## Development
 
 From scratch (Friday November 04 2022)...
+updated with an overhaul Saturday November 07 2026
+- move from yarn to npm
+- upgrade electron, linting, three, and any other packages we can
+- webpack and electron forge is quite different
+- having a problem with the web-packed preload
+  https://github.com/electron/electron/issues/35589
+- try to do a clean build maybe - adding functionality bit by bit?
 
 ```BASH
-yarn create electron-app elden-bong --template=webpack
+npx create-electron-app@latest elden-bong --template=webpack
 cd elden-bong
+volta pin node@24
 # adding webpack explicitly here even though already installed implicitly above
-yarn add -D webpack copy-webpack-plugin
-
-# add eslint - I want a configurable lint based on Standard JS (as recommended by eslint-config-standard)
-yarn add -D eslint@8 eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
-# OR migrate to neostandard to move forward
-yarn remove eslint eslint-config-standard eslint-plugin-promise eslint-plugin-import eslint-plugin-n
-
-yarn add -D neostandard eslint
-
+npm add -D webpack copy-webpack-plugin
+npm add -D neostandard eslint
 # add the rest - latest versions...
-yarn add three camera-controls jquery js-yaml jbox fs-extra path-browserify debug
+npm add three camera-controls jquery js-yaml jbox fs-extra path-browserify debug
+
+# NB: npm will not add github repos that don't contain a package.json so the following
+# imports of just data no longer work
+#    "heisig-rtk-index": "https://github.com/cyphar/heisig-rtk-index.git",
+#    "kanjivg": "https://github.com/KanjiVG/kanjivg.git",
+# npm i -D KanjiVG/kanjivg
+# npm i -D cyphar/heisig-rtk-index
+# we need to get npm compatible packages for them, maybe forking and adding capability
+# e.g. the out-of-date https://github.com/mkurcius/kanjivg
 
 ```
 The above can also be used to upgrade the app platform: create a new empty app and compare the results with the current app.
@@ -394,4 +404,3 @@ Many thanks to the many contributors to the many open source libraries and artwo
 * Sky/Cloud boxes created by Zachery "skiingpenguins" Slocum (freezurbern@gmail.com) http://www.freezurbern.com https://opengameart.org/content/skiingpenguins-skybox-pack, license: Creative Commons Attribution-ShareAlike 3.0 Unported License (http://creativecommons.org/licenses/by-sa/3.0/)
 * Grass Texture by p0ss https://opengameart.org/node/9710, license: GPL 2.0 (http://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 * Anime Classroom model by ArielCastilleroV (https://sketchfab.com/ArielCastilleroV) https://sketchfab.com/3d-models/anime-classroom-6e17b75780c044429323cd7ab6a5b83c, license: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-
